@@ -1,32 +1,38 @@
 import React from 'react';
-import { Expense } from '@/types/finance';
-import { CATEGORIES } from '@/services/storage';
+import { Expense, CategoryBudget } from '@/types/finance';
+import { ALL_CATEGORIES } from '@/services/storage';
 import { Card, CardHeader, CardTitle, CardContent } from '@/components/ui/card';
-import { PieChart, Pie, Cell, ResponsiveContainer, Tooltip, Legend } from 'recharts';
+import { PieChart, Pie, Cell, ResponsiveContainer, Tooltip } from 'recharts';
 import { PieChart as PieChartIcon, AlertCircle } from 'lucide-react';
 
 interface ExpensePieChartProps {
   expenses: Expense[];
+  budgets: CategoryBudget[];
   currentMonthLabel: string;
 }
 
-export const ExpensePieChart: React.FC<ExpensePieChartProps> = ({ expenses, currentMonthLabel }) => {
-  // Aggregate expenses by category for current month
+export const ExpensePieChart: React.FC<ExpensePieChartProps> = ({ expenses, budgets, currentMonthLabel }) => {
+  const expenseItems = expenses.filter(e => e.type === 'expense');
+
   const categoryMap: Record<string, number> = {};
   let totalSpent = 0;
 
-  expenses.forEach(exp => {
+  expenseItems.forEach(exp => {
     categoryMap[exp.category] = (categoryMap[exp.category] || 0) + exp.amount;
     totalSpent += exp.amount;
   });
 
   const chartData = Object.entries(categoryMap).map(([categoryName, value]) => {
-    const categoryObj = CATEGORIES.find(c => c.name === categoryName);
+    const categoryObj = ALL_CATEGORIES.find(c => c.name === categoryName);
     const percentage = totalSpent > 0 ? ((value / totalSpent) * 100).toFixed(1) : '0';
+    const budgetObj = budgets.find(b => b.category === categoryName);
+    const limit = budgetObj ? budgetObj.limitAmount : 0;
+
     return {
       name: categoryName,
       value: value,
       percentage: Number(percentage),
+      limit: limit,
       color: categoryObj ? categoryObj.color : '#6B7280',
     };
   }).sort((a, b) => b.value - a.value);
@@ -35,12 +41,17 @@ export const ExpensePieChart: React.FC<ExpensePieChartProps> = ({ expenses, curr
     if (active && payload && payload.length) {
       const data = payload[0].payload;
       return (
-        <div className="bg-slate-900 text-white p-3 rounded-xl shadow-xl text-xs border border-slate-800">
-          <p className="font-bold text-slate-200 mb-1">{data.name}</p>
+        <div className="bg-slate-900 text-white p-3 rounded-xl shadow-xl text-xs border border-slate-800 space-y-1">
+          <p className="font-bold text-slate-200">{data.name}</p>
           <p className="text-emerald-400 font-semibold text-sm">
             R$ {data.value.toLocaleString('pt-BR', { minimumFractionDigits: 2 })}
           </p>
-          <p className="text-slate-400 mt-0.5">{data.percentage}% do total no mês</p>
+          <p className="text-slate-400">{data.percentage}% das despesas do mês</p>
+          {data.limit > 0 && (
+            <p className="text-amber-300 font-medium text-[11px] border-t border-slate-800 pt-1 mt-1">
+              Limite: R$ {data.limit.toLocaleString('pt-BR')}
+            </p>
+          )}
         </div>
       );
     }
@@ -54,9 +65,9 @@ export const ExpensePieChart: React.FC<ExpensePieChartProps> = ({ expenses, curr
           <div className="p-1.5 bg-blue-100 text-blue-700 rounded-lg">
             <PieChartIcon className="w-4 h-4" />
           </div>
-          Divisão por Categoria
+          Divisão de Despesas
         </CardTitle>
-        <span className="text-xs font-semibold px-2.5 py-1 bg-slate-100 text-slate-600 rounded-full">
+        <span className="text-xs font-semibold px-2.5 py-1 bg-slate-100 text-slate-600 rounded-full capitalize">
           {currentMonthLabel}
         </span>
       </CardHeader>
@@ -65,12 +76,11 @@ export const ExpensePieChart: React.FC<ExpensePieChartProps> = ({ expenses, curr
         {chartData.length === 0 ? (
           <div className="flex flex-col items-center justify-center py-12 text-slate-400 text-center flex-1">
             <AlertCircle className="w-10 h-10 mb-2 stroke-1 text-slate-300" />
-            <p className="font-medium text-slate-600 text-sm">Nenhum gasto registrado neste mês</p>
-            <p className="text-xs text-slate-400 mt-1">Adicione uma despesa ao lado para visualizar a divisão gráfica.</p>
+            <p className="font-medium text-slate-600 text-sm">Nenhuma despesa registrada neste mês</p>
+            <p className="text-xs text-slate-400 mt-1">Adicione uma despesa ao lado para visualizar o gráfico por categoria.</p>
           </div>
         ) : (
           <div className="space-y-4">
-            {/* Gráfico de Pizza Recharts */}
             <div className="h-64 sm:h-72 w-full">
               <ResponsiveContainer width="100%" height="100%">
                 <PieChart>
@@ -92,7 +102,6 @@ export const ExpensePieChart: React.FC<ExpensePieChartProps> = ({ expenses, curr
               </ResponsiveContainer>
             </div>
 
-            {/* Legenda Customizada com Valores e Percentuais */}
             <div className="grid grid-cols-1 sm:grid-cols-2 gap-2 pt-2 border-t border-slate-100 max-h-48 overflow-y-auto pr-1">
               {chartData.map(item => (
                 <div key={item.name} className="flex items-center justify-between p-2 rounded-xl bg-slate-50 hover:bg-slate-100/80 transition-colors">

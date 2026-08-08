@@ -1,11 +1,13 @@
 import React, { useState, useEffect } from 'react';
-import { User, Expense, AIAdvice } from '@/types/finance';
+import { User, Expense, AIAdvice, CategoryBudget, TransactionType, CategoryType } from '@/types/finance';
 import { 
   getCurrentUser, 
   logoutUser, 
   getExpenses, 
   addExpense as addExpenseStorage, 
-  deleteExpense as deleteExpenseStorage 
+  deleteExpense as deleteExpenseStorage,
+  getBudgets,
+  saveBudgets
 } from '@/services/storage';
 import { analyzeExpensesWithAI } from '@/services/aiAdvisor';
 import { AuthModal } from '@/components/AuthModal';
@@ -14,40 +16,50 @@ import { SummaryCards } from '@/components/SummaryCards';
 import { ExpenseForm } from '@/components/ExpenseForm';
 import { ExpensePieChart } from '@/components/ExpensePieChart';
 import { ExpenseList } from '@/components/ExpenseList';
+import { MonthPicker } from '@/components/MonthPicker';
+import { BudgetManagerModal } from '@/components/BudgetManagerModal';
+import { ExportImportModal } from '@/components/ExportImportModal';
 import { AIAdvisorModal } from '@/components/AIAdvisorModal';
 import { Button } from '@/components/ui/button';
-import { Sparkles, BrainCircuit } from 'lucide-react';
+import { Sparkles, BrainCircuit, Target, Download } from 'lucide-react';
 import { showSuccess } from '@/utils/toast';
 
 const Index = () => {
+  const today = new Date();
   const [currentUser, setCurrentUser] = useState<User | null>(null);
   const [expenses, setExpenses] = useState<Expense[]>([]);
+  const [budgets, setBudgets] = useState<CategoryBudget[]>([]);
+
+  // Navegação de Mês/Ano
+  const [selectedYear, setSelectedYear] = useState<number>(today.getFullYear());
+  const [selectedMonth, setSelectedMonth] = useState<number>(today.getMonth());
+
+  // Modais
   const [isAIModalOpen, setIsAIModalOpen] = useState(false);
+  const [isBudgetModalOpen, setIsBudgetModalOpen] = useState(false);
+  const [isExportModalOpen, setIsExportModalOpen] = useState(false);
+  
   const [aiAdvice, setAiAdvice] = useState<AIAdvice | null>(null);
   const [isAnalyzing, setIsAnalyzing] = useState(false);
-
-  // Mês Atual em português
-  const currentMonthLabel = new Date().toLocaleDateString('pt-BR', {
-    month: 'long',
-    year: 'numeric',
-  });
 
   useEffect(() => {
     const user = getCurrentUser();
     if (user) {
       setCurrentUser(user);
-      loadExpenses(user.id);
+      loadUserData(user.id);
     }
   }, []);
 
-  const loadExpenses = (userId: string) => {
-    const data = getExpenses(userId);
-    setExpenses(data);
+  const loadUserData = (userId: string) => {
+    const expData = getExpenses(userId);
+    const budgetData = getBudgets(userId);
+    setExpenses(expData);
+    setBudgets(budgetData);
   };
 
   const handleLoginSuccess = (user: User) => {
     setCurrentUser(user);
-    loadExpenses(user.id);
+    loadUserData(user.id);
   };
 
   const handleLogout = () => {
@@ -57,48 +69,53 @@ const Index = () => {
     showSuccess('Você saiu com segurança.');
   };
 
-  const handleAddExpense = (newExp: Omit<Expense, 'id' | 'userId' | 'createdAt'>) => {
+  const handleAddExpense = (newExp: { description: string; amount: number; category: CategoryType; type: TransactionType; date: string }) => {
     if (!currentUser) return;
     addExpenseStorage(currentUser.id, newExp);
-    loadExpenses(currentUser.id);
+    loadUserData(currentUser.id);
   };
 
   const handleDeleteExpense = (id: string) => {
     deleteExpenseStorage(id);
     if (currentUser) {
-      loadExpenses(currentUser.id);
+      loadUserData(currentUser.id);
     }
-    showSuccess('Gasto removido com sucesso.');
+    showSuccess('Lançamento removido.');
   };
 
-  // Botão em Destaque: Analisar Meus Gastos com IA
+  const handleSaveBudgets = (updated: CategoryBudget[]) => {
+    if (!currentUser) return;
+    saveBudgets(currentUser.id, updated);
+    setBudgets(updated);
+  };
+
+  // Análise Inteligente de Gastos com IA
   const handleRunAIAnalysis = () => {
     setIsAnalyzing(true);
 
-    // Simulação com tempo de resposta natural para dar percepção de processamento da IA
     setTimeout(() => {
-      // Filtrar apenas os gastos do mês atual
-      const now = new Date();
-      const currentYearMonth = `${now.getFullYear()}-${String(now.getMonth() + 1).padStart(2, '0')}`;
+      const yearMonthStr = `${selectedYear}-${String(selectedMonth + 1).padStart(2, '0')}`;
+      const monthExpenses = expenses.filter(exp => exp.date.startsWith(yearMonthStr));
 
-      const currentMonthExpenses = expenses.filter(exp => exp.date.startsWith(currentYearMonth));
-
-      const advice = analyzeExpensesWithAI(currentMonthExpenses);
+      const advice = analyzeExpensesWithAI(monthExpenses, budgets);
       setAiAdvice(advice);
       setIsAnalyzing(false);
       setIsAIModalOpen(true);
-    }, 800);
+    }, 700);
   };
 
-  // Se não estiver logado, exibe tela de login/cadastro
   if (!currentUser) {
     return <AuthModal onLoginSuccess={handleLoginSuccess} />;
   }
 
-  // Filtrar despesas do mês atual para o gráfico
-  const now = new Date();
-  const currentYearMonth = `${now.getFullYear()}-${String(now.getMonth() + 1).padStart(2, '0')}`;
-  const currentMonthExpenses = expenses.filter(exp => exp.date.startsWith(currentYearMonth));
+  // Filtragem das despesas/receitas do mês/ano selecionado
+  const selectedYearMonthStr = `${selectedYear}-${String(selectedMonth + 1).padStart(2, '0')}`;
+  const currentMonthExpenses = expenses.filter(exp => exp.date.startsWith(selectedYearMonthStr));
+
+  const monthLabel = new Date(selectedYear, selectedMonth, 1).toLocaleDateString('pt-BR', {
+    month: 'long',
+    year: 'numeric',
+  });
 
   return (
     <div className="min-h-screen bg-slate-100/70 text-slate-800 flex flex-col font-sans">
@@ -108,7 +125,41 @@ const Index = () => {
       {/* Conteúdo Principal */}
       <main className="flex-1 max-w-7xl w-full mx-auto px-4 sm:px-6 lg:px-8 py-6 space-y-6">
         
-        {/* Banner do Botão de IA "Analisar Meus Gastos com IA" */}
+        {/* Barra Superior de Ferramentas (Mês, Limites, Backup) */}
+        <div className="flex flex-col md:flex-row items-center justify-between gap-4 bg-white border border-slate-200/80 p-4 rounded-2xl shadow-sm">
+          <MonthPicker
+            selectedYear={selectedYear}
+            selectedMonth={selectedMonth}
+            onChangeMonth={(y, m) => {
+              setSelectedYear(y);
+              setSelectedMonth(m);
+            }}
+          />
+
+          <div className="flex items-center space-x-2 w-full md:w-auto justify-end">
+            <Button
+              variant="outline"
+              size="sm"
+              onClick={() => setIsBudgetModalOpen(true)}
+              className="rounded-xl border-slate-200 text-slate-700 hover:bg-slate-50 text-xs font-semibold flex items-center gap-1.5"
+            >
+              <Target className="w-4 h-4 text-emerald-600" />
+              Metas por Categoria
+            </Button>
+
+            <Button
+              variant="outline"
+              size="sm"
+              onClick={() => setIsExportModalOpen(true)}
+              className="rounded-xl border-slate-200 text-slate-700 hover:bg-slate-50 text-xs font-semibold flex items-center gap-1.5"
+            >
+              <Download className="w-4 h-4 text-blue-600" />
+              Exportar / Importar
+            </Button>
+          </div>
+        </div>
+
+        {/* Banner com Botão da IA */}
         <div className="bg-gradient-to-r from-slate-900 via-emerald-950 to-teal-900 rounded-3xl p-6 sm:p-8 text-white shadow-xl relative overflow-hidden flex flex-col md:flex-row items-center justify-between gap-6 border border-emerald-500/20">
           <div className="space-y-2 text-center md:text-left z-10 max-w-xl">
             <div className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-emerald-500/20 text-emerald-300 text-xs font-bold uppercase tracking-wider border border-emerald-400/20">
@@ -116,14 +167,13 @@ const Index = () => {
               Inteligência Financeira Ativa
             </div>
             <h2 className="text-2xl sm:text-3xl font-black text-white tracking-tight">
-              Quer saber onde economizar este mês?
+              Quer saber onde economizar em {monthLabel}?
             </h2>
             <p className="text-slate-300 text-sm leading-relaxed">
-              Nossa IA analisa seus lançamentos recentes para detectar gargalos de consumo, otimizar orçamentos e dar conselhos práticos como um especialista.
+              Análise inteligente das suas entradas e saídas para indicar gorduras no orçamento, score financeiro e sugestões práticas de economia.
             </p>
           </div>
 
-          {/* O BOTÃO EM DESTAQUE REQUISITADO */}
           <div className="z-10 shrink-0 w-full md:w-auto">
             <Button
               size="lg"
@@ -136,43 +186,57 @@ const Index = () => {
             </Button>
           </div>
 
-          {/* Efeitos visuais de fundo */}
           <div className="absolute -right-10 -bottom-10 w-60 h-60 bg-emerald-500/10 rounded-full blur-3xl pointer-events-none" />
         </div>
 
-        {/* Cards de Resumo */}
+        {/* Summary Cards */}
         <SummaryCards expenses={currentMonthExpenses} />
 
-        {/* Seção Principal: Formulário + Gráfico de Pizza Lado a Lado */}
+        {/* Form + Chart Section */}
         <div className="grid grid-cols-1 lg:grid-cols-12 gap-6 items-stretch">
-          {/* Formulário de Adição (5 Colunas no Desktop) */}
           <div className="lg:col-span-5">
             <ExpenseForm onAddExpense={handleAddExpense} />
           </div>
 
-          {/* Gráfico de Pizza Grande (7 Colunas no Desktop) */}
           <div className="lg:col-span-7">
             <ExpensePieChart 
               expenses={currentMonthExpenses} 
-              currentMonthLabel={currentMonthLabel.charAt(0).toUpperCase() + currentMonthLabel.slice(1)} 
+              budgets={budgets}
+              currentMonthLabel={monthLabel} 
             />
           </div>
         </div>
 
-        {/* Tabela/Lista dos Últimos Gastos */}
+        {/* List of Transactions */}
         <div>
-          <ExpenseList expenses={expenses} onDeleteExpense={handleDeleteExpense} />
+          <ExpenseList expenses={currentMonthExpenses} onDeleteExpense={handleDeleteExpense} />
         </div>
       </main>
 
-      {/* Modal do Consultor IA */}
+      {/* Modais */}
       <AIAdvisorModal
         isOpen={isAIModalOpen}
         onClose={() => setIsAIModalOpen(false)}
         advice={aiAdvice}
       />
 
-      {/* Rodapé simples */}
+      <BudgetManagerModal
+        isOpen={isBudgetModalOpen}
+        onClose={() => setIsBudgetModalOpen(false)}
+        budgets={budgets}
+        expenses={currentMonthExpenses}
+        onSaveBudgets={handleSaveBudgets}
+      />
+
+      <ExportImportModal
+        isOpen={isOpen => setIsExportModalOpen(isOpen)}
+        onClose={() => setIsExportModalOpen(false)}
+        userId={currentUser.id}
+        expenses={expenses}
+        onRefreshData={() => loadUserData(currentUser.id)}
+      />
+
+      {/* Footer */}
       <footer className="border-t border-slate-200 bg-white py-4 mt-8">
         <div className="max-w-7xl mx-auto px-4 text-center text-xs text-slate-500">
           Meu Orçamento Inteligente • Seus dados financeiros mantidos 100% locais e seguros.

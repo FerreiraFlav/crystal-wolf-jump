@@ -4,6 +4,8 @@ export interface User {
   email: string;
 }
 
+export type TransactionType = 'expense' | 'income';
+
 export type CategoryType = 
   | 'Alimentação'
   | 'Moradia'
@@ -13,6 +15,9 @@ export type CategoryType =
   | 'Educação'
   | 'Compras'
   | 'Contas & Serviços'
+  | 'Salário'
+  | 'Freelance'
+  | 'Investimentos'
   | 'Outros';
 
 export interface Expense {
@@ -21,8 +26,14 @@ export interface Expense {
   description: string;
   amount: number;
   category: CategoryType;
+  type: TransactionType;
   date: string; // YYYY-MM-DD
   createdAt: string;
+}
+
+export interface CategoryBudget {
+  category: CategoryType;
+  limitAmount: number;
 }
 
 export interface AIAdvice {
@@ -30,6 +41,7 @@ export interface AIAdvice {
   healthScore: number; // 0-100
   topCategoryWarning: string;
   savingsPotential: number;
+  savingsRate: number; // percentage
   recommendations: string[];
   actionPlan: string[];
 }

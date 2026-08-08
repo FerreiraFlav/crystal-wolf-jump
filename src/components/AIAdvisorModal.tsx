@@ -2,7 +2,7 @@ import React from 'react';
 import { AIAdvice } from '@/types/finance';
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription } from '@/components/ui/dialog';
 import { Button } from '@/components/ui/button';
-import { Sparkles, TrendingDown, Target, Lightbulb, ShieldCheck, CheckCircle2 } from 'lucide-react';
+import { Sparkles, TrendingDown, Target, Lightbulb, ShieldCheck, CheckCircle2, PiggyBank } from 'lucide-react';
 
 interface AIAdvisorModalProps {
   isOpen: boolean;
@@ -32,7 +32,7 @@ export const AIAdvisorModal: React.FC<AIAdvisorModalProps> = ({ isOpen, onClose,
                 </span>
               </div>
               <DialogDescription className="text-slate-300 text-xs mt-1">
-                Análise personalizada do seu padrão de consumo no mês atual.
+                Análise do seu fluxo de caixa e recomendações personalizadas.
               </DialogDescription>
             </div>
           </div>
@@ -40,33 +40,47 @@ export const AIAdvisorModal: React.FC<AIAdvisorModalProps> = ({ isOpen, onClose,
 
         {/* Corpo do Modal */}
         <div className="p-6 space-y-6 max-h-[75vh] overflow-y-auto">
-          {/* Pontuação da Saúde Financeira */}
-          <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+          {/* Pontuação da Saúde Financeira & Taxa de Poupança */}
+          <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
             <div className="bg-emerald-50 border border-emerald-200/80 p-4 rounded-xl flex items-center justify-between">
               <div>
-                <span className="text-xs font-semibold text-emerald-800 uppercase tracking-wider block">
-                  Score de Saúde Financeira
+                <span className="text-[11px] font-bold text-emerald-800 uppercase tracking-wider block">
+                  Score de Saúde
                 </span>
-                <span className="text-2xl font-black text-emerald-900 mt-1 block">
+                <span className="text-2xl font-black text-emerald-900 mt-0.5 block">
                   {advice.healthScore} <span className="text-xs font-normal text-emerald-700">/ 100</span>
                 </span>
               </div>
-              <div className="w-12 h-12 rounded-full bg-emerald-500 text-white flex items-center justify-center font-bold text-lg shadow-md">
+              <div className="w-10 h-10 rounded-full bg-emerald-500 text-white flex items-center justify-center font-bold text-base shadow-sm">
                 {advice.healthScore > 75 ? 'A+' : advice.healthScore > 50 ? 'B' : 'C'}
+              </div>
+            </div>
+
+            <div className="bg-blue-50 border border-blue-200/80 p-4 rounded-xl flex items-center justify-between">
+              <div>
+                <span className="text-[11px] font-bold text-blue-800 uppercase tracking-wider block">
+                  Taxa de Poupança
+                </span>
+                <span className="text-2xl font-black text-blue-900 mt-0.5 block">
+                  {advice.savingsRate.toFixed(1)}%
+                </span>
+              </div>
+              <div className="p-2 bg-blue-200 text-blue-800 rounded-xl">
+                <PiggyBank className="w-5 h-5" />
               </div>
             </div>
 
             <div className="bg-teal-50 border border-teal-200/80 p-4 rounded-xl flex items-center justify-between">
               <div>
-                <span className="text-xs font-semibold text-teal-800 uppercase tracking-wider block">
-                  Potencial de Economia
+                <span className="text-[11px] font-bold text-teal-800 uppercase tracking-wider block">
+                  Economia Estimada
                 </span>
-                <span className="text-2xl font-black text-teal-900 mt-1 block">
+                <span className="text-lg font-black text-teal-900 mt-0.5 block">
                   R$ {advice.savingsPotential.toLocaleString('pt-BR', { minimumFractionDigits: 2 })}
                 </span>
               </div>
-              <div className="p-2.5 bg-teal-200 text-teal-800 rounded-xl">
-                <TrendingDown className="w-6 h-6" />
+              <div className="p-2 bg-teal-200 text-teal-800 rounded-xl">
+                <TrendingDown className="w-5 h-5" />
               </div>
             </div>
           </div>
@@ -75,18 +89,18 @@ export const AIAdvisorModal: React.FC<AIAdvisorModalProps> = ({ isOpen, onClose,
           <div className="space-y-2">
             <h4 className="text-sm font-bold text-slate-800 flex items-center gap-2">
               <ShieldCheck className="w-4 h-4 text-emerald-600" />
-              Parecer do Especialista
+              Parecer do Consultor
             </h4>
             <div className="p-4 bg-slate-50 border border-slate-200 rounded-xl text-xs sm:text-sm text-slate-700 leading-relaxed">
               {advice.diagnosis}
             </div>
           </div>
 
-          {/* Recomendações Práticas */}
+          {/* Dicas Práticas */}
           <div className="space-y-3">
             <h4 className="text-sm font-bold text-slate-800 flex items-center gap-2">
               <Lightbulb className="w-4 h-4 text-amber-500" />
-              Dicas Práticas de Otimização
+              Dicas de Otimização
             </h4>
             <div className="space-y-2">
               {advice.recommendations.map((rec, i) => (
@@ -98,11 +112,11 @@ export const AIAdvisorModal: React.FC<AIAdvisorModalProps> = ({ isOpen, onClose,
             </div>
           </div>
 
-          {/* Plano de Ação Imediato */}
+          {/* Plano de Ação */}
           <div className="space-y-3">
             <h4 className="text-sm font-bold text-slate-800 flex items-center gap-2">
               <Target className="w-4 h-4 text-emerald-600" />
-              Plano de Ação Sugerido
+              Plano de Ação
             </h4>
             <div className="space-y-2">
               {advice.actionPlan.map((action, i) => (
@@ -115,13 +129,12 @@ export const AIAdvisorModal: React.FC<AIAdvisorModalProps> = ({ isOpen, onClose,
           </div>
         </div>
 
-        {/* Rodapé do Modal */}
         <div className="bg-slate-50 p-4 border-t border-slate-200 flex justify-end">
           <Button
             onClick={onClose}
             className="bg-slate-900 hover:bg-slate-800 text-white font-medium rounded-xl text-xs px-5"
           >
-            Entendido, fechar análise
+            Fechar Análise
           </Button>
         </div>
       </DialogContent>
