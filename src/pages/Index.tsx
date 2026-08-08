@@ -9,6 +9,12 @@ import {
   getBudgets,
   saveBudgets
 } from '@/services/storage';
+import { 
+  fetchExpensesFromSupabase, 
+  saveExpenseToSupabase, 
+  deleteExpenseFromSupabase 
+} from '@/services/supabaseStorage';
+import { isSupabaseConfigured } from '@/lib/supabase';
 import { analyzeExpensesWithAI } from '@/services/aiAdvisor';
 import { AuthModal } from '@/components/AuthModal';
 import { Navbar } from '@/components/Navbar';
@@ -22,7 +28,7 @@ import { ExportImportModal } from '@/components/ExportImportModal';
 import { AIAdvisorModal } from '@/components/AIAdvisorModal';
 import { Button } from '@/components/ui/button';
 import { Sparkles, BrainCircuit, Target, Download } from 'lucide-react';
-import { showSuccess } from '@/utils/toast';
+import { showSuccess, showError } from '@/utils/toast';
 import { useLanguage } from '@/context/LanguageContext';
 
 const Index = () => {
@@ -52,7 +58,19 @@ const Index = () => {
     }
   }, []);
 
-  const loadUserData = (userId: string) => {
+  const loadUserData = async (userId: string) => {
+    // Tenta carregar do Supabase se estiver configurado
+    if (isSupabaseConfigured) {
+      const supabaseExpenses = await fetchExpensesFromSupabase(userId);
+      if (supabaseExpenses.length > 0) {
+        setExpenses(supabaseExpenses);
+        const budgetData = getBudgets(userId);
+        setBudgets(budgetData);
+        return;
+      }
+    }
+
+    // Fallback/Modo Local
     const expData = getExpenses(userId);
     const budgetData = getBudgets(userId);
     setExpenses(expData);
@@ -71,14 +89,27 @@ const Index = () => {
     showSuccess('Você saiu com segurança.');
   };
 
-  const handleAddExpense = (newExp: { description: string; amount: number; category: CategoryType; type: TransactionType; date: string }) => {
+  const handleAddExpense = async (newExp: { description: string; amount: number; category: CategoryType; type: TransactionType; date: string }) => {
     if (!currentUser) return;
-    addExpenseStorage(currentUser.id, newExp);
+
+    // Salva localmente primeiro
+    const savedLocal = addExpenseStorage(currentUser.id, newExp);
+
+    // Se o Supabase estiver conectado, envia para a nuvem
+    if (isSupabaseConfigured) {
+      await saveExpenseToSupabase(currentUser.id, newExp);
+    }
+
     loadUserData(currentUser.id);
   };
 
-  const handleDeleteExpense = (id: string) => {
+  const handleDeleteExpense = async (id: string) => {
     deleteExpenseStorage(id);
+
+    if (isSupabaseConfigured) {
+      await deleteExpenseFromSupabase(id);
+    }
+
     if (currentUser) {
       loadUserData(currentUser.id);
     }
