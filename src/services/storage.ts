@@ -54,7 +54,7 @@ export const registerUser = (name: string, email: string, passwordHash: string):
   localStorage.setItem(USERS_KEY, JSON.stringify(users));
   localStorage.setItem(CURRENT_USER_KEY, JSON.stringify(newUser));
 
-  // Seed initial expenses and income for demo
+  // Seed initial expenses and income for demo in EUR
   seedInitialData(newUser.id);
 
   return newUser;
@@ -85,7 +85,7 @@ export const getExpenses = (userId: string): Expense[] => {
   const all: Expense[] = data ? JSON.parse(data) : [];
   return all
     .filter(e => e.userId === userId)
-    .map(e => ({ ...e, type: e.type || 'expense' })); // Backward compatibility
+    .map(e => ({ ...e, type: e.type || 'expense' }));
 };
 
 export const addExpense = (userId: string, expense: Omit<Expense, 'id' | 'userId' | 'createdAt'>): Expense => {
@@ -116,7 +116,7 @@ export const importExpenses = (userId: string, imported: Omit<Expense, 'id' | 'u
   imported.forEach(exp => addExpense(userId, exp));
 };
 
-// Funções de Orçamento por Categoria
+// Funções de Orçamento por Categoria em Euro (€)
 export const getBudgets = (userId: string): CategoryBudget[] => {
   const data = localStorage.getItem(BUDGETS_KEY);
   if (!data) return getDefaultBudgets();
@@ -132,36 +132,36 @@ export const saveBudgets = (userId: string, budgets: CategoryBudget[]) => {
 };
 
 const getDefaultBudgets = (): CategoryBudget[] => [
-  { category: 'Alimentação', limitAmount: 1200 },
-  { category: 'Moradia', limitAmount: 2000 },
-  { category: 'Transporte', limitAmount: 500 },
-  { category: 'Lazer & Entretenimento', limitAmount: 400 },
-  { category: 'Saúde', limitAmount: 500 },
-  { category: 'Compras', limitAmount: 600 },
-  { category: 'Contas & Serviços', limitAmount: 400 },
+  { category: 'Alimentação', limitAmount: 450 },
+  { category: 'Moradia', limitAmount: 900 },
+  { category: 'Transporte', limitAmount: 150 },
+  { category: 'Lazer & Entretenimento', limitAmount: 200 },
+  { category: 'Saúde', limitAmount: 150 },
+  { category: 'Compras', limitAmount: 250 },
+  { category: 'Contas & Serviços', limitAmount: 180 },
 ];
 
-// Dados de Demonstração
+// Dados de Demonstração em Euro (€)
 const seedInitialData = (userId: string) => {
   const today = new Date();
   const year = today.getFullYear();
   const month = String(today.getMonth() + 1).padStart(2, '0');
 
   const demoTransactions: Omit<Expense, 'id' | 'userId' | 'createdAt'>[] = [
-    // Receitas
-    { description: 'Salário Mensal', amount: 5500.00, category: 'Salário', type: 'income', date: `${year}-${month}-01` },
-    { description: 'Projeto Freelance', amount: 1200.00, category: 'Freelance', type: 'income', date: `${year}-${month}-10` },
+    // Receitas (€)
+    { description: 'Salário Mensal', amount: 2800.00, category: 'Salário', type: 'income', date: `${year}-${month}-01` },
+    { description: 'Projeto Freelance', amount: 650.00, category: 'Freelance', type: 'income', date: `${year}-${month}-10` },
 
-    // Despesas
-    { description: 'Supermercado Mensal', amount: 840.50, category: 'Alimentação', type: 'expense', date: `${year}-${month}-02` },
-    { description: 'Aluguel & Condomínio', amount: 1500.00, category: 'Moradia', type: 'expense', date: `${year}-${month}-05` },
-    { description: 'Conta de Luz e Água', amount: 285.30, category: 'Contas & Serviços', type: 'expense', date: `${year}-${month}-08` },
-    { description: 'Combustível / Uber', amount: 230.00, category: 'Transporte', type: 'expense', date: `${year}-${month}-10` },
-    { description: 'Jantar Restaurante', amount: 145.00, category: 'Lazer & Entretenimento', type: 'expense', date: `${year}-${month}-12` },
-    { description: 'Plano de Saúde', amount: 390.00, category: 'Saúde', type: 'expense', date: `${year}-${month}-15` },
-    { description: 'Curso de Especialização', amount: 290.00, category: 'Educação', type: 'expense', date: `${year}-${month}-18` },
-    { description: 'Feira Semanal', amount: 115.80, category: 'Alimentação', type: 'expense', date: `${year}-${month}-20` },
-    { description: 'Serviços de Streaming', amount: 55.90, category: 'Lazer & Entretenimento', type: 'expense', date: `${year}-${month}-22` },
+    // Despesas (€)
+    { description: 'Supermercado Mensal', amount: 320.50, category: 'Alimentação', type: 'expense', date: `${year}-${month}-02` },
+    { description: 'Renda / Aluguer Habitação', amount: 750.00, category: 'Moradia', type: 'expense', date: `${year}-${month}-05` },
+    { description: 'Eletricidade e Água', amount: 115.30, category: 'Contas & Serviços', type: 'expense', date: `${year}-${month}-08` },
+    { description: 'Passe Navegante / Combustível', amount: 80.00, category: 'Transporte', type: 'expense', date: `${year}-${month}-10` },
+    { description: 'Jantar Restaurante', amount: 65.00, category: 'Lazer & Entretenimento', type: 'expense', date: `${year}-${month}-12` },
+    { description: 'Seguro de Saúde', amount: 90.00, category: 'Saúde', type: 'expense', date: `${year}-${month}-15` },
+    { description: 'Curso de Especialização', amount: 120.00, category: 'Educação', type: 'expense', date: `${year}-${month}-18` },
+    { description: 'Compras de Mercearia', amount: 48.80, category: 'Alimentação', type: 'expense', date: `${year}-${month}-20` },
+    { description: 'Serviços de Streaming', amount: 22.90, category: 'Lazer & Entretenimento', type: 'expense', date: `${year}-${month}-22` },
   ];
 
   demoTransactions.forEach(t => addExpense(userId, t));

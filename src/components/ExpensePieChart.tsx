@@ -4,6 +4,7 @@ import { ALL_CATEGORIES } from '@/services/storage';
 import { Card, CardHeader, CardTitle, CardContent } from '@/components/ui/card';
 import { PieChart, Pie, Cell, ResponsiveContainer, Tooltip } from 'recharts';
 import { PieChart as PieChartIcon, AlertCircle } from 'lucide-react';
+import { useLanguage } from '@/context/LanguageContext';
 
 interface ExpensePieChartProps {
   expenses: Expense[];
@@ -12,6 +13,7 @@ interface ExpensePieChartProps {
 }
 
 export const ExpensePieChart: React.FC<ExpensePieChartProps> = ({ expenses, budgets, currentMonthLabel }) => {
+  const { formatCurrency, t } = useLanguage();
   const expenseItems = expenses.filter(e => e.type === 'expense');
 
   const categoryMap: Record<string, number> = {};
@@ -44,12 +46,12 @@ export const ExpensePieChart: React.FC<ExpensePieChartProps> = ({ expenses, budg
         <div className="bg-slate-900 text-white p-3 rounded-xl shadow-xl text-xs border border-slate-800 space-y-1">
           <p className="font-bold text-slate-200">{data.name}</p>
           <p className="text-emerald-400 font-semibold text-sm">
-            R$ {data.value.toLocaleString('pt-BR', { minimumFractionDigits: 2 })}
+            {formatCurrency(data.value)}
           </p>
-          <p className="text-slate-400">{data.percentage}% das despesas do mês</p>
+          <p className="text-slate-400">{data.percentage}%</p>
           {data.limit > 0 && (
             <p className="text-amber-300 font-medium text-[11px] border-t border-slate-800 pt-1 mt-1">
-              Limite: R$ {data.limit.toLocaleString('pt-BR')}
+              Limite: {formatCurrency(data.limit)}
             </p>
           )}
         </div>
@@ -65,7 +67,7 @@ export const ExpensePieChart: React.FC<ExpensePieChartProps> = ({ expenses, budg
           <div className="p-1.5 bg-blue-100 text-blue-700 rounded-lg">
             <PieChartIcon className="w-4 h-4" />
           </div>
-          Divisão de Despesas
+          {t('expenseBreakdown')}
         </CardTitle>
         <span className="text-xs font-semibold px-2.5 py-1 bg-slate-100 text-slate-600 rounded-full capitalize">
           {currentMonthLabel}
@@ -76,8 +78,7 @@ export const ExpensePieChart: React.FC<ExpensePieChartProps> = ({ expenses, budg
         {chartData.length === 0 ? (
           <div className="flex flex-col items-center justify-center py-12 text-slate-400 text-center flex-1">
             <AlertCircle className="w-10 h-10 mb-2 stroke-1 text-slate-300" />
-            <p className="font-medium text-slate-600 text-sm">Nenhuma despesa registrada neste mês</p>
-            <p className="text-xs text-slate-400 mt-1">Adicione uma despesa ao lado para visualizar o gráfico por categoria.</p>
+            <p className="font-medium text-slate-600 text-sm">{t('noExpensesMonth')}</p>
           </div>
         ) : (
           <div className="space-y-4">
@@ -111,7 +112,7 @@ export const ExpensePieChart: React.FC<ExpensePieChartProps> = ({ expenses, budg
                   </div>
                   <div className="text-right shrink-0">
                     <span className="text-xs font-bold text-slate-800">
-                      R$ {item.value.toLocaleString('pt-BR', { minimumFractionDigits: 2 })}
+                      {formatCurrency(item.value)}
                     </span>
                     <span className="text-[10px] text-slate-500 block font-semibold">
                       {item.percentage}%

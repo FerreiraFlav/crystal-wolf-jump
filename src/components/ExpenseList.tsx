@@ -8,8 +8,6 @@ import {
   Receipt, 
   Trash2, 
   Search, 
-  ArrowUpCircle, 
-  ArrowDownCircle, 
   Utensils, 
   Home, 
   Car, 
@@ -21,6 +19,7 @@ import {
   Laptop,
   TrendingUp
 } from 'lucide-react';
+import { useLanguage } from '@/context/LanguageContext';
 
 interface ExpenseListProps {
   expenses: Expense[];
@@ -28,6 +27,7 @@ interface ExpenseListProps {
 }
 
 export const ExpenseList: React.FC<ExpenseListProps> = ({ expenses, onDeleteExpense }) => {
+  const { formatCurrency, t } = useLanguage();
   const [search, setSearch] = useState('');
   const [selectedCategory, setSelectedCategory] = useState<string>('all');
   const [selectedType, setSelectedType] = useState<string>('all');
@@ -68,20 +68,20 @@ export const ExpenseList: React.FC<ExpenseListProps> = ({ expenses, onDeleteExpe
           <div className="p-1.5 bg-emerald-100 text-emerald-700 rounded-lg">
             <Receipt className="w-4 h-4" />
           </div>
-          Histórico de Lançamentos
+          {t('history')}
         </CardTitle>
 
         {/* Busca e Filtros */}
         <div className="flex flex-wrap items-center gap-2 w-full sm:w-auto">
-          {/* Tipo (Todas, Despesas, Receitas) */}
+          {/* Tipo */}
           <select
             value={selectedType}
             onChange={e => setSelectedType(e.target.value)}
             className="h-8 pl-2 pr-6 bg-slate-100 text-slate-700 font-medium text-xs rounded-lg border border-slate-200 outline-none"
           >
-            <option value="all">Todos os Tipos</option>
-            <option value="expense">Despesas</option>
-            <option value="income">Receitas</option>
+            <option value="all">{t('allTypes')}</option>
+            <option value="expense">{t('expense')}</option>
+            <option value="income">{t('income')}</option>
           </select>
 
           {/* Categorias */}
@@ -90,7 +90,7 @@ export const ExpenseList: React.FC<ExpenseListProps> = ({ expenses, onDeleteExpe
             onChange={e => setSelectedCategory(e.target.value)}
             className="h-8 pl-2 pr-6 bg-slate-100 text-slate-700 font-medium text-xs rounded-lg border border-slate-200 outline-none"
           >
-            <option value="all">Todas Categorias</option>
+            <option value="all">{t('allCategories')}</option>
             {ALL_CATEGORIES.map(c => (
               <option key={c.name} value={c.name}>{c.name}</option>
             ))}
@@ -100,7 +100,7 @@ export const ExpenseList: React.FC<ExpenseListProps> = ({ expenses, onDeleteExpe
           <div className="relative flex-1 sm:w-40">
             <Search className="w-3.5 h-3.5 absolute left-2.5 top-2.5 text-slate-400" />
             <Input
-              placeholder="Buscar..."
+              placeholder={t('searchPlaceholder')}
               value={search}
               onChange={e => setSearch(e.target.value)}
               className="pl-8 h-8 text-xs rounded-lg border-slate-200"
@@ -113,8 +113,7 @@ export const ExpenseList: React.FC<ExpenseListProps> = ({ expenses, onDeleteExpe
         {filteredExpenses.length === 0 ? (
           <div className="text-center py-10 px-4 text-slate-400">
             <Receipt className="w-8 h-8 mx-auto mb-2 text-slate-300" />
-            <p className="text-sm font-medium text-slate-600">Nenhum lançamento encontrado</p>
-            <p className="text-xs text-slate-400 mt-1">Ajuste os filtros de busca ou adicione novos lançamentos.</p>
+            <p className="text-sm font-medium text-slate-600">{t('noTransactions')}</p>
           </div>
         ) : (
           <div className="divide-y divide-slate-100">
@@ -140,7 +139,7 @@ export const ExpenseList: React.FC<ExpenseListProps> = ({ expenses, onDeleteExpe
                         <span className={`text-[10px] font-extrabold uppercase px-1.5 py-0.5 rounded ${
                           isIncome ? 'bg-emerald-100 text-emerald-800' : 'bg-red-100 text-red-800'
                         }`}>
-                          {isIncome ? 'Receita' : 'Despesa'}
+                          {isIncome ? t('income') : t('expense')}
                         </span>
                       </div>
                       <div className="flex items-center space-x-2 text-xs text-slate-500 mt-0.5">
@@ -156,7 +155,7 @@ export const ExpenseList: React.FC<ExpenseListProps> = ({ expenses, onDeleteExpe
                   <div className="flex items-center space-x-3 shrink-0">
                     <div className="text-right">
                       <span className={`font-bold text-sm sm:text-base ${isIncome ? 'text-emerald-600' : 'text-slate-900'}`}>
-                        {isIncome ? '+ ' : '- '}R$ {expense.amount.toLocaleString('pt-BR', { minimumFractionDigits: 2 })}
+                        {isIncome ? '+ ' : '- '}{formatCurrency(expense.amount)}
                       </span>
                     </div>
 
@@ -165,7 +164,7 @@ export const ExpenseList: React.FC<ExpenseListProps> = ({ expenses, onDeleteExpe
                       size="icon"
                       onClick={() => onDeleteExpense(expense.id)}
                       className="text-slate-400 hover:text-red-600 hover:bg-red-50 rounded-lg h-8 w-8"
-                      title="Excluir este lançamento"
+                      title="Excluir"
                     >
                       <Trash2 className="w-4 h-4" />
                     </Button>

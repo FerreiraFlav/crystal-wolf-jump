@@ -23,8 +23,10 @@ import { AIAdvisorModal } from '@/components/AIAdvisorModal';
 import { Button } from '@/components/ui/button';
 import { Sparkles, BrainCircuit, Target, Download } from 'lucide-react';
 import { showSuccess } from '@/utils/toast';
+import { useLanguage } from '@/context/LanguageContext';
 
 const Index = () => {
+  const { t } = useLanguage();
   const today = new Date();
   const [currentUser, setCurrentUser] = useState<User | null>(null);
   const [expenses, setExpenses] = useState<Expense[]>([]);
@@ -144,7 +146,7 @@ const Index = () => {
               className="rounded-xl border-slate-200 text-slate-700 hover:bg-slate-50 text-xs font-semibold flex items-center gap-1.5"
             >
               <Target className="w-4 h-4 text-emerald-600" />
-              Metas por Categoria
+              {t('categoryGoals')}
             </Button>
 
             <Button
@@ -154,7 +156,7 @@ const Index = () => {
               className="rounded-xl border-slate-200 text-slate-700 hover:bg-slate-50 text-xs font-semibold flex items-center gap-1.5"
             >
               <Download className="w-4 h-4 text-blue-600" />
-              Exportar / Importar
+              {t('exportImport')}
             </Button>
           </div>
         </div>
@@ -164,13 +166,13 @@ const Index = () => {
           <div className="space-y-2 text-center md:text-left z-10 max-w-xl">
             <div className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-emerald-500/20 text-emerald-300 text-xs font-bold uppercase tracking-wider border border-emerald-400/20">
               <Sparkles className="w-3.5 h-3.5 text-emerald-400" />
-              Inteligência Financeira Ativa
+              {t('aiAssist')}
             </div>
             <h2 className="text-2xl sm:text-3xl font-black text-white tracking-tight">
-              Quer saber onde economizar em {monthLabel}?
+              {t('aiBannerTitle')}
             </h2>
             <p className="text-slate-300 text-sm leading-relaxed">
-              Análise inteligente das suas entradas e saídas para indicar gorduras no orçamento, score financeiro e sugestões práticas de economia.
+              {t('aiBannerDesc')}
             </p>
           </div>
 
@@ -182,7 +184,7 @@ const Index = () => {
               className="w-full md:w-auto bg-gradient-to-r from-emerald-500 to-teal-400 hover:from-emerald-400 hover:to-teal-300 text-slate-950 font-black text-base px-8 py-6 rounded-2xl shadow-xl shadow-emerald-500/25 transition-all hover:scale-105 flex items-center justify-center gap-3 border border-emerald-300/40"
             >
               <BrainCircuit className="w-6 h-6 text-slate-950 animate-bounce" />
-              <span>{isAnalyzing ? 'Analisando gastos...' : 'Analisar Meus Gastos com IA'}</span>
+              <span>{isAnalyzing ? t('analyzingBtn') : t('analyzeBtn')}</span>
             </Button>
           </div>
 
@@ -239,7 +241,7 @@ const Index = () => {
       {/* Footer */}
       <footer className="border-t border-slate-200 bg-white py-4 mt-8">
         <div className="max-w-7xl mx-auto px-4 text-center text-xs text-slate-500">
-          Meu Orçamento Inteligente • Seus dados financeiros mantidos seguros.
+          Meu Orçamento Inteligente (€) • Seus dados financeiros mantidos seguros.
         </div>
       </footer>
     </div>

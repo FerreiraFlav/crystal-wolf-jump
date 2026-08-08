@@ -1,12 +1,12 @@
 import React, { useState } from 'react';
 import { CategoryBudget, Expense } from '@/types/finance';
 import { EXPENSE_CATEGORIES } from '@/services/storage';
-import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription } from '@/components/ui/dialog';
+import { Dialog, DialogContent, DialogTitle, DialogDescription } from '@/components/ui/dialog';
 import { Input } from '@/components/ui/input';
 import { Button } from '@/components/ui/button';
-import { Label } from '@/components/ui/label';
 import { Target, Save, AlertTriangle, CheckCircle } from 'lucide-react';
 import { showSuccess } from '@/utils/toast';
+import { useLanguage } from '@/context/LanguageContext';
 
 interface BudgetManagerModalProps {
   isOpen: boolean;
@@ -23,6 +23,8 @@ export const BudgetManagerModal: React.FC<BudgetManagerModalProps> = ({
   expenses,
   onSaveBudgets,
 }) => {
+  const { formatCurrency, t } = useLanguage();
+
   const [localBudgets, setLocalBudgets] = useState<Record<string, string>>(() => {
     const initial: Record<string, string> = {};
     EXPENSE_CATEGORIES.forEach(c => {
@@ -43,7 +45,7 @@ export const BudgetManagerModal: React.FC<BudgetManagerModalProps> = ({
     }));
 
     onSaveBudgets(updatedBudgets);
-    showSuccess('Limites de orçamento atualizados com sucesso!');
+    showSuccess('Limites em Euro salvos com sucesso!');
     onClose();
   };
 
@@ -63,10 +65,10 @@ export const BudgetManagerModal: React.FC<BudgetManagerModalProps> = ({
             </div>
             <div>
               <DialogTitle className="text-xl font-bold text-white">
-                Definir Limites de Gastos
+                {t('setBudgetLimits')}
               </DialogTitle>
               <DialogDescription className="text-slate-200 text-xs mt-0.5">
-                Configure limites mensais por categoria para monitorar estouros de orçamento.
+                {t('setBudgetDesc')}
               </DialogDescription>
             </div>
           </div>
@@ -88,10 +90,10 @@ export const BudgetManagerModal: React.FC<BudgetManagerModalProps> = ({
                   </div>
 
                   <div className="flex items-center space-x-1 w-32">
-                    <span className="text-xs text-slate-500 font-semibold">R$</span>
+                    <span className="text-xs text-slate-500 font-semibold">€</span>
                     <Input
                       type="number"
-                      step="50"
+                      step="10"
                       value={localBudgets[cat.name] || ''}
                       onChange={e => handleChange(cat.name, e.target.value)}
                       className="h-8 text-xs font-bold rounded-lg border-slate-300 bg-white"
@@ -104,15 +106,15 @@ export const BudgetManagerModal: React.FC<BudgetManagerModalProps> = ({
                   <div className="space-y-1 pt-1">
                     <div className="flex items-center justify-between text-[11px]">
                       <span className="text-slate-500">
-                        Gasto: <strong>R$ {spent.toFixed(2)}</strong> de R$ {limit.toFixed(2)}
+                        {t('spent')}: <strong>{formatCurrency(spent)}</strong> de {formatCurrency(limit)}
                       </span>
                       {isExceeded ? (
                         <span className="text-red-600 font-bold flex items-center gap-1">
-                          <AlertTriangle className="w-3 h-3" /> Excedido em R$ {(spent - limit).toFixed(2)}
+                          <AlertTriangle className="w-3 h-3" /> {t('exceededBy')} {formatCurrency(spent - limit)}
                         </span>
                       ) : (
                         <span className="text-emerald-600 font-semibold flex items-center gap-1">
-                          <CheckCircle className="w-3 h-3" /> {percent}% do limite
+                          <CheckCircle className="w-3 h-3" /> {percent}% {t('ofLimit')}
                         </span>
                       )}
                     </div>
@@ -132,14 +134,14 @@ export const BudgetManagerModal: React.FC<BudgetManagerModalProps> = ({
 
         <div className="bg-slate-50 p-4 border-t border-slate-200 flex justify-end space-x-3">
           <Button variant="outline" onClick={onClose} className="rounded-xl text-xs">
-            Cancelar
+            {t('cancel')}
           </Button>
           <Button
             onClick={handleSave}
             className="bg-emerald-600 hover:bg-emerald-700 text-white font-semibold rounded-xl text-xs flex items-center gap-1.5"
           >
             <Save className="w-4 h-4" />
-            Salvar Limites
+            {t('saveLimits')}
           </Button>
         </div>
       </DialogContent>

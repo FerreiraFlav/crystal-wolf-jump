@@ -8,6 +8,8 @@ export const analyzeExpensesWithAI = (expenses: Expense[], budgets: CategoryBudg
   const totalSpent = expenseItems.reduce((acc, exp) => acc + exp.amount, 0);
   const netBalance = totalIncome - totalSpent;
 
+  const formatEuroVal = (val: number) => `€ ${val.toLocaleString('pt-PT', { minimumFractionDigits: 2 })}`;
+
   if (expenseItems.length === 0 && incomeItems.length === 0) {
     return {
       diagnosis: "Você ainda não possui lançamentos (receitas ou despesas) salvos neste mês para gerar um relatório completo.",
@@ -16,7 +18,7 @@ export const analyzeExpensesWithAI = (expenses: Expense[], budgets: CategoryBudg
       savingsPotential: 0,
       savingsRate: 0,
       recommendations: [
-        "Comece registrando sua principal fonte de renda e suas contas fixas do mês.",
+        "Comece registrando sua principal fonte de renda e suas contas fixas do mês em Euro (€).",
         "Mantenha a rotina de anotações para ter previsibilidade de fluxo de caixa."
       ],
       actionPlan: [
@@ -73,12 +75,12 @@ export const analyzeExpensesWithAI = (expenses: Expense[], budgets: CategoryBudg
   const savingsPotential = flexibleSpending > 0 ? flexibleSpending * 0.18 : (totalSpent > 0 ? totalSpent * 0.08 : 0);
 
   // Diagnosis Narrative
-  let diagnosis = `Neste mês, você acumulou **R$ ${totalIncome.toLocaleString('pt-BR', { minimumFractionDigits: 2 })}** em receitas e realizou **R$ ${totalSpent.toLocaleString('pt-BR', { minimumFractionDigits: 2 })}** em despesas. `;
+  let diagnosis = `Neste mês, você acumulou **${formatEuroVal(totalIncome)}** em receitas e realizou **${formatEuroVal(totalSpent)}** em despesas. `;
 
   if (netBalance >= 0) {
-    diagnosis += `Seu saldo líquido está positivo em **R$ ${netBalance.toLocaleString('pt-BR', { minimumFractionDigits: 2 })}**, resultando em uma taxa de poupança de **${savingsRate.toFixed(1)}%**. `;
+    diagnosis += `Seu saldo líquido está positivo em **${formatEuroVal(netBalance)}**, resultando em uma taxa de poupança de **${savingsRate.toFixed(1)}%**. `;
   } else {
-    diagnosis += `⚠️ Atualmente você está em déficit de **R$ ${Math.abs(netBalance).toLocaleString('pt-BR', { minimumFractionDigits: 2 })}**. Seus gastos superaram seus ganhos. `;
+    diagnosis += `⚠️ Atualmente você está em déficit de **${formatEuroVal(Math.abs(netBalance))}**. Seus gastos superaram seus ganhos. `;
   }
 
   if (topCategory.amount > 0) {
@@ -97,19 +99,19 @@ export const analyzeExpensesWithAI = (expenses: Expense[], budgets: CategoryBudg
   if (categoryTotals['Lazer & Entretenimento'] || categoryTotals['Compras']) {
     const discretionary = (categoryTotals['Lazer & Entretenimento'] || 0) + (categoryTotals['Compras'] || 0);
     recommendations.push(
-      `🛍️ **Gastos Flexíveis**: Você destinou R$ ${discretionary.toLocaleString('pt-BR', { minimumFractionDigits: 2 })} para compras e entretenimento. Reduzir 20% nessa frente economiza R$ ${(discretionary * 0.20).toFixed(2)}.`
+      `🛍️ **Gastos Flexíveis**: Você destinou ${formatEuroVal(discretionary)} para compras e entretenimento. Reduzir 20% nessa frente economiza ${formatEuroVal(discretionary * 0.20)}.`
     );
   }
 
   if (categoryTotals['Alimentação']) {
     recommendations.push(
-      `🍽️ **Alimentação**: Otimize suas idas ao mercado com listas planejadas para evitar itens superfluos.`
+      `🍽️ **Alimentação**: Otimize suas idas ao supermercado com listas planejadas para evitar compras impulsivas.`
     );
   }
 
   if (breachCount > 0) {
     recommendations.push(
-      `🎯 **Metas Estouradas**: Você ultrapassou o teto definido em ${breachCount} categoria(s). Ajuste os limites ou realoque verba.`
+      `🎯 **Metas Estouradas**: Você ultrapassou o teto definido em ${breachCount} categoria(s). Ajuste os limites ou realoque verba em Euro.`
     );
   }
 
@@ -121,8 +123,8 @@ export const analyzeExpensesWithAI = (expenses: Expense[], budgets: CategoryBudg
 
   // Action Plan
   const actionPlan: string[] = [
-    `Manter um limite máximo de **R$ ${(topCategory.amount > 0 ? topCategory.amount * 0.85 : 500).toFixed(2)}** na categoria **${topCategory.category}**.`,
-    `Garantir uma reserva mensal de pelo menos **R$ ${(totalIncome > 0 ? totalIncome * 0.15 : savingsPotential).toFixed(2)}**.`,
+    `Manter um limite máximo de **${formatEuroVal(topCategory.amount > 0 ? topCategory.amount * 0.85 : 500)}** na categoria **${topCategory.category}**.`,
+    `Garantir uma reserva mensal de pelo menos **${formatEuroVal(totalIncome > 0 ? totalIncome * 0.15 : savingsPotential)}**.`,
     `Conferir o indicador de orçamentos por categoria semanalmente.`
   ];
 

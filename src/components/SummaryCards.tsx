@@ -2,12 +2,15 @@ import React from 'react';
 import { Expense } from '@/types/finance';
 import { Card, CardContent } from '@/components/ui/card';
 import { ArrowUpCircle, ArrowDownCircle, Wallet, PiggyBank } from 'lucide-react';
+import { useLanguage } from '@/context/LanguageContext';
 
 interface SummaryCardsProps {
   expenses: Expense[];
 }
 
 export const SummaryCards: React.FC<SummaryCardsProps> = ({ expenses }) => {
+  const { formatCurrency, t } = useLanguage();
+
   const totalIncome = expenses
     .filter(e => e.type === 'income')
     .reduce((acc, curr) => acc + curr.amount, 0);
@@ -26,7 +29,7 @@ export const SummaryCards: React.FC<SummaryCardsProps> = ({ expenses }) => {
         <CardContent className="p-5">
           <div className="flex items-center justify-between">
             <span className="text-xs font-semibold text-slate-500 uppercase tracking-wider">
-              Entradas (Receitas)
+              {t('entries')}
             </span>
             <div className="p-2 bg-emerald-50 text-emerald-600 rounded-xl">
               <ArrowUpCircle className="w-5 h-5" />
@@ -34,7 +37,7 @@ export const SummaryCards: React.FC<SummaryCardsProps> = ({ expenses }) => {
           </div>
           <div className="mt-3">
             <span className="text-2xl font-extrabold text-slate-900 tracking-tight">
-              R$ {totalIncome.toLocaleString('pt-BR', { minimumFractionDigits: 2 })}
+              {formatCurrency(totalIncome)}
             </span>
           </div>
         </CardContent>
@@ -45,7 +48,7 @@ export const SummaryCards: React.FC<SummaryCardsProps> = ({ expenses }) => {
         <CardContent className="p-5">
           <div className="flex items-center justify-between">
             <span className="text-xs font-semibold text-slate-500 uppercase tracking-wider">
-              Saídas (Despesas)
+              {t('exits')}
             </span>
             <div className="p-2 bg-red-50 text-red-600 rounded-xl">
               <ArrowDownCircle className="w-5 h-5" />
@@ -53,7 +56,7 @@ export const SummaryCards: React.FC<SummaryCardsProps> = ({ expenses }) => {
           </div>
           <div className="mt-3">
             <span className="text-2xl font-extrabold text-slate-900 tracking-tight">
-              R$ {totalSpent.toLocaleString('pt-BR', { minimumFractionDigits: 2 })}
+              {formatCurrency(totalSpent)}
             </span>
           </div>
         </CardContent>
@@ -66,7 +69,7 @@ export const SummaryCards: React.FC<SummaryCardsProps> = ({ expenses }) => {
         <CardContent className="p-5">
           <div className="flex items-center justify-between">
             <span className={`text-xs font-semibold uppercase tracking-wider ${netBalance >= 0 ? 'text-emerald-100' : 'text-red-700'}`}>
-              Saldo Líquido
+              {t('netBalance')}
             </span>
             <div className={`p-2 rounded-xl ${netBalance >= 0 ? 'bg-white/10 text-white' : 'bg-red-200 text-red-800'}`}>
               <Wallet className="w-5 h-5" />
@@ -74,7 +77,7 @@ export const SummaryCards: React.FC<SummaryCardsProps> = ({ expenses }) => {
           </div>
           <div className="mt-3">
             <span className="text-2xl font-black tracking-tight">
-              R$ {netBalance.toLocaleString('pt-BR', { minimumFractionDigits: 2 })}
+              {formatCurrency(netBalance)}
             </span>
           </div>
         </CardContent>
@@ -85,7 +88,7 @@ export const SummaryCards: React.FC<SummaryCardsProps> = ({ expenses }) => {
         <CardContent className="p-5">
           <div className="flex items-center justify-between">
             <span className="text-xs font-semibold text-slate-500 uppercase tracking-wider">
-              Taxa de Poupança
+              {t('savingsRate')}
             </span>
             <div className="p-2 bg-blue-50 text-blue-600 rounded-xl">
               <PiggyBank className="w-5 h-5" />
@@ -95,7 +98,7 @@ export const SummaryCards: React.FC<SummaryCardsProps> = ({ expenses }) => {
             <span className={`text-2xl font-extrabold ${savingsRate >= 15 ? 'text-emerald-600' : savingsRate >= 0 ? 'text-amber-600' : 'text-red-600'}`}>
               {savingsRate.toFixed(1)}%
             </span>
-            <span className="text-xs text-slate-400 font-medium">da renda retida</span>
+            <span className="text-xs text-slate-400 font-medium">{t('incomeRetained')}</span>
           </div>
         </CardContent>
       </Card>

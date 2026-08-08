@@ -1,8 +1,9 @@
 import React from 'react';
 import { AIAdvice } from '@/types/finance';
-import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription } from '@/components/ui/dialog';
+import { Dialog, DialogContent, DialogTitle, DialogDescription } from '@/components/ui/dialog';
 import { Button } from '@/components/ui/button';
 import { Sparkles, TrendingDown, Target, Lightbulb, ShieldCheck, CheckCircle2, PiggyBank } from 'lucide-react';
+import { useLanguage } from '@/context/LanguageContext';
 
 interface AIAdvisorModalProps {
   isOpen: boolean;
@@ -11,6 +12,8 @@ interface AIAdvisorModalProps {
 }
 
 export const AIAdvisorModal: React.FC<AIAdvisorModalProps> = ({ isOpen, onClose, advice }) => {
+  const { formatCurrency, t } = useLanguage();
+
   if (!advice) return null;
 
   return (
@@ -25,15 +28,12 @@ export const AIAdvisorModal: React.FC<AIAdvisorModalProps> = ({ isOpen, onClose,
             <div>
               <div className="flex items-center gap-2">
                 <DialogTitle className="text-xl font-bold text-white">
-                  Diagnóstico Financeiro IA
+                  {t('advisorOpinion')}
                 </DialogTitle>
                 <span className="text-[10px] font-bold tracking-widest uppercase bg-emerald-500/30 text-emerald-300 border border-emerald-400/30 px-2 py-0.5 rounded-full">
-                  Consultor Virtual
+                  {t('aiAssist')}
                 </span>
               </div>
-              <DialogDescription className="text-slate-300 text-xs mt-1">
-                Análise do seu fluxo de caixa e recomendações personalizadas.
-              </DialogDescription>
             </div>
           </div>
         </div>
@@ -45,7 +45,7 @@ export const AIAdvisorModal: React.FC<AIAdvisorModalProps> = ({ isOpen, onClose,
             <div className="bg-emerald-50 border border-emerald-200/80 p-4 rounded-xl flex items-center justify-between">
               <div>
                 <span className="text-[11px] font-bold text-emerald-800 uppercase tracking-wider block">
-                  Score de Saúde
+                  {t('healthScore')}
                 </span>
                 <span className="text-2xl font-black text-emerald-900 mt-0.5 block">
                   {advice.healthScore} <span className="text-xs font-normal text-emerald-700">/ 100</span>
@@ -59,7 +59,7 @@ export const AIAdvisorModal: React.FC<AIAdvisorModalProps> = ({ isOpen, onClose,
             <div className="bg-blue-50 border border-blue-200/80 p-4 rounded-xl flex items-center justify-between">
               <div>
                 <span className="text-[11px] font-bold text-blue-800 uppercase tracking-wider block">
-                  Taxa de Poupança
+                  {t('savingsRate')}
                 </span>
                 <span className="text-2xl font-black text-blue-900 mt-0.5 block">
                   {advice.savingsRate.toFixed(1)}%
@@ -73,10 +73,10 @@ export const AIAdvisorModal: React.FC<AIAdvisorModalProps> = ({ isOpen, onClose,
             <div className="bg-teal-50 border border-teal-200/80 p-4 rounded-xl flex items-center justify-between">
               <div>
                 <span className="text-[11px] font-bold text-teal-800 uppercase tracking-wider block">
-                  Economia Estimada
+                  {t('estimatedSavings')}
                 </span>
                 <span className="text-lg font-black text-teal-900 mt-0.5 block">
-                  R$ {advice.savingsPotential.toLocaleString('pt-BR', { minimumFractionDigits: 2 })}
+                  {formatCurrency(advice.savingsPotential)}
                 </span>
               </div>
               <div className="p-2 bg-teal-200 text-teal-800 rounded-xl">
@@ -89,7 +89,7 @@ export const AIAdvisorModal: React.FC<AIAdvisorModalProps> = ({ isOpen, onClose,
           <div className="space-y-2">
             <h4 className="text-sm font-bold text-slate-800 flex items-center gap-2">
               <ShieldCheck className="w-4 h-4 text-emerald-600" />
-              Parecer do Consultor
+              {t('advisorOpinion')}
             </h4>
             <div className="p-4 bg-slate-50 border border-slate-200 rounded-xl text-xs sm:text-sm text-slate-700 leading-relaxed">
               {advice.diagnosis}
@@ -100,7 +100,7 @@ export const AIAdvisorModal: React.FC<AIAdvisorModalProps> = ({ isOpen, onClose,
           <div className="space-y-3">
             <h4 className="text-sm font-bold text-slate-800 flex items-center gap-2">
               <Lightbulb className="w-4 h-4 text-amber-500" />
-              Dicas de Otimização
+              {t('optimizationTips')}
             </h4>
             <div className="space-y-2">
               {advice.recommendations.map((rec, i) => (
@@ -116,7 +116,7 @@ export const AIAdvisorModal: React.FC<AIAdvisorModalProps> = ({ isOpen, onClose,
           <div className="space-y-3">
             <h4 className="text-sm font-bold text-slate-800 flex items-center gap-2">
               <Target className="w-4 h-4 text-emerald-600" />
-              Plano de Ação
+              {t('actionPlan')}
             </h4>
             <div className="space-y-2">
               {advice.actionPlan.map((action, i) => (
@@ -134,7 +134,7 @@ export const AIAdvisorModal: React.FC<AIAdvisorModalProps> = ({ isOpen, onClose,
             onClick={onClose}
             className="bg-slate-900 hover:bg-slate-800 text-white font-medium rounded-xl text-xs px-5"
           >
-            Fechar Análise
+            {t('closeAnalysis')}
           </Button>
         </div>
       </DialogContent>
