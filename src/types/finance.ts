@@ -36,6 +36,15 @@ export interface CategoryBudget {
   limitAmount: number;
 }
 
+export interface PiggyBank {
+  id: string;
+  userId: string;
+  name: string;
+  targetAmount: number;
+  currentAmount: number;
+  color: string;
+}
+
 export interface AIAdvice {
   diagnosis: string;
   healthScore: number; // 0-100

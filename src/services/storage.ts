@@ -1,9 +1,10 @@
-import { User, Expense, CategoryType, CategoryBudget } from '@/types/finance';
+import { User, Expense, CategoryType, CategoryBudget, PiggyBank } from '@/types/finance';
 
 const USERS_KEY = 'meu_orcamento_users';
 const CURRENT_USER_KEY = 'meu_orcamento_current_user';
 const EXPENSES_KEY = 'meu_orcamento_expenses';
 const BUDGETS_KEY = 'meu_orcamento_budgets';
+const PIGGY_BANKS_KEY = 'meu_orcamento_piggy_banks';
 
 export const EXPENSE_CATEGORIES: { name: CategoryType; color: string; icon: string }[] = [
   { name: 'Alimentação', color: '#10B981', icon: 'Utensils' },
@@ -26,7 +27,6 @@ export const INCOME_CATEGORIES: { name: CategoryType; color: string; icon: strin
 
 export const ALL_CATEGORIES = [...EXPENSE_CATEGORIES, ...INCOME_CATEGORIES];
 
-// Garantir que exista ao menos a conta padrão do Flavio salva
 const initDefaultAccounts = () => {
   const data = localStorage.getItem(USERS_KEY);
   if (!data) {
@@ -38,7 +38,6 @@ const initDefaultAccounts = () => {
     };
     localStorage.setItem(USERS_KEY, JSON.stringify([defaultUser]));
     
-    // Configura Flavio como usuário atual caso não exista nenhum logado
     if (!localStorage.getItem(CURRENT_USER_KEY)) {
       const userDTO: User = { id: defaultUser.id, name: defaultUser.name, email: defaultUser.email };
       localStorage.setItem(CURRENT_USER_KEY, JSON.stringify(userDTO));
@@ -47,10 +46,8 @@ const initDefaultAccounts = () => {
   }
 };
 
-// Inicializar de imediato
 initDefaultAccounts();
 
-// Funções de Usuário
 export const getUsers = (): (User & { passwordHash: string })[] => {
   const data = localStorage.getItem(USERS_KEY);
   return data ? JSON.parse(data) : [];
@@ -103,7 +100,6 @@ export const logoutUser = () => {
   localStorage.removeItem(CURRENT_USER_KEY);
 };
 
-// Funções de Despesas / Receitas
 export const getExpenses = (userId: string): Expense[] => {
   const data = localStorage.getItem(EXPENSES_KEY);
   const all: Expense[] = data ? JSON.parse(data) : [];
@@ -140,7 +136,6 @@ export const importExpenses = (userId: string, imported: Omit<Expense, 'id' | 'u
   imported.forEach(exp => addExpense(userId, exp));
 };
 
-// Funções de Orçamento por Categoria em Euro (€)
 export const getBudgets = (userId: string): CategoryBudget[] => {
   const data = localStorage.getItem(BUDGETS_KEY);
   if (!data) return getDefaultBudgets();
@@ -165,7 +160,59 @@ const getDefaultBudgets = (): CategoryBudget[] => [
   { category: 'Contas & Serviços', limitAmount: 180 },
 ];
 
-// Dados de Demonstração em Euro (€)
+// --- FUNÇÕES DE COFRINHOS / METAS DE ECONOMIA ---
+export const getPiggyBanks = (userId: string): PiggyBank[] => {
+  const data = localStorage.getItem(PIGGY_BANKS_KEY);
+  if (!data) return getDefaultPiggyBanks(userId);
+  const allMap: Record<string, PiggyBank[]> = JSON.parse(data);
+  return allMap[userId] || getDefaultPiggyBanks(userId);
+};
+
+export const savePiggyBanks = (userId: string, items: PiggyBank[]) => {
+  const data = localStorage.getItem(PIGGY_BANKS_KEY);
+  const allMap: Record<string, PiggyBank[]> = data ? JSON.parse(data) : {};
+  allMap[userId] = items;
+  localStorage.setItem(PIGGY_BANKS_KEY, JSON.stringify(allMap));
+};
+
+export const addPiggyBank = (userId: string, item: { name: string; targetAmount: number; color?: string }): PiggyBank => {
+  const current = getPiggyBanks(userId);
+  const newPiggy: PiggyBank = {
+    id: 'pgy_' + Date.now().toString(36),
+    userId,
+    name: item.name,
+    targetAmount: item.targetAmount,
+    currentAmount: 0,
+    color: item.color || '#10B981',
+  };
+  current.push(newPiggy);
+  savePiggyBanks(userId, current);
+  return newPiggy;
+};
+
+export const updatePiggyBankAmount = (userId: string, id: string, amountChange: number) => {
+  const current = getPiggyBanks(userId);
+  const updated = current.map(p => {
+    if (p.id === id) {
+      const newAmount = Math.max(0, p.currentAmount + amountChange);
+      return { ...p, currentAmount: newAmount };
+    }
+    return p;
+  });
+  savePiggyBanks(userId, updated);
+};
+
+export const deletePiggyBank = (userId: string, id: string) => {
+  const current = getPiggyBanks(userId);
+  const filtered = current.filter(p => p.id !== id);
+  savePiggyBanks(userId, filtered);
+};
+
+const getDefaultPiggyBanks = (userId: string): PiggyBank[] => [
+  { id: 'pgy_reserva', userId, name: 'Reserva de Emergência', targetAmount: 3000, currentAmount: 1200, color: '#10B981' },
+  { id: 'pgy_viagem', userId, name: 'Viagem / Férias', targetAmount: 1500, currentAmount: 450, color: '#3B82F6' },
+];
+
 const seedInitialData = (userId: string) => {
   const existingExpenses = getExpenses(userId);
   if (existingExpenses.length > 0) return;
@@ -175,11 +222,8 @@ const seedInitialData = (userId: string) => {
   const month = String(today.getMonth() + 1).padStart(2, '0');
 
   const demoTransactions: Omit<Expense, 'id' | 'userId' | 'createdAt'>[] = [
-    // Receitas (€)
     { description: 'Salário Mensal', amount: 2800.00, category: 'Salário', type: 'income', date: `${year}-${month}-01` },
     { description: 'Projeto Freelance', amount: 650.00, category: 'Freelance', type: 'income', date: `${year}-${month}-10` },
-
-    // Despesas (€)
     { description: 'Supermercado Mensal', amount: 320.50, category: 'Alimentação', type: 'expense', date: `${year}-${month}-02` },
     { description: 'Renda / Aluguer Habitação', amount: 750.00, category: 'Moradia', type: 'expense', date: `${year}-${month}-05` },
     { description: 'Eletricidade e Água', amount: 115.30, category: 'Contas & Serviços', type: 'expense', date: `${year}-${month}-08` },
@@ -190,4 +234,5 @@ const seedInitialData = (userId: string) => {
 
   demoTransactions.forEach(t => addExpense(userId, t));
   saveBudgets(userId, getDefaultBudgets());
+  savePiggyBanks(userId, getDefaultPiggyBanks(userId));
 };

@@ -68,7 +68,17 @@ const translations: Record<Language, Record<string, string>> = {
     investments: "Investimentos",
     others: "Outros",
     myProfile: "Meu Perfil",
-    accountDetails: "Detalhes da Conta"
+    accountDetails: "Detalhes da Conta",
+    piggyBanks: "Cofrinhos & Metas",
+    newPiggyBank: "Novo Cofrinho",
+    piggyBankDesc: "Separe dinheiro guardado para objetivos específicos como Viagens, Reserva de Emergência ou Compras.",
+    deposit: "Guardar",
+    withdraw: "Resgatar",
+    targetAmount: "Meta (€)",
+    savedAmount: "Guardado",
+    totalInPiggyBanks: "Total Guardado em Cofrinhos",
+    cofrinhoName: "Nome do Objetivo",
+    createCofrinho: "Criar Cofrinho"
   },
   en: {
     appTitle: "Smart Budget Planner",
@@ -128,7 +138,17 @@ const translations: Record<Language, Record<string, string>> = {
     investments: "Investments",
     others: "Others",
     myProfile: "My Profile",
-    accountDetails: "Account Details"
+    accountDetails: "Account Details",
+    piggyBanks: "Piggy Banks & Goals",
+    newPiggyBank: "New Piggy Bank",
+    piggyBankDesc: "Set money aside for specific goals like Vacations, Emergency Fund, or Big Purchases.",
+    deposit: "Deposit",
+    withdraw: "Withdraw",
+    targetAmount: "Goal (€)",
+    savedAmount: "Saved",
+    totalInPiggyBanks: "Total Saved in Piggy Banks",
+    cofrinhoName: "Goal Name",
+    createCofrinho: "Create Piggy Bank"
   },
   es: {
     appTitle: "Mi Presupuesto Inteligente",
@@ -188,7 +208,17 @@ const translations: Record<Language, Record<string, string>> = {
     investments: "Inversiones",
     others: "Otros",
     myProfile: "Mi Perfil",
-    accountDetails: "Detalles de la Cuenta"
+    accountDetails: "Detalles de la Cuenta",
+    piggyBanks: "Huchas y Metas",
+    newPiggyBank: "Nueva Hucha",
+    piggyBankDesc: "Guarde dinero para metas específicas como Fondo de Emergencia, Viajes o Compras.",
+    deposit: "Depositar",
+    withdraw: "Retirar",
+    targetAmount: "Meta (€)",
+    savedAmount: "Guardado",
+    totalInPiggyBanks: "Total Guardado en Huchas",
+    cofrinhoName: "Nombre de la Meta",
+    createCofrinho: "Crear Hucha"
   }
 };
 

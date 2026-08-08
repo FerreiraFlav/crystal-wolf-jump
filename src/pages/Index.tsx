@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { User, Expense, AIAdvice, CategoryBudget, TransactionType, CategoryType } from '@/types/finance';
+import { User, Expense, AIAdvice, CategoryBudget, TransactionType, CategoryType, PiggyBank } from '@/types/finance';
 import { 
   getCurrentUser, 
   logoutUser, 
@@ -7,7 +7,8 @@ import {
   addExpense as addExpenseStorage, 
   deleteExpense as deleteExpenseStorage,
   getBudgets,
-  saveBudgets
+  saveBudgets,
+  getPiggyBanks
 } from '@/services/storage';
 import { 
   fetchExpensesFromSupabase, 
@@ -26,9 +27,10 @@ import { MonthPicker } from '@/components/MonthPicker';
 import { BudgetManagerModal } from '@/components/BudgetManagerModal';
 import { ExportImportModal } from '@/components/ExportImportModal';
 import { AIAdvisorModal } from '@/components/AIAdvisorModal';
+import { CofrinhoModal } from '@/components/CofrinhoModal';
 import { Button } from '@/components/ui/button';
-import { Sparkles, BrainCircuit, Target, Download } from 'lucide-react';
-import { showSuccess, showError } from '@/utils/toast';
+import { Sparkles, BrainCircuit, Target, Download, PiggyBank as PiggyIcon } from 'lucide-react';
+import { showSuccess } from '@/utils/toast';
 import { useLanguage } from '@/context/LanguageContext';
 
 const Index = () => {
@@ -37,6 +39,7 @@ const Index = () => {
   const [currentUser, setCurrentUser] = useState<User | null>(null);
   const [expenses, setExpenses] = useState<Expense[]>([]);
   const [budgets, setBudgets] = useState<CategoryBudget[]>([]);
+  const [piggyBanks, setPiggyBanks] = useState<PiggyBank[]>([]);
 
   // Navegação de Mês/Ano
   const [selectedYear, setSelectedYear] = useState<number>(today.getFullYear());
@@ -46,6 +49,7 @@ const Index = () => {
   const [isAIModalOpen, setIsAIModalOpen] = useState(false);
   const [isBudgetModalOpen, setIsBudgetModalOpen] = useState(false);
   const [isExportModalOpen, setIsExportModalOpen] = useState(false);
+  const [isCofrinhoModalOpen, setIsCofrinhoModalOpen] = useState(false);
   
   const [aiAdvice, setAiAdvice] = useState<AIAdvice | null>(null);
   const [isAnalyzing, setIsAnalyzing] = useState(false);
@@ -59,22 +63,25 @@ const Index = () => {
   }, []);
 
   const loadUserData = async (userId: string) => {
+    // Carrega Cofrinhos e Metas
+    const piggyData = getPiggyBanks(userId);
+    setPiggyBanks(piggyData);
+
+    const budgetData = getBudgets(userId);
+    setBudgets(budgetData);
+
     // Tenta carregar do Supabase se estiver configurado
     if (isSupabaseConfigured) {
       const supabaseExpenses = await fetchExpensesFromSupabase(userId);
       if (supabaseExpenses.length > 0) {
         setExpenses(supabaseExpenses);
-        const budgetData = getBudgets(userId);
-        setBudgets(budgetData);
         return;
       }
     }
 
     // Fallback/Modo Local
     const expData = getExpenses(userId);
-    const budgetData = getBudgets(userId);
     setExpenses(expData);
-    setBudgets(budgetData);
   };
 
   const handleLoginSuccess = (user: User) => {
@@ -92,10 +99,8 @@ const Index = () => {
   const handleAddExpense = async (newExp: { description: string; amount: number; category: CategoryType; type: TransactionType; date: string }) => {
     if (!currentUser) return;
 
-    // Salva localmente primeiro
     const savedLocal = addExpenseStorage(currentUser.id, newExp);
 
-    // Se o Supabase estiver conectado, envia para a nuvem
     if (isSupabaseConfigured) {
       await saveExpenseToSupabase(currentUser.id, newExp);
     }
@@ -122,7 +127,6 @@ const Index = () => {
     setBudgets(updated);
   };
 
-  // Análise Inteligente de Gastos com IA
   const handleRunAIAnalysis = () => {
     setIsAnalyzing(true);
 
@@ -141,7 +145,6 @@ const Index = () => {
     return <AuthModal onLoginSuccess={handleLoginSuccess} />;
   }
 
-  // Filtragem das despesas/receitas do mês/ano selecionado
   const selectedYearMonthStr = `${selectedYear}-${String(selectedMonth + 1).padStart(2, '0')}`;
   const currentMonthExpenses = expenses.filter(exp => exp.date.startsWith(selectedYearMonthStr));
 
@@ -152,13 +155,11 @@ const Index = () => {
 
   return (
     <div className="min-h-screen bg-slate-100/70 text-slate-800 flex flex-col font-sans">
-      {/* Navegação Superior */}
       <Navbar user={currentUser} onLogout={handleLogout} />
 
-      {/* Conteúdo Principal */}
       <main className="flex-1 max-w-7xl w-full mx-auto px-4 sm:px-6 lg:px-8 py-6 space-y-6">
         
-        {/* Barra Superior de Ferramentas (Mês, Limites, Backup) */}
+        {/* Barra Superior de Ferramentas (Mês, Cofrinhos, Limites, Backup) */}
         <div className="flex flex-col md:flex-row items-center justify-between gap-4 bg-white border border-slate-200/80 p-4 rounded-2xl shadow-sm">
           <MonthPicker
             selectedYear={selectedYear}
@@ -169,7 +170,17 @@ const Index = () => {
             }}
           />
 
-          <div className="flex items-center space-x-2 w-full md:w-auto justify-end">
+          <div className="flex flex-wrap items-center space-x-2 w-full md:w-auto justify-end gap-1.5">
+            <Button
+              variant="outline"
+              size="sm"
+              onClick={() => setIsCofrinhoModalOpen(true)}
+              className="rounded-xl border-emerald-200 bg-emerald-50/50 text-emerald-800 hover:bg-emerald-100 text-xs font-bold flex items-center gap-1.5"
+            >
+              <PiggyIcon className="w-4 h-4 text-emerald-600" />
+              {t('piggyBanks')}
+            </Button>
+
             <Button
               variant="outline"
               size="sm"
@@ -251,6 +262,13 @@ const Index = () => {
         isOpen={isAIModalOpen}
         onClose={() => setIsAIModalOpen(false)}
         advice={aiAdvice}
+      />
+
+      <CofrinhoModal
+        isOpen={isCofrinhoModalOpen}
+        onClose={() => setIsCofrinhoModalOpen(false)}
+        userId={currentUser.id}
+        onUpdate={() => loadUserData(currentUser.id)}
       />
 
       <BudgetManagerModal
