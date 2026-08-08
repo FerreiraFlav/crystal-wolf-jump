@@ -1,7 +1,8 @@
 import React from 'react';
 import { User } from '@/types/finance';
 import { Button } from '@/components/ui/button';
-import { Wallet, LogOut, User as UserIcon, Sparkles } from 'lucide-react';
+import { Wallet, LogOut, Sparkles } from 'lucide-react';
+import { SupabaseBadge } from './SupabaseBadge';
 
 interface NavbarProps {
   user: User;
@@ -27,17 +28,21 @@ export const Navbar: React.FC<NavbarProps> = ({ user, onLogout }) => {
                 IA Assist
               </span>
             </div>
-            <p className="text-xs text-slate-500 hidden sm:block">Controle financeiro pessoal e privado</p>
+            <p className="text-xs text-slate-500 hidden sm:block">Controle financeiro pessoal</p>
           </div>
         </div>
 
-        {/* Informações do Usuário e Logout */}
-        <div className="flex items-center space-x-4">
+        {/* Status do Supabase & Usuário */}
+        <div className="flex items-center space-x-3 sm:space-x-4">
+          <div className="hidden md:block">
+            <SupabaseBadge />
+          </div>
+
           <div className="flex items-center space-x-2 text-sm text-slate-600 bg-slate-50 border border-slate-200/80 px-3 py-1.5 rounded-full">
             <div className="w-6 h-6 rounded-full bg-emerald-100 text-emerald-700 flex items-center justify-center font-bold text-xs">
               {user.name.charAt(0).toUpperCase()}
             </div>
-            <span className="font-medium text-slate-700 max-w-[120px] sm:max-w-[180px] truncate">
+            <span className="font-medium text-slate-700 max-w-[100px] sm:max-w-[160px] truncate">
               {user.name}
             </span>
           </div>
