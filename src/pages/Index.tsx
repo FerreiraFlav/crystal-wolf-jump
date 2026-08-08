@@ -229,7 +229,7 @@ const Index = () => {
       />
 
       <ExportImportModal
-        isOpen={isOpen => setIsExportModalOpen(isOpen)}
+        isOpen={isExportModalOpen}
         onClose={() => setIsExportModalOpen(false)}
         userId={currentUser.id}
         expenses={expenses}
@@ -239,7 +239,7 @@ const Index = () => {
       {/* Footer */}
       <footer className="border-t border-slate-200 bg-white py-4 mt-8">
         <div className="max-w-7xl mx-auto px-4 text-center text-xs text-slate-500">
-          Meu Orçamento Inteligente • Seus dados financeiros mantidos 100% locais e seguros.
+          Meu Orçamento Inteligente • Seus dados financeiros mantidos seguros.
         </div>
       </footer>
     </div>
