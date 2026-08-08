@@ -1,4 +1,4 @@
-import React, { createContext, useContext, useState, useEffect } from 'react';
+import React, { createContext, useContext, useState } from 'react';
 
 export type Language = 'pt' | 'en' | 'es';
 
@@ -31,12 +31,12 @@ const translations: Record<Language, Record<string, string>> = {
     history: "Histórico de Lançamentos",
     allTypes: "Todos os Tipos",
     allCategories: "Todas Categorias",
-    searchPlaceholder: "Buscar...",
+    searchPlaceholder: "Buscar por descrição...",
     noTransactions: "Nenhum lançamento encontrado",
     expenseBreakdown: "Divisão de Despesas",
     noExpensesMonth: "Nenhuma despesa registrada neste mês",
     aiBannerTitle: "Quer saber onde economizar?",
-    aiBannerDesc: "Análise inteligente das suas entradas e saídas para indicar gorduras no orçamento, score financeiro e sugestões de economia em Euro.",
+    aiBannerDesc: "Análise inteligente das suas entradas e saídas para indicar cortes no orçamento, pontuação financeira e sugestões de economia em Euro.",
     analyzeBtn: "Analisar Gastos com IA",
     analyzingBtn: "Analisando gastos...",
     categoryGoals: "Metas por Categoria",
@@ -66,7 +66,9 @@ const translations: Record<Language, Record<string, string>> = {
     salary: "Salário",
     freelance: "Freelance",
     investments: "Investimentos",
-    others: "Outros"
+    others: "Outros",
+    myProfile: "Meu Perfil",
+    accountDetails: "Detalhes da Conta"
   },
   en: {
     appTitle: "Smart Budget Planner",
@@ -124,7 +126,9 @@ const translations: Record<Language, Record<string, string>> = {
     salary: "Salary",
     freelance: "Freelance",
     investments: "Investments",
-    others: "Others"
+    others: "Others",
+    myProfile: "My Profile",
+    accountDetails: "Account Details"
   },
   es: {
     appTitle: "Mi Presupuesto Inteligente",
@@ -182,7 +186,9 @@ const translations: Record<Language, Record<string, string>> = {
     salary: "Salario",
     freelance: "Freelance",
     investments: "Inversiones",
-    others: "Otros"
+    others: "Otros",
+    myProfile: "Mi Perfil",
+    accountDetails: "Detalles de la Cuenta"
   }
 };
 
@@ -201,11 +207,11 @@ export const LanguageProvider: React.FC<{ children: React.ReactNode }> = ({ chil
 
   const formatCurrency = (amount: number): string => {
     const localeMap: Record<Language, string> = {
-      pt: 'pt-PT',
+      pt: 'pt-BR',
       en: 'en-IE',
       es: 'es-ES'
     };
-    return new Intl.NumberFormat(localeMap[language] || 'pt-PT', {
+    return new Intl.NumberFormat(localeMap[language] || 'pt-BR', {
       style: 'currency',
       currency: 'EUR',
       minimumFractionDigits: 2,

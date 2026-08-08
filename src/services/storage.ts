@@ -26,6 +26,30 @@ export const INCOME_CATEGORIES: { name: CategoryType; color: string; icon: strin
 
 export const ALL_CATEGORIES = [...EXPENSE_CATEGORIES, ...INCOME_CATEGORIES];
 
+// Garantir que exista ao menos a conta padrão do Flavio salva
+const initDefaultAccounts = () => {
+  const data = localStorage.getItem(USERS_KEY);
+  if (!data) {
+    const defaultUser: User & { passwordHash: string } = {
+      id: 'usr_flavio',
+      name: 'Flavio',
+      email: 'flavio@email.com',
+      passwordHash: '123456',
+    };
+    localStorage.setItem(USERS_KEY, JSON.stringify([defaultUser]));
+    
+    // Configura Flavio como usuário atual caso não exista nenhum logado
+    if (!localStorage.getItem(CURRENT_USER_KEY)) {
+      const userDTO: User = { id: defaultUser.id, name: defaultUser.name, email: defaultUser.email };
+      localStorage.setItem(CURRENT_USER_KEY, JSON.stringify(userDTO));
+      seedInitialData(defaultUser.id);
+    }
+  }
+};
+
+// Inicializar de imediato
+initDefaultAccounts();
+
 // Funções de Usuário
 export const getUsers = (): (User & { passwordHash: string })[] => {
   const data = localStorage.getItem(USERS_KEY);
@@ -33,6 +57,7 @@ export const getUsers = (): (User & { passwordHash: string })[] => {
 };
 
 export const getCurrentUser = (): User | null => {
+  initDefaultAccounts();
   const data = localStorage.getItem(CURRENT_USER_KEY);
   return data ? JSON.parse(data) : null;
 };
@@ -54,7 +79,6 @@ export const registerUser = (name: string, email: string, passwordHash: string):
   localStorage.setItem(USERS_KEY, JSON.stringify(users));
   localStorage.setItem(CURRENT_USER_KEY, JSON.stringify(newUser));
 
-  // Seed initial expenses and income for demo in EUR
   seedInitialData(newUser.id);
 
   return newUser;
@@ -143,6 +167,9 @@ const getDefaultBudgets = (): CategoryBudget[] => [
 
 // Dados de Demonstração em Euro (€)
 const seedInitialData = (userId: string) => {
+  const existingExpenses = getExpenses(userId);
+  if (existingExpenses.length > 0) return;
+
   const today = new Date();
   const year = today.getFullYear();
   const month = String(today.getMonth() + 1).padStart(2, '0');
@@ -159,9 +186,6 @@ const seedInitialData = (userId: string) => {
     { description: 'Passe Navegante / Combustível', amount: 80.00, category: 'Transporte', type: 'expense', date: `${year}-${month}-10` },
     { description: 'Jantar Restaurante', amount: 65.00, category: 'Lazer & Entretenimento', type: 'expense', date: `${year}-${month}-12` },
     { description: 'Seguro de Saúde', amount: 90.00, category: 'Saúde', type: 'expense', date: `${year}-${month}-15` },
-    { description: 'Curso de Especialização', amount: 120.00, category: 'Educação', type: 'expense', date: `${year}-${month}-18` },
-    { description: 'Compras de Mercearia', amount: 48.80, category: 'Alimentação', type: 'expense', date: `${year}-${month}-20` },
-    { description: 'Serviços de Streaming', amount: 22.90, category: 'Lazer & Entretenimento', type: 'expense', date: `${year}-${month}-22` },
   ];
 
   demoTransactions.forEach(t => addExpense(userId, t));
