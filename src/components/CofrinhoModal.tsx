@@ -9,7 +9,7 @@ import {
 import { Dialog, DialogContent, DialogTitle, DialogDescription } from '@/components/ui/dialog';
 import { Input } from '@/components/ui/input';
 import { Button } from '@/components/ui/button';
-import { PiggyBank as PiggyIcon, Plus, ArrowUpRight, ArrowDownLeft, Trash2, CheckCircle2, Wallet } from 'lucide-react';
+import { PiggyBank as PiggyIcon, Plus, ArrowUpRight, ArrowDownLeft, Trash2, CheckCircle2, Wallet, Zap } from 'lucide-react';
 import { showSuccess, showError } from '@/utils/toast';
 import { useLanguage } from '@/context/LanguageContext';
 
@@ -68,20 +68,41 @@ export const CofrinhoModal: React.FC<CofrinhoModalProps> = ({
     refreshData();
   };
 
-  const handleApplyAction = (piggyId: string) => {
+  const handleApplyAction = (piggy: PiggyBank) => {
     const num = parseFloat(actionAmount.replace(',', '.'));
     if (isNaN(num) || num <= 0) {
-      showError('Informe um valor válido.');
+      showError('Informe um valor válido maior que zero.');
       return;
     }
 
+    if (actionType === 'deposit') {
+      const maxAllowed = Math.max(0, availableBalance);
+      if (availableBalance <= 0) {
+        showError('Você não possui saldo livre neste mês para guardar no cofrinho.');
+        return;
+      }
+      if (num > maxAllowed) {
+        showError(
+          `O valor digitado (${formatCurrency(num)}) ultrapassa o saldo disponível (${formatCurrency(maxAllowed)}).`
+        );
+        return;
+      }
+    } else if (actionType === 'withdraw') {
+      if (num > piggy.currentAmount) {
+        showError(
+          `O valor do resgate (${formatCurrency(num)}) é maior do que o saldo guardado no cofrinho (${formatCurrency(piggy.currentAmount)}).`
+        );
+        return;
+      }
+    }
+
     const change = actionType === 'deposit' ? num : -num;
-    updatePiggyBankAmount(userId, piggyId, change);
+    updatePiggyBankAmount(userId, piggy.id, change);
 
     showSuccess(
       actionType === 'deposit'
-        ? `+ ${formatCurrency(num)} adicionados ao Cofrinho!`
-        : `- ${formatCurrency(num)} resgatados do Cofrinho!`
+        ? `+ ${formatCurrency(num)} adicionados ao Cofrinho "${piggy.name}"!`
+        : `- ${formatCurrency(num)} resgatados do Cofrinho "${piggy.name}"!`
     );
 
     setActiveActionId(null);
@@ -221,6 +242,7 @@ export const CofrinhoModal: React.FC<CofrinhoModalProps> = ({
                           onClick={() => {
                             setActiveActionId(piggy.id);
                             setActionType('deposit');
+                            setActionAmount('');
                           }}
                           className="h-8 text-xs text-emerald-700 border-emerald-200 hover:bg-emerald-50 font-semibold rounded-lg flex items-center gap-1"
                         >
@@ -234,6 +256,7 @@ export const CofrinhoModal: React.FC<CofrinhoModalProps> = ({
                           onClick={() => {
                             setActiveActionId(piggy.id);
                             setActionType('withdraw');
+                            setActionAmount('');
                           }}
                           className="h-8 text-xs text-blue-700 border-blue-200 hover:bg-blue-50 font-semibold rounded-lg flex items-center gap-1"
                         >
@@ -273,30 +296,46 @@ export const CofrinhoModal: React.FC<CofrinhoModalProps> = ({
 
                     {/* Formulário de Depósito ou Resgate Inline */}
                     {isActionOpen && (
-                      <div className="p-3 bg-emerald-50/60 border border-emerald-200/80 rounded-xl flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3 mt-2">
-                        <div className="flex flex-wrap items-center gap-2 flex-1">
+                      <div className="p-3 bg-emerald-50/60 border border-emerald-200/80 rounded-xl flex flex-col space-y-2 mt-2">
+                        <div className="flex flex-wrap items-center justify-between gap-2">
                           <span className="text-xs font-bold text-slate-800 flex items-center gap-1">
                             {actionType === 'deposit' ? 'Guardar €:' : 'Resgatar €:'}
                           </span>
 
-                          {actionType === 'deposit' && (
+                          {actionType === 'deposit' ? (
                             <span className="inline-flex items-center gap-1 text-[11px] font-bold text-emerald-800 bg-white border border-emerald-300 px-2.5 py-0.5 rounded-full shadow-2xs">
                               <Wallet className="w-3 h-3 text-emerald-600" />
-                              Saldo disponível: {formatCurrency(availableBalance)}
+                              Saldo livre: {formatCurrency(Math.max(0, availableBalance))}
+                            </span>
+                          ) : (
+                            <span className="inline-flex items-center gap-1 text-[11px] font-bold text-blue-800 bg-white border border-blue-300 px-2.5 py-0.5 rounded-full shadow-2xs">
+                              Guardado no cofrinho: {formatCurrency(piggy.currentAmount)}
                             </span>
                           )}
-
-                          <Input
-                            type="text"
-                            placeholder="0,00"
-                            value={actionAmount}
-                            onChange={e => setActionAmount(e.target.value)}
-                            className="h-8 text-xs font-bold w-28 bg-white rounded-lg border-emerald-300 focus:ring-emerald-500"
-                            autoFocus
-                          />
                         </div>
 
-                        <div className="flex items-center space-x-2 self-end sm:self-auto">
+                        <div className="flex items-center space-x-2 pt-1">
+                          <div className="relative flex-1">
+                            <Input
+                              type="text"
+                              placeholder="0,00"
+                              value={actionAmount}
+                              onChange={e => setActionAmount(e.target.value)}
+                              className="h-8 text-xs font-bold bg-white rounded-lg border-emerald-300 focus:ring-emerald-500 pr-12"
+                              autoFocus
+                            />
+                            {actionType === 'deposit' && availableBalance > 0 && (
+                              <button
+                                type="button"
+                                onClick={() => setActionAmount(String(availableBalance))}
+                                className="absolute right-1 top-1 text-[10px] font-bold bg-emerald-100 text-emerald-800 hover:bg-emerald-200 px-2 py-0.5 rounded flex items-center gap-0.5"
+                                title="Guardar todo o saldo disponível"
+                              >
+                                <Zap className="w-3 h-3" /> Max
+                              </button>
+                            )}
+                          </div>
+
                           <Button
                             size="sm"
                             variant="ghost"
@@ -305,9 +344,10 @@ export const CofrinhoModal: React.FC<CofrinhoModalProps> = ({
                           >
                             {t('cancel')}
                           </Button>
+
                           <Button
                             size="sm"
-                            onClick={() => handleApplyAction(piggy.id)}
+                            onClick={() => handleApplyAction(piggy)}
                             className="h-8 bg-emerald-700 hover:bg-emerald-800 text-white font-semibold text-xs rounded-lg shadow-sm"
                           >
                             Confirmar
