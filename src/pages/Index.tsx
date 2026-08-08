@@ -148,6 +148,17 @@ const Index = () => {
   const selectedYearMonthStr = `${selectedYear}-${String(selectedMonth + 1).padStart(2, '0')}`;
   const currentMonthExpenses = expenses.filter(exp => exp.date.startsWith(selectedYearMonthStr));
 
+  // Saldo disponível (Não utilizado) no mês selecionado
+  const totalIncome = currentMonthExpenses
+    .filter(e => e.type === 'income')
+    .reduce((acc, curr) => acc + curr.amount, 0);
+
+  const totalSpent = currentMonthExpenses
+    .filter(e => e.type === 'expense')
+    .reduce((acc, curr) => acc + curr.amount, 0);
+
+  const availableBalance = totalIncome - totalSpent;
+
   const monthLabel = new Date(selectedYear, selectedMonth, 1).toLocaleDateString('pt-BR', {
     month: 'long',
     year: 'numeric',
@@ -268,6 +279,7 @@ const Index = () => {
         isOpen={isCofrinhoModalOpen}
         onClose={() => setIsCofrinhoModalOpen(false)}
         userId={currentUser.id}
+        availableBalance={availableBalance}
         onUpdate={() => loadUserData(currentUser.id)}
       />
 

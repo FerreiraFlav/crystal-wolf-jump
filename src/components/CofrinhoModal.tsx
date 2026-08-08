@@ -9,7 +9,7 @@ import {
 import { Dialog, DialogContent, DialogTitle, DialogDescription } from '@/components/ui/dialog';
 import { Input } from '@/components/ui/input';
 import { Button } from '@/components/ui/button';
-import { PiggyBank as PiggyIcon, Plus, ArrowUpRight, ArrowDownLeft, Trash2, CheckCircle2 } from 'lucide-react';
+import { PiggyBank as PiggyIcon, Plus, ArrowUpRight, ArrowDownLeft, Trash2, CheckCircle2, Wallet } from 'lucide-react';
 import { showSuccess, showError } from '@/utils/toast';
 import { useLanguage } from '@/context/LanguageContext';
 
@@ -17,6 +17,7 @@ interface CofrinhoModalProps {
   isOpen: boolean;
   onClose: () => void;
   userId: string;
+  availableBalance?: number;
   onUpdate: () => void;
 }
 
@@ -24,6 +25,7 @@ export const CofrinhoModal: React.FC<CofrinhoModalProps> = ({
   isOpen,
   onClose,
   userId,
+  availableBalance = 0,
   onUpdate,
 }) => {
   const { formatCurrency, t } = useLanguage();
@@ -271,21 +273,30 @@ export const CofrinhoModal: React.FC<CofrinhoModalProps> = ({
 
                     {/* Formulário de Depósito ou Resgate Inline */}
                     {isActionOpen && (
-                      <div className="p-3 bg-slate-50 border border-slate-200 rounded-xl flex items-center justify-between gap-3 mt-2">
-                        <div className="flex items-center space-x-2 flex-1">
-                          <span className="text-xs font-bold text-slate-700">
+                      <div className="p-3 bg-emerald-50/60 border border-emerald-200/80 rounded-xl flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3 mt-2">
+                        <div className="flex flex-wrap items-center gap-2 flex-1">
+                          <span className="text-xs font-bold text-slate-800 flex items-center gap-1">
                             {actionType === 'deposit' ? 'Guardar €:' : 'Resgatar €:'}
                           </span>
+
+                          {actionType === 'deposit' && (
+                            <span className="inline-flex items-center gap-1 text-[11px] font-bold text-emerald-800 bg-white border border-emerald-300 px-2.5 py-0.5 rounded-full shadow-2xs">
+                              <Wallet className="w-3 h-3 text-emerald-600" />
+                              Saldo disponível: {formatCurrency(availableBalance)}
+                            </span>
+                          )}
+
                           <Input
                             type="text"
                             placeholder="0,00"
                             value={actionAmount}
                             onChange={e => setActionAmount(e.target.value)}
-                            className="h-8 text-xs font-bold w-28 bg-white rounded-lg"
+                            className="h-8 text-xs font-bold w-28 bg-white rounded-lg border-emerald-300 focus:ring-emerald-500"
                             autoFocus
                           />
                         </div>
-                        <div className="flex items-center space-x-2">
+
+                        <div className="flex items-center space-x-2 self-end sm:self-auto">
                           <Button
                             size="sm"
                             variant="ghost"
@@ -297,7 +308,7 @@ export const CofrinhoModal: React.FC<CofrinhoModalProps> = ({
                           <Button
                             size="sm"
                             onClick={() => handleApplyAction(piggy.id)}
-                            className="h-8 bg-slate-900 hover:bg-slate-800 text-white font-semibold text-xs rounded-lg"
+                            className="h-8 bg-emerald-700 hover:bg-emerald-800 text-white font-semibold text-xs rounded-lg shadow-sm"
                           >
                             Confirmar
                           </Button>
