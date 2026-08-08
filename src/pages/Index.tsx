@@ -28,6 +28,7 @@ import { BudgetManagerModal } from '@/components/BudgetManagerModal';
 import { ExportImportModal } from '@/components/ExportImportModal';
 import { AIAdvisorModal } from '@/components/AIAdvisorModal';
 import { CofrinhoModal } from '@/components/CofrinhoModal';
+import { PiggyBankWidget } from '@/components/PiggyBankWidget';
 import { Button } from '@/components/ui/button';
 import { Sparkles, BrainCircuit, Target, Download, PiggyBank as PiggyIcon } from 'lucide-react';
 import { showSuccess } from '@/utils/toast';
@@ -99,7 +100,7 @@ const Index = () => {
   const handleAddExpense = async (newExp: { description: string; amount: number; category: CategoryType; type: TransactionType; date: string }) => {
     if (!currentUser) return;
 
-    const savedLocal = addExpenseStorage(currentUser.id, newExp);
+    addExpenseStorage(currentUser.id, newExp);
 
     if (isSupabaseConfigured) {
       await saveExpenseToSupabase(currentUser.id, newExp);
@@ -148,7 +149,7 @@ const Index = () => {
   const selectedYearMonthStr = `${selectedYear}-${String(selectedMonth + 1).padStart(2, '0')}`;
   const currentMonthExpenses = expenses.filter(exp => exp.date.startsWith(selectedYearMonthStr));
 
-  // Saldo disponível (Não utilizado) no mês selecionado
+  // Saldo disponível no mês selecionado
   const totalIncome = currentMonthExpenses
     .filter(e => e.type === 'income')
     .reduce((acc, curr) => acc + curr.amount, 0);
@@ -246,6 +247,12 @@ const Index = () => {
 
         {/* Summary Cards */}
         <SummaryCards expenses={currentMonthExpenses} />
+
+        {/* Widget de Cofrinhos */}
+        <PiggyBankWidget
+          piggyBanks={piggyBanks}
+          onOpenModal={() => setIsCofrinhoModalOpen(true)}
+        />
 
         {/* Form + Chart Section */}
         <div className="grid grid-cols-1 lg:grid-cols-12 gap-6 items-stretch">
