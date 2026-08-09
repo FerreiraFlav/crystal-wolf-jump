@@ -11,7 +11,7 @@ export const SupabaseBadge: React.FC = () => {
     return (
       <div className="flex items-center space-x-1.5 text-xs bg-emerald-50 text-emerald-800 border border-emerald-200/80 px-3 py-1 rounded-full font-semibold shadow-xs">
         <Wifi className="w-3.5 h-3.5 text-emerald-600 animate-pulse" />
-        <span>Supabase On-line (Nuvem)</span>
+        <span>Sincronizado (Nuvem)</span>
       </div>
     );
   }
@@ -25,7 +25,7 @@ export const SupabaseBadge: React.FC = () => {
         title="Clique para entender sobre a conexão com a nuvem"
       >
         <Database className="w-3.5 h-3.5 text-amber-600" />
-        <span>Modo Local (Aguardando Chaves Supabase)</span>
+        <span>Modo Local (Off-line)</span>
         <Info className="w-3 h-3 text-amber-600 ml-0.5" />
       </button>
 
@@ -54,9 +54,9 @@ export const SupabaseBadge: React.FC = () => {
             </div>
 
             <div className="p-3 bg-slate-50 border border-slate-200 rounded-xl space-y-1">
-              <p className="font-semibold text-slate-800">Para conectar ao banco Supabase na nuvem:</p>
+              <p className="font-semibold text-slate-800">Para conectar ao banco de dados na nuvem:</p>
               <p className="text-slate-600 text-[11px] leading-relaxed">
-                Adicione as duas variáveis de ambiente no seu projeto ou na Vercel:
+                Adicione as variáveis de ambiente necessárias no seu projeto ou servidor:
               </p>
               <ul className="list-disc pl-4 text-[11px] font-mono text-slate-800 space-y-0.5 mt-1">
                 <li>VITE_SUPABASE_URL</li>
