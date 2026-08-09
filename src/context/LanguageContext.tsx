@@ -226,13 +226,21 @@ const LanguageContext = createContext<LanguageContextType | undefined>(undefined
 
 export const LanguageProvider: React.FC<{ children: React.ReactNode }> = ({ children }) => {
   const [language, setLanguageState] = useState<Language>(() => {
-    const saved = localStorage.getItem('app_language') as Language;
-    return saved && ['pt', 'en', 'es'].includes(saved) ? saved : 'pt';
+    try {
+      const saved = localStorage.getItem('app_language') as Language;
+      return saved && ['pt', 'en', 'es'].includes(saved) ? saved : 'pt';
+    } catch {
+      return 'pt';
+    }
   });
 
   const setLanguage = (lang: Language) => {
     setLanguageState(lang);
-    localStorage.setItem('app_language', lang);
+    try {
+      localStorage.setItem('app_language', lang);
+    } catch {
+      // Ignorar caso o armazenamento esteja desativado
+    }
   };
 
   const formatCurrency = (amount: number): string => {

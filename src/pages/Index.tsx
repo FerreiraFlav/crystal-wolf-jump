@@ -56,32 +56,36 @@ const Index = () => {
   const [isAnalyzing, setIsAnalyzing] = useState(false);
 
   useEffect(() => {
-    const user = getCurrentUser();
-    if (user) {
-      setCurrentUser(user);
-      loadUserData(user.id);
+    try {
+      const user = getCurrentUser();
+      if (user) {
+        setCurrentUser(user);
+        loadUserData(user.id);
+      }
+    } catch (err) {
+      console.warn('Erro ao restaurar usuário no carregamento inicial:', err);
     }
   }, []);
 
   const loadUserData = async (userId: string) => {
-    const localExp = getExpenses(userId);
-    setExpenses(localExp);
+    try {
+      const localExp = getExpenses(userId);
+      setExpenses(localExp);
 
-    const piggyData = getPiggyBanks(userId);
-    setPiggyBanks(piggyData);
+      const piggyData = getPiggyBanks(userId);
+      setPiggyBanks(piggyData);
 
-    const budgetData = getBudgets(userId);
-    setBudgets(budgetData);
+      const budgetData = getBudgets(userId);
+      setBudgets(budgetData);
 
-    if (isSupabaseConfigured) {
-      try {
+      if (isSupabaseConfigured) {
         const supabaseExpenses = await fetchExpensesFromSupabase(userId);
         if (supabaseExpenses && supabaseExpenses.length > 0) {
           setExpenses(supabaseExpenses);
         }
-      } catch (err) {
-        console.warn('Erro ao sincronizar com Supabase:', err);
       }
+    } catch (err) {
+      console.warn('Erro ao carregar dados do usuário:', err);
     }
   };
 

@@ -6,6 +6,57 @@ const EXPENSES_KEY = 'meu_orcamento_expenses';
 const BUDGETS_KEY = 'meu_orcamento_budgets';
 const PIGGY_BANKS_KEY = 'meu_orcamento_piggy_banks';
 
+// Fallback em memória caso o navegador bloqueie localStorage/sessionStorage (ex: abas anônimas estritas)
+const memoryStore: Record<string, string> = {};
+
+const safeLocalStorage = {
+  getItem: (key: string): string | null => {
+    try {
+      return localStorage.getItem(key);
+    } catch {
+      return memoryStore[key] || null;
+    }
+  },
+  setItem: (key: string, value: string): void => {
+    try {
+      localStorage.setItem(key, value);
+    } catch {
+      memoryStore[key] = value;
+    }
+  },
+  removeItem: (key: string): void => {
+    try {
+      localStorage.removeItem(key);
+    } catch {
+      delete memoryStore[key];
+    }
+  }
+};
+
+const safeSessionStorage = {
+  getItem: (key: string): string | null => {
+    try {
+      return sessionStorage.getItem(key);
+    } catch {
+      return memoryStore['session_' + key] || null;
+    }
+  },
+  setItem: (key: string, value: string): void => {
+    try {
+      sessionStorage.setItem(key, value);
+    } catch {
+      memoryStore['session_' + key] = value;
+    }
+  },
+  removeItem: (key: string): void => {
+    try {
+      sessionStorage.removeItem(key);
+    } catch {
+      delete memoryStore['session_' + key];
+    }
+  }
+};
+
 export const EXPENSE_CATEGORIES: { name: CategoryType; color: string; icon: string }[] = [
   { name: 'Alimentação', color: '#10B981', icon: 'Utensils' },
   { name: 'Moradia', color: '#3B82F6', icon: 'Home' },
@@ -28,30 +79,33 @@ export const INCOME_CATEGORIES: { name: CategoryType; color: string; icon: strin
 export const ALL_CATEGORIES = [...EXPENSE_CATEGORIES, ...INCOME_CATEGORIES];
 
 const initDefaultAccounts = () => {
-  const data = localStorage.getItem(USERS_KEY);
-  if (!data) {
-    const defaultUser: User & { passwordHash: string } = {
-      id: 'usr_flavio',
-      name: 'Flavio',
-      email: 'flavio@email.com',
-      passwordHash: '123456',
-    };
-    localStorage.setItem(USERS_KEY, JSON.stringify([defaultUser]));
-    seedInitialData(defaultUser.id);
+  try {
+    const data = safeLocalStorage.getItem(USERS_KEY);
+    if (!data) {
+      const defaultUser: User & { passwordHash: string } = {
+        id: 'usr_flavio',
+        name: 'Flavio',
+        email: 'flavio@email.com',
+        passwordHash: '123456',
+      };
+      safeLocalStorage.setItem(USERS_KEY, JSON.stringify([defaultUser]));
+      seedInitialData(defaultUser.id);
+    }
+  } catch (err) {
+    console.warn('Aviso de inicialização de armazenamento:', err);
   }
 };
 
 initDefaultAccounts();
 
 export const getUsers = (): (User & { passwordHash: string })[] => {
-  const data = localStorage.getItem(USERS_KEY);
+  const data = safeLocalStorage.getItem(USERS_KEY);
   return data ? JSON.parse(data) : [];
 };
 
-// Usa sessionStorage para exigir login em cada nova aba/acesso
 export const getCurrentUser = (): User | null => {
   initDefaultAccounts();
-  const data = sessionStorage.getItem(CURRENT_USER_KEY);
+  const data = safeSessionStorage.getItem(CURRENT_USER_KEY);
   return data ? JSON.parse(data) : null;
 };
 
@@ -69,8 +123,8 @@ export const registerUser = (name: string, email: string, passwordHash: string):
   };
 
   users.push({ ...newUser, passwordHash });
-  localStorage.setItem(USERS_KEY, JSON.stringify(users));
-  sessionStorage.setItem(CURRENT_USER_KEY, JSON.stringify(newUser));
+  safeLocalStorage.setItem(USERS_KEY, JSON.stringify(users));
+  safeSessionStorage.setItem(CURRENT_USER_KEY, JSON.stringify(newUser));
 
   seedInitialData(newUser.id);
 
@@ -88,16 +142,16 @@ export const loginUser = (email: string, passwordHash: string): User => {
   }
 
   const userDTO: User = { id: user.id, name: user.name, email: user.email };
-  sessionStorage.setItem(CURRENT_USER_KEY, JSON.stringify(userDTO));
+  safeSessionStorage.setItem(CURRENT_USER_KEY, JSON.stringify(userDTO));
   return userDTO;
 };
 
 export const logoutUser = () => {
-  sessionStorage.removeItem(CURRENT_USER_KEY);
+  safeSessionStorage.removeItem(CURRENT_USER_KEY);
 };
 
 export const getExpenses = (userId: string): Expense[] => {
-  const data = localStorage.getItem(EXPENSES_KEY);
+  const data = safeLocalStorage.getItem(EXPENSES_KEY);
   const all: Expense[] = data ? JSON.parse(data) : [];
   return all
     .filter(e => e.userId === userId)
@@ -105,7 +159,7 @@ export const getExpenses = (userId: string): Expense[] => {
 };
 
 export const addExpense = (userId: string, expense: Omit<Expense, 'id' | 'userId' | 'createdAt'>): Expense => {
-  const data = localStorage.getItem(EXPENSES_KEY);
+  const data = safeLocalStorage.getItem(EXPENSES_KEY);
   const all: Expense[] = data ? JSON.parse(data) : [];
 
   const newExpense: Expense = {
@@ -116,16 +170,16 @@ export const addExpense = (userId: string, expense: Omit<Expense, 'id' | 'userId
   };
 
   all.unshift(newExpense);
-  localStorage.setItem(EXPENSES_KEY, JSON.stringify(all));
+  safeLocalStorage.setItem(EXPENSES_KEY, JSON.stringify(all));
   return newExpense;
 };
 
 export const deleteExpense = (id: string) => {
-  const data = localStorage.getItem(EXPENSES_KEY);
+  const data = safeLocalStorage.getItem(EXPENSES_KEY);
   if (!data) return;
   const all: Expense[] = JSON.parse(data);
   const filtered = all.filter(e => e.id !== id);
-  localStorage.setItem(EXPENSES_KEY, JSON.stringify(filtered));
+  safeLocalStorage.setItem(EXPENSES_KEY, JSON.stringify(filtered));
 };
 
 export const importExpenses = (userId: string, imported: Omit<Expense, 'id' | 'userId' | 'createdAt'>[]) => {
@@ -133,17 +187,17 @@ export const importExpenses = (userId: string, imported: Omit<Expense, 'id' | 'u
 };
 
 export const getBudgets = (userId: string): CategoryBudget[] => {
-  const data = localStorage.getItem(BUDGETS_KEY);
+  const data = safeLocalStorage.getItem(BUDGETS_KEY);
   if (!data) return getDefaultBudgets();
   const allMap: Record<string, CategoryBudget[]> = JSON.parse(data);
   return allMap[userId] || getDefaultBudgets();
 };
 
 export const saveBudgets = (userId: string, budgets: CategoryBudget[]) => {
-  const data = localStorage.getItem(BUDGETS_KEY);
+  const data = safeLocalStorage.getItem(BUDGETS_KEY);
   const allMap: Record<string, CategoryBudget[]> = data ? JSON.parse(data) : {};
   allMap[userId] = budgets;
-  localStorage.setItem(BUDGETS_KEY, JSON.stringify(allMap));
+  safeLocalStorage.setItem(BUDGETS_KEY, JSON.stringify(allMap));
 };
 
 const getDefaultBudgets = (): CategoryBudget[] => [
@@ -157,17 +211,17 @@ const getDefaultBudgets = (): CategoryBudget[] => [
 ];
 
 export const getPiggyBanks = (userId: string): PiggyBank[] => {
-  const data = localStorage.getItem(PIGGY_BANKS_KEY);
+  const data = safeLocalStorage.getItem(PIGGY_BANKS_KEY);
   if (!data) return getDefaultPiggyBanks(userId);
   const allMap: Record<string, PiggyBank[]> = JSON.parse(data);
   return allMap[userId] || getDefaultPiggyBanks(userId);
 };
 
 export const savePiggyBanks = (userId: string, items: PiggyBank[]) => {
-  const data = localStorage.getItem(PIGGY_BANKS_KEY);
+  const data = safeLocalStorage.getItem(PIGGY_BANKS_KEY);
   const allMap: Record<string, PiggyBank[]> = data ? JSON.parse(data) : {};
   allMap[userId] = items;
-  localStorage.setItem(PIGGY_BANKS_KEY, JSON.stringify(allMap));
+  safeLocalStorage.setItem(PIGGY_BANKS_KEY, JSON.stringify(allMap));
 };
 
 export const addPiggyBank = (userId: string, item: { name: string; targetAmount: number; color?: string }): PiggyBank => {
