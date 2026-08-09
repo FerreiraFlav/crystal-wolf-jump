@@ -64,7 +64,7 @@ const Index = () => {
   }, []);
 
   const loadUserData = async (userId: string) => {
-    // 1. Carrega os dados locais INSTANTANEAMENTE (sem esperar pela rede)
+    // Carrega os dados locais instantaneamente
     const localExp = getExpenses(userId);
     setExpenses(localExp);
 
@@ -74,7 +74,7 @@ const Index = () => {
     const budgetData = getBudgets(userId);
     setBudgets(budgetData);
 
-    // 2. Se o Supabase estiver ativo, busca em segundo plano e atualiza se houver lançamentos salvos lá
+    // Se houver Supabase configurado, carrega do banco de dados
     if (isSupabaseConfigured) {
       try {
         const supabaseExpenses = await fetchExpensesFromSupabase(userId);
@@ -144,6 +144,7 @@ const Index = () => {
     }, 700);
   };
 
+  // Se não estiver logado, exibe a tela de login/cadastro obrigatoriamente
   if (!currentUser) {
     return <AuthModal onLoginSuccess={handleLoginSuccess} />;
   }
@@ -179,7 +180,60 @@ const Index = () => {
             selectedYear={selectedYear}
             selectedMonth={selectedMonth}
             onChangeMonth={(y, m) => {
-              setSelectedYear(y<dyad-write path="src/pages/Index.tsx" description="Carrega os dados locais instantaneamente para evitar tela vazia ou necessidade de F5 ao abrir no Vercel">
+              setSelectedYear(y);
+              setSelectedMonth(m);
+            }}
+          />
+
+          <div className="flex flex-wrap items-center space-x-2 w-full md:w-auto justify-end gap-1.5">
+            <Button
+              variant="outline"
+              size="sm"
+              onClick={() => setIsCofrinhoModalOpen(true)}
+              className="rounded-xl border-emerald-200 bg-emerald-50/50 text-emerald-800 hover:bg-emerald-100 text-xs font-bold flex items-center gap-1.5"
+            >
+              <PiggyIcon className="w-4 h-4 text-emerald-600" />
+              {t('piggyBanks')}
+            </Button>
+
+            <Button
+              variant="outline"
+              size="sm"
+              onClick={() => setIsBudgetModalOpen(true)}
+              className="rounded-xl border-slate-200 text-slate-700 hover:bg-slate-50 text-xs font-semibold flex items-center gap-1.5"
+            >
+              <Target className="w-4 h-4 text-emerald-600" />
+              {t('categoryGoals')}
+            </Button>
+
+            <Button
+              variant="outline"
+              size="sm"
+              onClick={() => setIsExportModalOpen(true)}
+              className="rounded-xl border-slate-200 text-slate-700 hover:bg-slate-50 text-xs font-semibold flex items-center gap-1.5"
+            >
+              <Download className="w-4 h-4 text-blue-600" />
+              {t('exportImport')}
+            </Button>
+          </div>
+        </div>
+
+        {/* Banner com Botão da IA */}
+        <div className="bg-gradient-to-r from-slate-900 via-emerald-950 to-teal-900 rounded-3xl p-6 sm:p-8 text-white shadow-xl relative overflow-hidden flex flex-col md:flex-row items-center justify-between gap-6 border border-emerald-500/20">
+          <div className="space-y-2 text-center md:text-left z-10 max-w-xl">
+            <div className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-emerald-500/20 text-emerald-300 text-xs font-bold uppercase tracking-wider border border-emerald-400/20">
+              <Sparkles className="w-3.5 h-3.5 text-emerald-400" />
+              {t('aiAssist')}
+            </div>
+            <h2 className="text-2xl sm:text-3xl font-black text-white tracking-tight">
+              {t('aiBannerTitle')}
+            </h2>
+            <p className="text-slate-300 text-sm leading-relaxed">
+              {t('aiBannerDesc')}
+            </p>
+          </div>
+
+          <div className="z-10 shrink-0 w-full md:w<dyad-write path="src/pages/Index.tsx" description="Corrige a sintaxe do arquivo Index.tsx para publicar com sucesso na Vercel e redirecionar para a tela de login">
 import React, { useState, useEffect } from 'react';
 import { User, Expense, AIAdvice, CategoryBudget, TransactionType, CategoryType, PiggyBank } from '@/types/finance';
 import { 
@@ -246,7 +300,7 @@ const Index = () => {
   }, []);
 
   const loadUserData = async (userId: string) => {
-    // 1. Carrega os dados locais INSTANTANEAMENTE (sem esperar pela rede)
+    // Carrega os dados locais instantaneamente
     const localExp = getExpenses(userId);
     setExpenses(localExp);
 
@@ -256,151 +310,7 @@ const Index = () => {
     const budgetData = getBudgets(userId);
     setBudgets(budgetData);
 
-    // 2. Se o Supabase estiver ativo, busca em segundo plano e atualiza se houver lançamentos salvos lá
-    if (isSupabaseConfigured) {
-      try {
-        const supabaseExpenses = await fetchExpensesFromSupabase(userId);
-        if (supabaseExpenses && supabaseExpenses.length > 0) {
-          setExpenses(supabaseExpenses);
-        }
-      } catch (err) {
-        console.warn('Erro ao sincronizar com Supabase:', err);
-      }
-    }
-  };
-
-  const handleLoginSuccess = (user: User) => {
-    setCurrentUser(user);
-    loadUserData(user.id);
-  };
-
-  const handleLogout = () => {
-    logoutUser();
-    setCurrentUser(null);
-    setExpenses([]);
-    showSuccess('Você saiu com segurança.');
-  };
-
-  const handleAddExpense = async (newExp: { description: string; amount: number; category: CategoryType; type: TransactionType; date: string }) => {
-    if (!currentUser) return;
-
-    addExpenseStorage(currentUser.id, newExp);
-
-    if (isSupabaseConfigured) {
-      await saveExpenseToSupabase(currentUser.id, newExp);
-    }
-
-    loadUserData(currentUser.id);
-  };
-
-  const handleDeleteExpense = async (id: string) => {
-    deleteExpenseStorage(id);
-
-    if (isSupabaseConfigured) {
-      await deleteExpenseFromSupabase(id);
-    }
-
-    if (currentUser) {
-      loadUserData(currentUser.id);
-    }
-    showSuccess('Lançamento removido.');
-  };
-
-  const handleSaveBudgets = (updated: CategoryBudget[]) => {
-    if (!currentUser) return;
-    saveBudgets(currentUser.id, updated);
-    setBudgets(updated);
-  };
-
-  const handleRunAIAnalysis = () => {
-    setIsAnalyzing(true);
-
-    setTimeout(() => {
-      const yearMonthStr = `${selectedYear}-${String(selectedMonth + 1).padStart(2, '0')}`;
-      const monthExpenses = expenses.filter(exp => exp.date.startsWith(yearMonthStr));
-
-      const advice = analyzeExpensesWithAI(monthExpenses, budgets);
-      setAiAdvice(advice);
-      setIsAnalyzing(false);
-      setIsAIModalOpen(true);
-<dyad-write path="src/pages/Index.tsx" description="Carrega os dados locais instantaneamente para evitar tela vazia ou necessidade de F5 ao abrir no Vercel">
-import React, { useState, useEffect } from 'react';
-import { User, Expense, AIAdvice, CategoryBudget, TransactionType, CategoryType, PiggyBank } from '@/types/finance';
-import { 
-  getCurrentUser, 
-  logoutUser, 
-  getExpenses, 
-  addExpense as addExpenseStorage, 
-  deleteExpense as deleteExpenseStorage,
-  getBudgets,
-  saveBudgets,
-  getPiggyBanks
-} from '@/services/storage';
-import { 
-  fetchExpensesFromSupabase, 
-  saveExpenseToSupabase, 
-  deleteExpenseFromSupabase 
-} from '@/services/supabaseStorage';
-import { isSupabaseConfigured } from '@/lib/supabase';
-import { analyzeExpensesWithAI } from '@/services/aiAdvisor';
-import { AuthModal } from '@/components/AuthModal';
-import { Navbar } from '@/components/Navbar';
-import { SummaryCards } from '@/components/SummaryCards';
-import { ExpenseForm } from '@/components/ExpenseForm';
-import { ExpensePieChart } from '@/components/ExpensePieChart';
-import { ExpenseList } from '@/components/ExpenseList';
-import { MonthPicker } from '@/components/MonthPicker';
-import { BudgetManagerModal } from '@/components/BudgetManagerModal';
-import { ExportImportModal } from '@/components/ExportImportModal';
-import { AIAdvisorModal } from '@/components/AIAdvisorModal';
-import { CofrinhoModal } from '@/components/CofrinhoModal';
-import { PiggyBankWidget } from '@/components/PiggyBankWidget';
-import { Button } from '@/components/ui/button';
-import { Sparkles, BrainCircuit, Target, Download, PiggyBank as PiggyIcon } from 'lucide-react';
-import { showSuccess } from '@/utils/toast';
-import { useLanguage } from '@/context/LanguageContext';
-
-const Index = () => {
-  const { t } = useLanguage();
-  const today = new Date();
-  const [currentUser, setCurrentUser] = useState<User | null>(null);
-  const [expenses, setExpenses] = useState<Expense[]>([]);
-  const [budgets, setBudgets] = useState<CategoryBudget[]>([]);
-  const [piggyBanks, setPiggyBanks] = useState<PiggyBank[]>([]);
-
-  // Navegação de Mês/Ano
-  const [selectedYear, setSelectedYear] = useState<number>(today.getFullYear());
-  const [selectedMonth, setSelectedMonth] = useState<number>(today.getMonth());
-
-  // Modais
-  const [isAIModalOpen, setIsAIModalOpen] = useState(false);
-  const [isBudgetModalOpen, setIsBudgetModalOpen] = useState(false);
-  const [isExportModalOpen, setIsExportModalOpen] = useState(false);
-  const [isCofrinhoModalOpen, setIsCofrinhoModalOpen] = useState(false);
-  
-  const [aiAdvice, setAiAdvice] = useState<AIAdvice | null>(null);
-  const [isAnalyzing, setIsAnalyzing] = useState(false);
-
-  useEffect(() => {
-    const user = getCurrentUser();
-    if (user) {
-      setCurrentUser(user);
-      loadUserData(user.id);
-    }
-  }, []);
-
-  const loadUserData = async (userId: string) => {
-    // 1. Carrega os dados locais INSTANTANEAMENTE (sem esperar pela rede)
-    const localExp = getExpenses(userId);
-    setExpenses(localExp);
-
-    const piggyData = getPiggyBanks(userId);
-    setPiggyBanks(piggyData);
-
-    const budgetData = getBudgets(userId);
-    setBudgets(budgetData);
-
-    // 2. Se o Supabase estiver ativo, busca em segundo plano e atualiza se houver lançamentos salvos lá
+    // Se houver Supabase configurado, carrega do banco de dados
     if (isSupabaseConfigured) {
       try {
         const supabaseExpenses = await fetchExpensesFromSupabase(userId);
@@ -470,6 +380,7 @@ const Index = () => {
     }, 700);
   };
 
+  // Se não estiver logado, exibe a tela de login/cadastro obrigatoriamente
   if (!currentUser) {
     return <AuthModal onLoginSuccess={handleLoginSuccess} />;
   }
