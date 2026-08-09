@@ -48,9 +48,10 @@ export const getUsers = (): (User & { passwordHash: string })[] => {
   return data ? JSON.parse(data) : [];
 };
 
+// Usa sessionStorage para exigir login em cada nova aba/acesso
 export const getCurrentUser = (): User | null => {
   initDefaultAccounts();
-  const data = localStorage.getItem(CURRENT_USER_KEY);
+  const data = sessionStorage.getItem(CURRENT_USER_KEY);
   return data ? JSON.parse(data) : null;
 };
 
@@ -69,7 +70,7 @@ export const registerUser = (name: string, email: string, passwordHash: string):
 
   users.push({ ...newUser, passwordHash });
   localStorage.setItem(USERS_KEY, JSON.stringify(users));
-  localStorage.setItem(CURRENT_USER_KEY, JSON.stringify(newUser));
+  sessionStorage.setItem(CURRENT_USER_KEY, JSON.stringify(newUser));
 
   seedInitialData(newUser.id);
 
@@ -87,12 +88,12 @@ export const loginUser = (email: string, passwordHash: string): User => {
   }
 
   const userDTO: User = { id: user.id, name: user.name, email: user.email };
-  localStorage.setItem(CURRENT_USER_KEY, JSON.stringify(userDTO));
+  sessionStorage.setItem(CURRENT_USER_KEY, JSON.stringify(userDTO));
   return userDTO;
 };
 
 export const logoutUser = () => {
-  localStorage.removeItem(CURRENT_USER_KEY);
+  sessionStorage.removeItem(CURRENT_USER_KEY);
 };
 
 export const getExpenses = (userId: string): Expense[] => {
@@ -155,7 +156,6 @@ const getDefaultBudgets = (): CategoryBudget[] => [
   { category: 'Contas & Serviços', limitAmount: 180 },
 ];
 
-// --- FUNÇÕES DE COFRINHOS / METAS DE ECONOMIA ---
 export const getPiggyBanks = (userId: string): PiggyBank[] => {
   const data = localStorage.getItem(PIGGY_BANKS_KEY);
   if (!data) return getDefaultPiggyBanks(userId);
