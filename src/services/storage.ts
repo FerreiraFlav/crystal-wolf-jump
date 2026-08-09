@@ -37,12 +37,7 @@ const initDefaultAccounts = () => {
       passwordHash: '123456',
     };
     localStorage.setItem(USERS_KEY, JSON.stringify([defaultUser]));
-    
-    if (!localStorage.getItem(CURRENT_USER_KEY)) {
-      const userDTO: User = { id: defaultUser.id, name: defaultUser.name, email: defaultUser.email };
-      localStorage.setItem(CURRENT_USER_KEY, JSON.stringify(userDTO));
-      seedInitialData(defaultUser.id);
-    }
+    seedInitialData(defaultUser.id);
   }
 };
 

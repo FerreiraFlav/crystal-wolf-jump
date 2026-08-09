@@ -5,7 +5,7 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/com
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Button } from '@/components/ui/button';
-import { Wallet, Lock, Mail, User as UserIcon, ShieldCheck, ArrowRight, Sparkles } from 'lucide-react';
+import { Wallet, Lock, Mail, User as UserIcon, ShieldCheck, ArrowRight, Sparkles, KeyRound } from 'lucide-react';
 import { showSuccess, showError } from '@/utils/toast';
 
 interface AuthModalProps {
@@ -49,6 +49,18 @@ export const AuthModal: React.FC<AuthModalProps> = ({ onLoginSuccess }) => {
       showError(err.message || 'Ocorreu um erro ao autenticar.');
     } finally {
       setIsLoading(false);
+    }
+  };
+
+  const handleDemoLogin = () => {
+    setEmail('flavio@email.com');
+    setPassword('123456');
+    try {
+      const user = loginUser('flavio@email.com', '123456');
+      showSuccess('Entrou na conta de demonstração!');
+      onLoginSuccess(user);
+    } catch (err: any) {
+      showError(err.message);
     }
   };
 
@@ -148,11 +160,21 @@ export const AuthModal: React.FC<AuthModalProps> = ({ onLoginSuccess }) => {
               </Button>
             </form>
 
-            <div className="mt-6 pt-4 border-t border-slate-800 text-center">
+            <div className="mt-4 pt-3 border-t border-slate-800 flex flex-col gap-2 text-center">
+              <Button
+                type="button"
+                variant="outline"
+                onClick={handleDemoLogin}
+                className="w-full border-slate-700 bg-slate-800/50 hover:bg-slate-800 text-emerald-400 hover:text-emerald-300 text-xs font-semibold py-2 rounded-xl flex items-center justify-center gap-2"
+              >
+                <KeyRound className="w-3.5 h-3.5" />
+                <span>Entrar como Conta de Teste</span>
+              </Button>
+
               <button
                 type="button"
                 onClick={() => setIsRegister(!isRegister)}
-                className="text-xs text-slate-400 hover:text-emerald-400 transition-colors underline font-medium"
+                className="text-xs text-slate-400 hover:text-emerald-400 transition-colors underline font-medium mt-1"
               >
                 {isRegister
                   ? 'Já possui uma conta? Faça login aqui'
