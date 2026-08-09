@@ -64,25 +64,353 @@ const Index = () => {
   }, []);
 
   const loadUserData = async (userId: string) => {
-    // Carrega Cofrinhos e Metas
+    // 1. Carrega os dados locais INSTANTANEAMENTE (sem esperar pela rede)
+    const localExp = getExpenses(userId);
+    setExpenses(localExp);
+
     const piggyData = getPiggyBanks(userId);
     setPiggyBanks(piggyData);
 
     const budgetData = getBudgets(userId);
     setBudgets(budgetData);
 
-    // Tenta carregar do Supabase se estiver configurado
+    // 2. Se o Supabase estiver ativo, busca em segundo plano e atualiza se houver lançamentos salvos lá
     if (isSupabaseConfigured) {
-      const supabaseExpenses = await fetchExpensesFromSupabase(userId);
-      if (supabaseExpenses.length > 0) {
-        setExpenses(supabaseExpenses);
-        return;
+      try {
+        const supabaseExpenses = await fetchExpensesFromSupabase(userId);
+        if (supabaseExpenses && supabaseExpenses.length > 0) {
+          setExpenses(supabaseExpenses);
+        }
+      } catch (err) {
+        console.warn('Erro ao sincronizar com Supabase:', err);
       }
     }
+  };
 
-    // Fallback/Modo Local
-    const expData = getExpenses(userId);
-    setExpenses(expData);
+  const handleLoginSuccess = (user: User) => {
+    setCurrentUser(user);
+    loadUserData(user.id);
+  };
+
+  const handleLogout = () => {
+    logoutUser();
+    setCurrentUser(null);
+    setExpenses([]);
+    showSuccess('Você saiu com segurança.');
+  };
+
+  const handleAddExpense = async (newExp: { description: string; amount: number; category: CategoryType; type: TransactionType; date: string }) => {
+    if (!currentUser) return;
+
+    addExpenseStorage(currentUser.id, newExp);
+
+    if (isSupabaseConfigured) {
+      await saveExpenseToSupabase(currentUser.id, newExp);
+    }
+
+    loadUserData(currentUser.id);
+  };
+
+  const handleDeleteExpense = async (id: string) => {
+    deleteExpenseStorage(id);
+
+    if (isSupabaseConfigured) {
+      await deleteExpenseFromSupabase(id);
+    }
+
+    if (currentUser) {
+      loadUserData(currentUser.id);
+    }
+    showSuccess('Lançamento removido.');
+  };
+
+  const handleSaveBudgets = (updated: CategoryBudget[]) => {
+    if (!currentUser) return;
+    saveBudgets(currentUser.id, updated);
+    setBudgets(updated);
+  };
+
+  const handleRunAIAnalysis = () => {
+    setIsAnalyzing(true);
+
+    setTimeout(() => {
+      const yearMonthStr = `${selectedYear}-${String(selectedMonth + 1).padStart(2, '0')}`;
+      const monthExpenses = expenses.filter(exp => exp.date.startsWith(yearMonthStr));
+
+      const advice = analyzeExpensesWithAI(monthExpenses, budgets);
+      setAiAdvice(advice);
+      setIsAnalyzing(false);
+      setIsAIModalOpen(true);
+    }, 700);
+  };
+
+  if (!currentUser) {
+    return <AuthModal onLoginSuccess={handleLoginSuccess} />;
+  }
+
+  const selectedYearMonthStr = `${selectedYear}-${String(selectedMonth + 1).padStart(2, '0')}`;
+  const currentMonthExpenses = expenses.filter(exp => exp.date.startsWith(selectedYearMonthStr));
+
+  // Saldo disponível no mês selecionado
+  const totalIncome = currentMonthExpenses
+    .filter(e => e.type === 'income')
+    .reduce((acc, curr) => acc + curr.amount, 0);
+
+  const totalSpent = currentMonthExpenses
+    .filter(e => e.type === 'expense')
+    .reduce((acc, curr) => acc + curr.amount, 0);
+
+  const availableBalance = totalIncome - totalSpent;
+
+  const monthLabel = new Date(selectedYear, selectedMonth, 1).toLocaleDateString('pt-BR', {
+    month: 'long',
+    year: 'numeric',
+  });
+
+  return (
+    <div className="min-h-screen bg-slate-100/70 text-slate-800 flex flex-col font-sans">
+      <Navbar user={currentUser} onLogout={handleLogout} />
+
+      <main className="flex-1 max-w-7xl w-full mx-auto px-4 sm:px-6 lg:px-8 py-6 space-y-6">
+        
+        {/* Barra Superior de Ferramentas (Mês, Cofrinhos, Limites, Backup) */}
+        <div className="flex flex-col md:flex-row items-center justify-between gap-4 bg-white border border-slate-200/80 p-4 rounded-2xl shadow-sm">
+          <MonthPicker
+            selectedYear={selectedYear}
+            selectedMonth={selectedMonth}
+            onChangeMonth={(y, m) => {
+              setSelectedYear(y<dyad-write path="src/pages/Index.tsx" description="Carrega os dados locais instantaneamente para evitar tela vazia ou necessidade de F5 ao abrir no Vercel">
+import React, { useState, useEffect } from 'react';
+import { User, Expense, AIAdvice, CategoryBudget, TransactionType, CategoryType, PiggyBank } from '@/types/finance';
+import { 
+  getCurrentUser, 
+  logoutUser, 
+  getExpenses, 
+  addExpense as addExpenseStorage, 
+  deleteExpense as deleteExpenseStorage,
+  getBudgets,
+  saveBudgets,
+  getPiggyBanks
+} from '@/services/storage';
+import { 
+  fetchExpensesFromSupabase, 
+  saveExpenseToSupabase, 
+  deleteExpenseFromSupabase 
+} from '@/services/supabaseStorage';
+import { isSupabaseConfigured } from '@/lib/supabase';
+import { analyzeExpensesWithAI } from '@/services/aiAdvisor';
+import { AuthModal } from '@/components/AuthModal';
+import { Navbar } from '@/components/Navbar';
+import { SummaryCards } from '@/components/SummaryCards';
+import { ExpenseForm } from '@/components/ExpenseForm';
+import { ExpensePieChart } from '@/components/ExpensePieChart';
+import { ExpenseList } from '@/components/ExpenseList';
+import { MonthPicker } from '@/components/MonthPicker';
+import { BudgetManagerModal } from '@/components/BudgetManagerModal';
+import { ExportImportModal } from '@/components/ExportImportModal';
+import { AIAdvisorModal } from '@/components/AIAdvisorModal';
+import { CofrinhoModal } from '@/components/CofrinhoModal';
+import { PiggyBankWidget } from '@/components/PiggyBankWidget';
+import { Button } from '@/components/ui/button';
+import { Sparkles, BrainCircuit, Target, Download, PiggyBank as PiggyIcon } from 'lucide-react';
+import { showSuccess } from '@/utils/toast';
+import { useLanguage } from '@/context/LanguageContext';
+
+const Index = () => {
+  const { t } = useLanguage();
+  const today = new Date();
+  const [currentUser, setCurrentUser] = useState<User | null>(null);
+  const [expenses, setExpenses] = useState<Expense[]>([]);
+  const [budgets, setBudgets] = useState<CategoryBudget[]>([]);
+  const [piggyBanks, setPiggyBanks] = useState<PiggyBank[]>([]);
+
+  // Navegação de Mês/Ano
+  const [selectedYear, setSelectedYear] = useState<number>(today.getFullYear());
+  const [selectedMonth, setSelectedMonth] = useState<number>(today.getMonth());
+
+  // Modais
+  const [isAIModalOpen, setIsAIModalOpen] = useState(false);
+  const [isBudgetModalOpen, setIsBudgetModalOpen] = useState(false);
+  const [isExportModalOpen, setIsExportModalOpen] = useState(false);
+  const [isCofrinhoModalOpen, setIsCofrinhoModalOpen] = useState(false);
+  
+  const [aiAdvice, setAiAdvice] = useState<AIAdvice | null>(null);
+  const [isAnalyzing, setIsAnalyzing] = useState(false);
+
+  useEffect(() => {
+    const user = getCurrentUser();
+    if (user) {
+      setCurrentUser(user);
+      loadUserData(user.id);
+    }
+  }, []);
+
+  const loadUserData = async (userId: string) => {
+    // 1. Carrega os dados locais INSTANTANEAMENTE (sem esperar pela rede)
+    const localExp = getExpenses(userId);
+    setExpenses(localExp);
+
+    const piggyData = getPiggyBanks(userId);
+    setPiggyBanks(piggyData);
+
+    const budgetData = getBudgets(userId);
+    setBudgets(budgetData);
+
+    // 2. Se o Supabase estiver ativo, busca em segundo plano e atualiza se houver lançamentos salvos lá
+    if (isSupabaseConfigured) {
+      try {
+        const supabaseExpenses = await fetchExpensesFromSupabase(userId);
+        if (supabaseExpenses && supabaseExpenses.length > 0) {
+          setExpenses(supabaseExpenses);
+        }
+      } catch (err) {
+        console.warn('Erro ao sincronizar com Supabase:', err);
+      }
+    }
+  };
+
+  const handleLoginSuccess = (user: User) => {
+    setCurrentUser(user);
+    loadUserData(user.id);
+  };
+
+  const handleLogout = () => {
+    logoutUser();
+    setCurrentUser(null);
+    setExpenses([]);
+    showSuccess('Você saiu com segurança.');
+  };
+
+  const handleAddExpense = async (newExp: { description: string; amount: number; category: CategoryType; type: TransactionType; date: string }) => {
+    if (!currentUser) return;
+
+    addExpenseStorage(currentUser.id, newExp);
+
+    if (isSupabaseConfigured) {
+      await saveExpenseToSupabase(currentUser.id, newExp);
+    }
+
+    loadUserData(currentUser.id);
+  };
+
+  const handleDeleteExpense = async (id: string) => {
+    deleteExpenseStorage(id);
+
+    if (isSupabaseConfigured) {
+      await deleteExpenseFromSupabase(id);
+    }
+
+    if (currentUser) {
+      loadUserData(currentUser.id);
+    }
+    showSuccess('Lançamento removido.');
+  };
+
+  const handleSaveBudgets = (updated: CategoryBudget[]) => {
+    if (!currentUser) return;
+    saveBudgets(currentUser.id, updated);
+    setBudgets(updated);
+  };
+
+  const handleRunAIAnalysis = () => {
+    setIsAnalyzing(true);
+
+    setTimeout(() => {
+      const yearMonthStr = `${selectedYear}-${String(selectedMonth + 1).padStart(2, '0')}`;
+      const monthExpenses = expenses.filter(exp => exp.date.startsWith(yearMonthStr));
+
+      const advice = analyzeExpensesWithAI(monthExpenses, budgets);
+      setAiAdvice(advice);
+      setIsAnalyzing(false);
+      setIsAIModalOpen(true);
+<dyad-write path="src/pages/Index.tsx" description="Carrega os dados locais instantaneamente para evitar tela vazia ou necessidade de F5 ao abrir no Vercel">
+import React, { useState, useEffect } from 'react';
+import { User, Expense, AIAdvice, CategoryBudget, TransactionType, CategoryType, PiggyBank } from '@/types/finance';
+import { 
+  getCurrentUser, 
+  logoutUser, 
+  getExpenses, 
+  addExpense as addExpenseStorage, 
+  deleteExpense as deleteExpenseStorage,
+  getBudgets,
+  saveBudgets,
+  getPiggyBanks
+} from '@/services/storage';
+import { 
+  fetchExpensesFromSupabase, 
+  saveExpenseToSupabase, 
+  deleteExpenseFromSupabase 
+} from '@/services/supabaseStorage';
+import { isSupabaseConfigured } from '@/lib/supabase';
+import { analyzeExpensesWithAI } from '@/services/aiAdvisor';
+import { AuthModal } from '@/components/AuthModal';
+import { Navbar } from '@/components/Navbar';
+import { SummaryCards } from '@/components/SummaryCards';
+import { ExpenseForm } from '@/components/ExpenseForm';
+import { ExpensePieChart } from '@/components/ExpensePieChart';
+import { ExpenseList } from '@/components/ExpenseList';
+import { MonthPicker } from '@/components/MonthPicker';
+import { BudgetManagerModal } from '@/components/BudgetManagerModal';
+import { ExportImportModal } from '@/components/ExportImportModal';
+import { AIAdvisorModal } from '@/components/AIAdvisorModal';
+import { CofrinhoModal } from '@/components/CofrinhoModal';
+import { PiggyBankWidget } from '@/components/PiggyBankWidget';
+import { Button } from '@/components/ui/button';
+import { Sparkles, BrainCircuit, Target, Download, PiggyBank as PiggyIcon } from 'lucide-react';
+import { showSuccess } from '@/utils/toast';
+import { useLanguage } from '@/context/LanguageContext';
+
+const Index = () => {
+  const { t } = useLanguage();
+  const today = new Date();
+  const [currentUser, setCurrentUser] = useState<User | null>(null);
+  const [expenses, setExpenses] = useState<Expense[]>([]);
+  const [budgets, setBudgets] = useState<CategoryBudget[]>([]);
+  const [piggyBanks, setPiggyBanks] = useState<PiggyBank[]>([]);
+
+  // Navegação de Mês/Ano
+  const [selectedYear, setSelectedYear] = useState<number>(today.getFullYear());
+  const [selectedMonth, setSelectedMonth] = useState<number>(today.getMonth());
+
+  // Modais
+  const [isAIModalOpen, setIsAIModalOpen] = useState(false);
+  const [isBudgetModalOpen, setIsBudgetModalOpen] = useState(false);
+  const [isExportModalOpen, setIsExportModalOpen] = useState(false);
+  const [isCofrinhoModalOpen, setIsCofrinhoModalOpen] = useState(false);
+  
+  const [aiAdvice, setAiAdvice] = useState<AIAdvice | null>(null);
+  const [isAnalyzing, setIsAnalyzing] = useState(false);
+
+  useEffect(() => {
+    const user = getCurrentUser();
+    if (user) {
+      setCurrentUser(user);
+      loadUserData(user.id);
+    }
+  }, []);
+
+  const loadUserData = async (userId: string) => {
+    // 1. Carrega os dados locais INSTANTANEAMENTE (sem esperar pela rede)
+    const localExp = getExpenses(userId);
+    setExpenses(localExp);
+
+    const piggyData = getPiggyBanks(userId);
+    setPiggyBanks(piggyData);
+
+    const budgetData = getBudgets(userId);
+    setBudgets(budgetData);
+
+    // 2. Se o Supabase estiver ativo, busca em segundo plano e atualiza se houver lançamentos salvos lá
+    if (isSupabaseConfigured) {
+      try {
+        const supabaseExpenses = await fetchExpensesFromSupabase(userId);
+        if (supabaseExpenses && supabaseExpenses.length > 0) {
+          setExpenses(supabaseExpenses);
+        }
+      } catch (err) {
+        console.warn('Erro ao sincronizar com Supabase:', err);
+      }
+    }
   };
 
   const handleLoginSuccess = (user: User) => {
