@@ -65,7 +65,8 @@ export const EXPENSE_CATEGORIES: { name: CategoryType; color: string; icon: stri
   { name: 'Saúde', color: '#EF4444', icon: 'HeartPulse' },
   { name: 'Educação', color: '#8B5CF6', icon: 'GraduationCap' },
   { name: 'Compras', color: '#6366F1', icon: 'ShoppingBag' },
-  { name: 'Contas & Serviços', color: '#14B8A6', icon: 'Receipt' },
+  { name: 'Contas & Serviços Irlanda', color: '#14B8A6', icon: 'Receipt' },
+  { name: 'Contas & Serviços Brasil', color: '#059669', icon: 'Receipt' },
   { name: 'Outros', color: '#6B7280', icon: 'MoreHorizontal' },
 ];
 
@@ -174,6 +175,14 @@ export const addExpense = (userId: string, expense: Omit<Expense, 'id' | 'userId
   return newExpense;
 };
 
+export const updateExpenseAmount = (id: string, newAmount: number) => {
+  const data = safeLocalStorage.getItem(EXPENSES_KEY);
+  if (!data) return;
+  const all: Expense[] = JSON.parse(data);
+  const updated = all.map(e => e.id === id ? { ...e, amount: newAmount } : e);
+  safeLocalStorage.setItem(EXPENSES_KEY, JSON.stringify(updated));
+};
+
 export const deleteExpense = (id: string) => {
   const data = safeLocalStorage.getItem(EXPENSES_KEY);
   if (!data) return;
@@ -207,7 +216,8 @@ const getDefaultBudgets = (): CategoryBudget[] => [
   { category: 'Lazer & Entretenimento', limitAmount: 200 },
   { category: 'Saúde', limitAmount: 150 },
   { category: 'Compras', limitAmount: 250 },
-  { category: 'Contas & Serviços', limitAmount: 180 },
+  { category: 'Contas & Serviços Irlanda', limitAmount: 180 },
+  { category: 'Contas & Serviços Brasil', limitAmount: 100 },
 ];
 
 export const getPiggyBanks = (userId: string): PiggyBank[] => {
@@ -275,7 +285,8 @@ const seedInitialData = (userId: string) => {
     { description: 'Projeto Freelance', amount: 650.00, category: 'Freelance', type: 'income', date: `${year}-${month}-10` },
     { description: 'Supermercado Mensal', amount: 320.50, category: 'Alimentação', type: 'expense', date: `${year}-${month}-02` },
     { description: 'Renda / Aluguer Habitação', amount: 750.00, category: 'Moradia', type: 'expense', date: `${year}-${month}-05` },
-    { description: 'Eletricidade e Água', amount: 115.30, category: 'Contas & Serviços', type: 'expense', date: `${year}-${month}-08` },
+    { description: 'Eletricidade e Água (IE)', amount: 115.30, category: 'Contas & Serviços Irlanda', type: 'expense', date: `${year}-${month}-08` },
+    { description: 'Apoio Familiar (BR)', amount: 150.00, category: 'Contas & Serviços Brasil', type: 'expense', date: `${year}-${month}-09` },
     { description: 'Passe Navegante / Combustível', amount: 80.00, category: 'Transporte', type: 'expense', date: `${year}-${month}-10` },
     { description: 'Jantar Restaurante', amount: 65.00, category: 'Lazer & Entretenimento', type: 'expense', date: `${year}-${month}-12` },
     { description: 'Seguro de Saúde', amount: 90.00, category: 'Saúde', type: 'expense', date: `${year}-${month}-15` },

@@ -5,6 +5,7 @@ import {
   logoutUser, 
   getExpenses, 
   addExpense as addExpenseStorage, 
+  updateExpenseAmount,
   deleteExpense as deleteExpenseStorage,
   getBudgets,
   saveBudgets,
@@ -110,6 +111,12 @@ const Index = () => {
       await saveExpenseToSupabase(currentUser.id, newExp);
     }
 
+    loadUserData(currentUser.id);
+  };
+
+  const handleEditExpenseAmount = (id: string, newAmount: number) => {
+    if (!currentUser) return;
+    updateExpenseAmount(id, newAmount);
     loadUserData(currentUser.id);
   };
 
@@ -274,7 +281,11 @@ const Index = () => {
 
         {/* List of Transactions */}
         <div>
-          <ExpenseList expenses={currentMonthExpenses} onDeleteExpense={handleDeleteExpense} />
+          <ExpenseList 
+            expenses={currentMonthExpenses} 
+            onDeleteExpense={handleDeleteExpense} 
+            onEditExpenseAmount={handleEditExpenseAmount}
+          />
         </div>
       </main>
 

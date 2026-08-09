@@ -14,6 +14,8 @@ export type CategoryType =
   | 'Saúde'
   | 'Educação'
   | 'Compras'
+  | 'Contas & Serviços Irlanda'
+  | 'Contas & Serviços Brasil'
   | 'Contas & Serviços'
   | 'Salário'
   | 'Freelance'
