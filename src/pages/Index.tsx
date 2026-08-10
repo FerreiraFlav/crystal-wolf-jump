@@ -5,7 +5,7 @@ import {
   logoutUser, 
   getExpenses, 
   addExpense as addExpenseStorage, 
-  updateExpenseAmount,
+  updateExpense as updateExpenseStorage,
   deleteExpense as deleteExpenseStorage,
   getBudgets,
   saveBudgets,
@@ -24,6 +24,7 @@ import { SummaryCards } from '@/components/SummaryCards';
 import { ExpenseForm } from '@/components/ExpenseForm';
 import { ExpensePieChart } from '@/components/ExpensePieChart';
 import { ExpenseList } from '@/components/ExpenseList';
+import { FinancialTrendChart } from '@/components/FinancialTrendChart';
 import { MonthPicker } from '@/components/MonthPicker';
 import { BudgetManagerModal } from '@/components/BudgetManagerModal';
 import { ExportImportModal } from '@/components/ExportImportModal';
@@ -114,9 +115,9 @@ const Index = () => {
     loadUserData(currentUser.id);
   };
 
-  const handleEditExpenseAmount = (id: string, newAmount: number) => {
+  const handleEditExpense = (id: string, updated: { description: string; amount: number; category: CategoryType; type: TransactionType; date: string }) => {
     if (!currentUser) return;
-    updateExpenseAmount(id, newAmount);
+    updateExpenseStorage(id, updated);
     loadUserData(currentUser.id);
   };
 
@@ -279,12 +280,21 @@ const Index = () => {
           </div>
         </div>
 
+        {/* Gráfico de Evolução Financeira (6 Meses) */}
+        <div>
+          <FinancialTrendChart
+            expenses={expenses}
+            selectedYear={selectedYear}
+            selectedMonth={selectedMonth}
+          />
+        </div>
+
         {/* List of Transactions */}
         <div>
           <ExpenseList 
             expenses={currentMonthExpenses} 
             onDeleteExpense={handleDeleteExpense} 
-            onEditExpenseAmount={handleEditExpenseAmount}
+            onEditExpense={handleEditExpense}
           />
         </div>
       </main>

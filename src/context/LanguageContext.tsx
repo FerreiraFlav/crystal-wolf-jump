@@ -78,7 +78,10 @@ const translations: Record<Language, Record<string, string>> = {
     savedAmount: "Guardado",
     totalInPiggyBanks: "Total Guardado em Cofrinhos",
     cofrinhoName: "Nome do Objetivo",
-    createCofrinho: "Criar Cofrinho"
+    createCofrinho: "Criar Cofrinho",
+    financialTrend: "Evolução Financeira (6 Meses)",
+    editTransaction: "Editar Lançamento",
+    saveChanges: "Salvar Alterações"
   },
   en: {
     appTitle: "Smart Budget Planner",
@@ -148,7 +151,10 @@ const translations: Record<Language, Record<string, string>> = {
     savedAmount: "Saved",
     totalInPiggyBanks: "Total Saved in Piggy Banks",
     cofrinhoName: "Goal Name",
-    createCofrinho: "Create Piggy Bank"
+    createCofrinho: "Create Piggy Bank",
+    financialTrend: "Financial Evolution (6 Months)",
+    editTransaction: "Edit Transaction",
+    saveChanges: "Save Changes"
   },
   es: {
     appTitle: "Mi Presupuesto Inteligente",
@@ -218,7 +224,10 @@ const translations: Record<Language, Record<string, string>> = {
     savedAmount: "Guardado",
     totalInPiggyBanks: "Total Guardado en Huchas",
     cofrinhoName: "Nombre de la Meta",
-    createCofrinho: "Crear Hucha"
+    createCofrinho: "Crear Hucha",
+    financialTrend: "Evolución Financiera (6 Meses)",
+    editTransaction: "Editar Transacción",
+    saveChanges: "Guardar Cambios"
   }
 };
 

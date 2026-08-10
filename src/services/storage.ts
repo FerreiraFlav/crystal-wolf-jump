@@ -183,6 +183,14 @@ export const updateExpenseAmount = (id: string, newAmount: number) => {
   safeLocalStorage.setItem(EXPENSES_KEY, JSON.stringify(updated));
 };
 
+export const updateExpense = (id: string, updatedFields: Partial<Omit<Expense, 'id' | 'userId'>>) => {
+  const data = safeLocalStorage.getItem(EXPENSES_KEY);
+  if (!data) return;
+  const all: Expense[] = JSON.parse(data);
+  const updated = all.map(e => e.id === id ? { ...e, ...updatedFields } : e);
+  safeLocalStorage.setItem(EXPENSES_KEY, JSON.stringify(updated));
+};
+
 export const deleteExpense = (id: string) => {
   const data = safeLocalStorage.getItem(EXPENSES_KEY);
   if (!data) return;
@@ -280,7 +288,15 @@ const seedInitialData = (userId: string) => {
   const year = today.getFullYear();
   const month = String(today.getMonth() + 1).padStart(2, '0');
 
+  // Generate demo data across current month and previous months for trend visualization
+  const prevMonth1 = new Date(today.getFullYear(), today.getMonth() - 1, 1);
+  const ym1 = `${prevMonth1.getFullYear()}-${String(prevMonth1.getMonth() + 1).padStart(2, '0')}`;
+
+  const prevMonth2 = new Date(today.getFullYear(), today.getMonth() - 2, 1);
+  const ym2 = `${prevMonth2.getFullYear()}-${String(prevMonth2.getMonth() + 1).padStart(2, '0')}`;
+
   const demoTransactions: Omit<Expense, 'id' | 'userId' | 'createdAt'>[] = [
+    // Current Month
     { description: 'Salário Mensal', amount: 2800.00, category: 'Salário', type: 'income', date: `${year}-${month}-01` },
     { description: 'Projeto Freelance', amount: 650.00, category: 'Freelance', type: 'income', date: `${year}-${month}-10` },
     { description: 'Supermercado Mensal', amount: 320.50, category: 'Alimentação', type: 'expense', date: `${year}-${month}-02` },
@@ -290,6 +306,18 @@ const seedInitialData = (userId: string) => {
     { description: 'Passe Navegante / Combustível', amount: 80.00, category: 'Transporte', type: 'expense', date: `${year}-${month}-10` },
     { description: 'Jantar Restaurante', amount: 65.00, category: 'Lazer & Entretenimento', type: 'expense', date: `${year}-${month}-12` },
     { description: 'Seguro de Saúde', amount: 90.00, category: 'Saúde', type: 'expense', date: `${year}-${month}-15` },
+
+    // Previous Month 1
+    { description: 'Salário Mensal', amount: 2800.00, category: 'Salário', type: 'income', date: `${ym1}-01` },
+    { description: 'Aluguer Habitação', amount: 750.00, category: 'Moradia', type: 'expense', date: `${ym1}-05` },
+    { description: 'Supermercado', amount: 410.00, category: 'Alimentação', type: 'expense', date: `${ym1}-08` },
+    { description: 'Compras de Vestuário', amount: 180.00, category: 'Compras', type: 'expense', date: `${ym1}-14` },
+
+    // Previous Month 2
+    { description: 'Salário Mensal', amount: 2800.00, category: 'Salário', type: 'income', date: `${ym2}-01` },
+    { description: 'Projeto Freelance', amount: 500.00, category: 'Freelance', type: 'income', date: `${ym2}-12` },
+    { description: 'Aluguer Habitação', amount: 750.00, category: 'Moradia', type: 'expense', date: `${ym2}-05` },
+    { description: 'Supermercado', amount: 350.00, category: 'Alimentação', type: 'expense', date: `${ym2}-09` },
   ];
 
   demoTransactions.forEach(t => addExpense(userId, t));

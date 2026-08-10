@@ -1,8 +1,9 @@
 import React, { useState } from 'react';
-import { Expense, CategoryType } from '@/types/finance';
-import { ALL_CATEGORIES } from '@/services/storage';
+import { Expense, CategoryType, TransactionType } from '@/types/finance';
+import { ALL_CATEGORIES, EXPENSE_CATEGORIES, INCOME_CATEGORIES } from '@/services/storage';
 import { Card, CardHeader, CardTitle, CardContent } from '@/components/ui/card';
 import { Input } from '@/components/ui/input';
+import { Label } from '@/components/ui/label';
 import { Button } from '@/components/ui/button';
 import { Dialog, DialogContent, DialogTitle, DialogDescription } from '@/components/ui/dialog';
 import { 
@@ -21,7 +22,9 @@ import {
   TrendingUp,
   Pencil,
   Check,
-  X
+  Calendar,
+  Tag,
+  FileText
 } from 'lucide-react';
 import { useLanguage } from '@/context/LanguageContext';
 import { showSuccess, showError } from '@/utils/toast';
@@ -29,30 +32,32 @@ import { showSuccess, showError } from '@/utils/toast';
 interface ExpenseListProps {
   expenses: Expense[];
   onDeleteExpense: (id: string) => void;
-  onEditExpenseAmount: (id: string, newAmount: number) => void;
+  onEditExpense: (id: string, updated: { description: string; amount: number; category: CategoryType; type: TransactionType; date: string }) => void;
 }
 
 export const ExpenseList: React.FC<ExpenseListProps> = ({ 
   expenses, 
   onDeleteExpense,
-  onEditExpenseAmount 
+  onEditExpense 
 }) => {
   const { formatCurrency, t } = useLanguage();
   const [search, setSearch] = useState('');
   const [selectedCategory, setSelectedCategory] = useState<string>('all');
   const [selectedType, setSelectedType] = useState<string>('all');
 
-  // Estado para Edição de Valor
+  // Estado para Edição Completa
   const [editingExpense, setEditingExpense] = useState<Expense | null>(null);
-  const [editAmountInput, setEditAmountInput] = useState('');
+  const [editDesc, setEditDesc] = useState('');
+  const [editAmount, setEditAmount] = useState('');
+  const [editCategory, setEditCategory] = useState<CategoryType>('Alimentação');
+  const [editType, setEditType] = useState<TransactionType>('expense');
+  const [editDate, setEditDate] = useState('');
 
   // Ordenar sempre por data: Mais recentes no topo, mais antigas no fundo
   const sortedExpenses = [...expenses].sort((a, b) => {
-    // Comparar datas (YYYY-MM-DD)
     if (b.date !== a.date) {
       return b.date.localeCompare(a.date);
     }
-    // Se a data for igual, ordenar por data de criação mais recente
     return (b.createdAt || '').localeCompare(a.createdAt || '');
   });
 
@@ -90,21 +95,40 @@ export const ExpenseList: React.FC<ExpenseListProps> = ({
 
   const handleOpenEdit = (expense: Expense) => {
     setEditingExpense(expense);
-    setEditAmountInput(String(expense.amount));
+    setEditDesc(expense.description);
+    setEditAmount(String(expense.amount));
+    setEditCategory(expense.category);
+    setEditType(expense.type);
+    setEditDate(expense.date);
   };
 
   const handleSaveEdit = () => {
     if (!editingExpense) return;
-    const numericAmount = parseFloat(editAmountInput.replace(',', '.'));
+
+    if (!editDesc.trim()) {
+      showError('Por favor, insira uma descrição.');
+      return;
+    }
+
+    const numericAmount = parseFloat(editAmount.replace(',', '.'));
     if (isNaN(numericAmount) || numericAmount <= 0) {
       showError('Por favor, insira um valor válido maior que zero.');
       return;
     }
 
-    onEditExpenseAmount(editingExpense.id, numericAmount);
-    showSuccess('Valor atualizado com sucesso!');
+    onEditExpense(editingExpense.id, {
+      description: editDesc.trim(),
+      amount: numericAmount,
+      category: editCategory,
+      type: editType,
+      date: editDate,
+    });
+
+    showSuccess('Lançamento atualizado com sucesso!');
     setEditingExpense(null);
   };
+
+  const editCategoriesList = editType === 'expense' ? EXPENSE_CATEGORIES : INCOME_CATEGORIES;
 
   return (
     <>
@@ -205,13 +229,13 @@ export const ExpenseList: React.FC<ExpenseListProps> = ({
                         </span>
                       </div>
 
-                      {/* Botão de Editar Valor */}
+                      {/* Botão de Editar */}
                       <Button
                         variant="ghost"
                         size="icon"
                         onClick={() => handleOpenEdit(expense)}
                         className="text-slate-400 hover:text-emerald-600 hover:bg-emerald-50 rounded-lg h-8 w-8"
-                        title="Editar Valor"
+                        title={t('editTransaction')}
                       >
                         <Pencil className="w-4 h-4" />
                       </Button>
@@ -235,44 +259,114 @@ export const ExpenseList: React.FC<ExpenseListProps> = ({
         </CardContent>
       </Card>
 
-      {/* Modal para Editar o Valor do Lançamento */}
+      {/* Modal para Edição Completa do Lançamento */}
       <Dialog open={Boolean(editingExpense)} onOpenChange={() => setEditingExpense(null)}>
-        <DialogContent className="max-w-xs bg-white border-slate-200 rounded-2xl p-5 shadow-xl">
-          <DialogTitle className="text-base font-bold text-slate-800">
-            Editar Valor
+        <DialogContent className="max-w-md bg-white border-slate-200 rounded-2xl p-6 shadow-xl">
+          <DialogTitle className="text-base font-bold text-slate-800 flex items-center gap-2">
+            <Pencil className="w-4 h-4 text-emerald-600" />
+            {t('editTransaction')}
           </DialogTitle>
-          <DialogDescription className="text-xs text-slate-500 mt-1">
-            Altere o valor para: <strong className="text-slate-700">{editingExpense?.description}</strong>
+          <DialogDescription className="text-xs text-slate-500">
+            Modifique os dados do seu lançamento financeiro.
           </DialogDescription>
 
           <div className="space-y-4 pt-3">
-            <div className="relative">
-              <span className="absolute left-3 top-2.5 text-slate-500 font-bold text-sm">€</span>
+            {/* Toggle Despesa / Receita */}
+            <div className="flex p-0.5 bg-slate-100 rounded-xl">
+              <button
+                type="button"
+                onClick={() => {
+                  setEditType('expense');
+                  setEditCategory('Alimentação');
+                }}
+                className={`flex-1 py-1.5 rounded-lg text-xs font-bold transition-all text-center ${
+                  editType === 'expense' ? 'bg-red-600 text-white shadow-xs' : 'text-slate-600'
+                }`}
+              >
+                {t('expense')}
+              </button>
+              <button
+                type="button"
+                onClick={() => {
+                  setEditType('income');
+                  setEditCategory('Salário');
+                }}
+                className={`flex-1 py-1.5 rounded-lg text-xs font-bold transition-all text-center ${
+                  editType === 'income' ? 'bg-emerald-600 text-white shadow-xs' : 'text-slate-600'
+                }`}
+              >
+                {t('income')}
+              </button>
+            </div>
+
+            {/* Descrição */}
+            <div className="space-y-1">
+              <Label className="text-xs font-semibold text-slate-700">{t('description')}</Label>
               <Input
                 type="text"
-                value={editAmountInput}
-                onChange={e => setEditAmountInput(e.target.value)}
-                className="pl-8 font-bold text-slate-800 text-lg rounded-xl border-slate-200"
-                autoFocus
+                value={editDesc}
+                onChange={e => setEditDesc(e.target.value)}
+                className="text-xs rounded-xl border-slate-200"
               />
             </div>
 
-            <div className="flex justify-end space-x-2">
+            {/* Valor (€) */}
+            <div className="space-y-1">
+              <Label className="text-xs font-semibold text-slate-700">{t('amount')}</Label>
+              <div className="relative">
+                <span className="absolute left-3 top-2.5 text-slate-500 font-bold text-sm">€</span>
+                <Input
+                  type="text"
+                  value={editAmount}
+                  onChange={e => setEditAmount(e.target.value)}
+                  className="pl-8 font-bold text-slate-800 text-base rounded-xl border-slate-200"
+                />
+              </div>
+            </div>
+
+            {/* Categoria */}
+            <div className="space-y-1">
+              <Label className="text-xs font-semibold text-slate-700">{t('category')}</Label>
+              <select
+                value={editCategory}
+                onChange={e => setEditCategory(e.target.value as CategoryType)}
+                className="w-full p-2 bg-white border border-slate-200 rounded-xl text-xs font-medium text-slate-700 outline-none"
+              >
+                {editCategoriesList.map(cat => (
+                  <option key={cat.name} value={cat.name}>
+                    {cat.name}
+                  </option>
+                ))}
+              </select>
+            </div>
+
+            {/* Data */}
+            <div className="space-y-1">
+              <Label className="text-xs font-semibold text-slate-700">{t('date')}</Label>
+              <Input
+                type="date"
+                value={editDate}
+                onChange={e => setEditDate(e.target.value)}
+                className="text-xs rounded-xl border-slate-200"
+              />
+            </div>
+
+            <div className="flex justify-end space-x-2 pt-2">
               <Button
                 variant="outline"
                 size="sm"
                 onClick={() => setEditingExpense(null)}
-                className="rounded-xl text-xs h-8"
+                className="rounded-xl text-xs h-9"
               >
-                Cancelar
+                {t('cancel')}
               </Button>
               <Button
                 size="sm"
                 onClick={handleSaveEdit}
-                className="bg-emerald-600 hover:bg-emerald-700 text-white rounded-xl text-xs h-8 font-semibold flex items-center gap-1"
+                className="bg-emerald-600 hover:bg-emerald-700 text-white rounded-xl text-xs h-9 font-semibold flex items-center gap-1.5 px-4"
               >
-                <Check className="w-3.5 h-3.5" />
-                Salvar Valor
+                <Check className="w-4 h-4" />
+                {t('saveChanges')}
               </Button>
             </div>
           </div>
