@@ -1,13 +1,16 @@
 import React, { useState } from 'react';
 import { isSupabaseConfigured } from '@/lib/supabase';
-import { Database, Wifi, Info, CheckCircle2, Copy, Check, Terminal } from 'lucide-react';
+import { testSupabaseConnection } from '@/services/supabaseStorage';
+import { Database, Wifi, Info, CheckCircle2, Copy, Check, Terminal, AlertTriangle, RefreshCw } from 'lucide-react';
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription } from '@/components/ui/dialog';
 import { Button } from '@/components/ui/button';
-import { showSuccess } from '@/utils/toast';
+import { showSuccess, showError } from '@/utils/toast';
 
 export const SupabaseBadge: React.FC = () => {
   const [isOpen, setIsOpen] = useState(false);
   const [copied, setCopied] = useState(false);
+  const [isTesting, setIsTesting] = useState(false);
+  const [testResult, setTestResult] = useState<{ success: boolean; message: string } | null>(null);
 
   const sqlScript = `-- SCRIPT DE CRIAÇÃO DE TABELAS PARA MEU ORÇAMENTO INTELIGENTE
 
@@ -66,17 +69,32 @@ ALTER TABLE recurring_transactions DISABLE ROW LEVEL SECURITY;`;
     setTimeout(() => setCopied(false), 2000);
   };
 
+  const handleTestConnection = async () => {
+    setIsTesting(true);
+    const result = await testSupabaseConnection();
+    setTestResult(result);
+    setIsTesting(false);
+    if (result.success) {
+      showSuccess(result.message);
+    } else {
+      showError(result.message);
+    }
+  };
+
   return (
     <>
       <button
         type="button"
-        onClick={() => setIsOpen(true)}
+        onClick={() => {
+          setIsOpen(true);
+          handleTestConnection();
+        }}
         className={`flex items-center space-x-1.5 text-xs px-3 py-1 rounded-full font-semibold shadow-xs cursor-pointer transition-all ${
           isSupabaseConfigured 
             ? 'bg-emerald-50 text-emerald-800 border border-emerald-200/80 hover:bg-emerald-100' 
             : 'bg-amber-50 text-amber-800 border border-amber-200/80 hover:bg-amber-100'
         }`}
-        title="Clique para ver o status e script SQL do banco"
+        title="Clique para testar o status e ver o script SQL do banco"
       >
         {isSupabaseConfigured ? (
           <>
@@ -99,28 +117,50 @@ ALTER TABLE recurring_transactions DISABLE ROW LEVEL SECURITY;`;
               <Database className="w-5 h-5" />
             </div>
             <DialogTitle className="text-lg font-bold text-slate-900">
-              Banco de Dados Supabase Conectado
+              Diagnóstico de Banco de Dados Supabase
             </DialogTitle>
             <DialogDescription className="text-xs text-slate-500 leading-relaxed">
-              O projeto do Supabase está ativado para salvar suas receitas, despesas e cofrinhos na nuvem.
+              Verifique o estado da sincronização em nuvem e a estrutura de tabelas.
             </DialogDescription>
           </DialogHeader>
 
           <div className="space-y-3 my-2 text-xs text-slate-700">
-            <div className="p-3 bg-emerald-50 border border-emerald-200 rounded-xl space-y-1">
-              <p className="font-bold text-emerald-800 flex items-center gap-1.5">
-                <CheckCircle2 className="w-4 h-4 text-emerald-600" /> Sincronização em Nuvem Pronta!
-              </p>
-              <p className="text-emerald-700 text-[11px] leading-relaxed">
-                Todas as alterações feitas por você no aplicativo são gravadas diretamente no seu projeto do Supabase.
+            {/* Caixa do Teste de Conexão */}
+            <div className={`p-3 border rounded-xl space-y-1.5 ${
+              testResult?.success ? 'bg-emerald-50 border-emerald-200' : 'bg-amber-50 border-amber-200'
+            }`}>
+              <div className="flex items-center justify-between">
+                <span className="font-bold text-slate-900 flex items-center gap-1.5">
+                  {testResult?.success ? (
+                    <CheckCircle2 className="w-4 h-4 text-emerald-600" />
+                  ) : (
+                    <AlertTriangle className="w-4 h-4 text-amber-600" />
+                  )}
+                  {testResult?.success ? 'Conexão Supabase Ativa' : 'Atenção com a Conexão'}
+                </span>
+
+                <Button
+                  size="sm"
+                  variant="ghost"
+                  onClick={handleTestConnection}
+                  disabled={isTesting}
+                  className="h-6 text-[10px] font-bold text-slate-600 hover:bg-slate-200 rounded-md"
+                >
+                  <RefreshCw className={`w-3 h-3 mr-1 ${isTesting ? 'animate-spin' : ''}`} />
+                  Testar Novamente
+                </Button>
+              </div>
+
+              <p className="text-[11px] leading-relaxed text-slate-700">
+                {isTesting ? 'Testando tabelas no Supabase...' : testResult?.message}
               </p>
             </div>
 
             {/* Script SQL para criação rápida de tabelas */}
-            <div className="space-y-2">
+            <div className="space-y-2 pt-1">
               <div className="flex items-center justify-between">
                 <span className="font-bold text-slate-800 flex items-center gap-1.5">
-                  <Terminal className="w-4 h-4 text-slate-600" /> Script SQL das Tabelas (Opcional):
+                  <Terminal className="w-4 h-4 text-slate-600" /> Script SQL para o Supabase:
                 </span>
 
                 <Button
@@ -134,7 +174,11 @@ ALTER TABLE recurring_transactions DISABLE ROW LEVEL SECURITY;`;
                 </Button>
               </div>
 
-              <pre className="p-3 bg-slate-900 text-emerald-400 font-mono text-[10px] rounded-xl overflow-x-auto max-h-36 border border-slate-800 leading-normal">
+              <p className="text-[11px] text-slate-500">
+                Acesse <a href="https://supabase.com" target="_blank" rel="noreferrer" className="text-emerald-600 font-bold underline">supabase.com</a> > seu projeto > <strong>SQL Editor</strong> > colar e clicar em <strong>Run</strong>.
+              </p>
+
+              <pre className="p-3 bg-slate-900 text-emerald-400 font-mono text-[10px] rounded-xl overflow-x-auto max-h-32 border border-slate-800 leading-normal">
                 {sqlScript}
               </pre>
             </div>

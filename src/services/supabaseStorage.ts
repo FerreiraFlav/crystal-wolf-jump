@@ -1,5 +1,33 @@
 import { supabase, isSupabaseConfigured } from '@/lib/supabase';
 import { Expense, User, PiggyBank, RecurringTransaction } from '@/types/finance';
+import { showError } from '@/utils/toast';
+
+// ==================== TESTE DE CONEXÃO E TABELAS ====================
+
+export const testSupabaseConnection = async (): Promise<{ success: boolean; message: string }> => {
+  if (!isSupabaseConfigured || !supabase) {
+    return { 
+      success: false, 
+      message: 'As variáveis de ambiente do Supabase não estão ativas no Vercel. Lembre-se de fazer um Redeploy no Vercel!' 
+    };
+  }
+
+  try {
+    const { error } = await supabase.from('users').select('id').limit(1);
+    if (error) {
+      if (error.code === '42P01') {
+        return { 
+          success: false, 
+          message: 'As tabelas ainda não foram criadas no Supabase. Execute o script SQL no SQL Editor do Supabase.' 
+        };
+      }
+      return { success: false, message: `Erro do Supabase: ${error.message}` };
+    }
+    return { success: true, message: 'Conexão com o Supabase estabelecida com sucesso e tabelas detectadas!' };
+  } catch (err: any) {
+    return { success: false, message: err.message || 'Erro de conexão com o Supabase.' };
+  }
+};
 
 // ==================== USUÁRIOS (LOGIN & CADASTRO NA NUVEM) ====================
 
@@ -16,7 +44,8 @@ export const findUserInSupabase = async (email: string, passwordHash: string): P
       .maybeSingle();
 
     if (error) {
-      console.warn('Busca de usuário no Supabase:', error.message);
+      console.error('Erro de busca no Supabase:', error.message);
+      showError(`Erro ao buscar no Supabase: ${error.message}`);
       return null;
     }
 
@@ -27,14 +56,16 @@ export const findUserInSupabase = async (email: string, passwordHash: string): P
       name: data.name,
       email: data.email,
     };
-  } catch (err) {
+  } catch (err: any) {
     console.error('Erro ao buscar usuário no Supabase:', err);
     return null;
   }
 };
 
 export const registerUserInSupabase = async (name: string, email: string, passwordHash: string): Promise<User | null> => {
-  if (!isSupabaseConfigured || !supabase) return null;
+  if (!isSupabaseConfigured || !supabase) {
+    throw new Error('Supabase não configurado. Verifique as variáveis de ambiente no Vercel.');
+  }
 
   try {
     const formattedEmail = email.toLowerCase().trim();
@@ -56,8 +87,9 @@ export const registerUserInSupabase = async (name: string, email: string, passwo
       .select('id, name, email');
 
     if (error) {
-      console.error('Erro no Supabase:', error.message);
-      throw new Error(`Erro ao salvar no Supabase: ${error.message}. Verifique se a tabela 'users' existe no Supabase.`);
+      console.error('Erro grave no Supabase:', error);
+      showError(`Erro ao salvar no Supabase: ${error.message}`);
+      throw new Error(`Erro no Supabase: ${error.message}`);
     }
 
     if (data && data[0]) {
@@ -68,7 +100,7 @@ export const registerUserInSupabase = async (name: string, email: string, passwo
       };
     }
 
-    return null;
+    return { id: userId, name: name.trim(), email: formattedEmail };
   } catch (err: any) {
     console.error('Erro ao cadastrar usuário no Supabase:', err);
     throw err;
@@ -88,7 +120,8 @@ export const fetchExpensesFromSupabase = async (userId: string): Promise<Expense
       .order('date', { ascending: false });
 
     if (error) {
-      console.warn('Aviso do Supabase ao buscar despesas:', error.message);
+      console.warn('Aviso Supabase:', error.message);
+      showError(`Erro ao carregar do Supabase: ${error.message}`);
       return [];
     }
 
@@ -127,13 +160,13 @@ export const saveExpenseToSupabase = async (userId: string, expense: Omit<Expens
       .select();
 
     if (error) {
-      console.warn('Aviso Supabase ao salvar lançamento:', error.message);
+      showError(`Falha ao salvar no banco em nuvem: ${error.message}`);
       return null;
     }
 
     return data?.[0] || null;
-  } catch (err) {
-    console.error('Erro ao salvar no Supabase:', err);
+  } catch (err: any) {
+    showError(`Erro ao conectar com a nuvem: ${err.message}`);
     return null;
   }
 };
@@ -142,14 +175,16 @@ export const updateExpenseInSupabase = async (id: string, updatedFields: Partial
   if (!isSupabaseConfigured || !supabase) return;
 
   try {
-    await supabase.from('expenses').update({
+    const { error } = await supabase.from('expenses').update({
       description: updatedFields.description,
       amount: updatedFields.amount,
       category: updatedFields.category,
       type: updatedFields.type,
       date: updatedFields.date,
     }).eq('id', id);
-  } catch (err) {
+
+    if (error) showError(`Erro ao atualizar na nuvem: ${error.message}`);
+  } catch (err: any) {
     console.error('Erro ao atualizar no Supabase:', err);
   }
 };
@@ -158,8 +193,9 @@ export const deleteExpenseFromSupabase = async (id: string) => {
   if (!isSupabaseConfigured || !supabase) return;
 
   try {
-    await supabase.from('expenses').delete().eq('id', id);
-  } catch (err) {
+    const { error } = await supabase.from('expenses').delete().eq('id', id);
+    if (error) showError(`Erro ao deletar da nuvem: ${error.message}`);
+  } catch (err: any) {
     console.error('Erro ao deletar do Supabase:', err);
   }
 };
