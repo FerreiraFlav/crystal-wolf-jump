@@ -7,10 +7,11 @@ export const findUserInSupabase = async (email: string, passwordHash: string): P
   if (!isSupabaseConfigured || !supabase) return null;
 
   try {
+    const formattedEmail = email.toLowerCase().trim();
     const { data, error } = await supabase
       .from('users')
       .select('id, name, email')
-      .eq('email', email.toLowerCase().trim())
+      .eq('email', formattedEmail)
       .eq('password_hash', passwordHash)
       .maybeSingle();
 
@@ -36,23 +37,28 @@ export const registerUserInSupabase = async (name: string, email: string, passwo
   if (!isSupabaseConfigured || !supabase) return null;
 
   try {
+    const formattedEmail = email.toLowerCase().trim();
     const userId = 'usr_' + Date.now().toString(36) + Math.random().toString(36).substring(2, 5);
     
+    // Usa upsert no e-mail para sincronizar mesmo se o e-mail já existir
     const { data, error } = await supabase
       .from('users')
-      .insert([
-        {
-          id: userId,
-          name: name.trim(),
-          email: email.toLowerCase().trim(),
-          password_hash: passwordHash,
-        }
-      ])
+      .upsert(
+        [
+          {
+            id: userId,
+            name: name.trim(),
+            email: formattedEmail,
+            password_hash: passwordHash,
+          }
+        ],
+        { onConflict: 'email' }
+      )
       .select('id, name, email');
 
     if (error) {
       console.warn('Aviso ao cadastrar usuário no Supabase:', error.message);
-      return { id: userId, name: name.trim(), email: email.toLowerCase().trim() };
+      return { id: userId, name: name.trim(), email: formattedEmail };
     }
 
     if (data && data[0]) {
@@ -63,7 +69,7 @@ export const registerUserInSupabase = async (name: string, email: string, passwo
       };
     }
 
-    return { id: userId, name: name.trim(), email: email.toLowerCase().trim() };
+    return { id: userId, name: name.trim(), email: formattedEmail };
   } catch (err) {
     console.error('Erro ao cadastrar usuário no Supabase:', err);
     return null;

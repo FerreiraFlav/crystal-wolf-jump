@@ -41,9 +41,14 @@ export const AuthModal: React.FC<AuthModalProps> = ({ onLoginSuccess }) => {
         showSuccess(`Bem-vindo, ${newUser.name}! Sua conta foi criada e sincronizada com sucesso.`);
         onLoginSuccess(newUser);
       } else {
-        const user = await loginUserAsync(email.trim(), password);
-        showSuccess(`Bem-vindo de volta, ${user.name}!`);
-        onLoginSuccess(user);
+        try {
+          const user = await loginUserAsync(email.trim(), password);
+          showSuccess(`Bem-vindo de volta, ${user.name}!`);
+          onLoginSuccess(user);
+        } catch (err: any) {
+          // Oferece atalho claro para cadastrar se a conta ainda não existir na nuvem
+          showError(err.message || 'Conta não encontrada. Se criou recentemente no PC, clique em "Criar nova conta" no celular para ativar na nuvem!');
+        }
       }
     } catch (err: any) {
       showError(err.message || 'Ocorreu um erro ao autenticar.');
@@ -60,7 +65,14 @@ export const AuthModal: React.FC<AuthModalProps> = ({ onLoginSuccess }) => {
       showSuccess('Entrou na conta de demonstração!');
       onLoginSuccess(user);
     } catch (err: any) {
-      showError(err.message);
+      // Se não estiver no Supabase, cria automaticamente a conta de teste
+      try {
+        const demoUser = await registerUserAsync('Flavio', 'flavio@email.com', '123456');
+        showSuccess('Conta de teste sincronizada e acessada!');
+        onLoginSuccess(demoUser);
+      } catch {
+        showError(err.message);
+      }
     }
   };
 
