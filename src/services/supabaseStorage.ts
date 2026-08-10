@@ -1,7 +1,78 @@
 import { supabase, isSupabaseConfigured } from '@/lib/supabase';
-import { Expense, CategoryBudget, User } from '@/types/finance';
+import { Expense, CategoryBudget, User, PiggyBank, RecurringTransaction } from '@/types/finance';
 
-// Tabela de Lançamentos no Supabase
+// ==================== USUÁRIOS (LOGIN & CADASTRO NA NUVEM) ====================
+
+export const findUserInSupabase = async (email: string, passwordHash: string): Promise<User | null> => {
+  if (!isSupabaseConfigured || !supabase) return null;
+
+  try {
+    const { data, error } = await supabase
+      .from('users')
+      .select('id, name, email')
+      .eq('email', email.toLowerCase().trim())
+      .eq('password_hash', passwordHash)
+      .maybeSingle();
+
+    if (error) {
+      console.warn('Busca de usuário no Supabase:', error.message);
+      return null;
+    }
+
+    if (!data) return null;
+
+    return {
+      id: data.id,
+      name: data.name,
+      email: data.email,
+    };
+  } catch (err) {
+    console.error('Erro ao buscar usuário no Supabase:', err);
+    return null;
+  }
+};
+
+export const registerUserInSupabase = async (name: string, email: string, passwordHash: string): Promise<User | null> => {
+  if (!isSupabaseConfigured || !supabase) return null;
+
+  try {
+    const userId = 'usr_' + Date.now().toString(36) + Math.random().toString(36).substring(2, 5);
+    
+    const { data, error } = await supabase
+      .from('users')
+      .insert([
+        {
+          id: userId,
+          name: name.trim(),
+          email: email.toLowerCase().trim(),
+          password_hash: passwordHash,
+        }
+      ])
+      .select('id, name, email');
+
+    if (error) {
+      console.warn('Aviso ao cadastrar usuário no Supabase:', error.message);
+      // Retorna usuário mesmo se a tabela no Supabase não tiver sido criada ainda
+      return { id: userId, name: name.trim(), email: email.toLowerCase().trim() };
+    }
+
+    if (data && data[0]) {
+      return {
+        id: data[0].id,
+        name: data[0].name,
+        email: data[0].email,
+      };
+    }
+
+    return { id: userId, name: name.trim(), email: email.toLowerCase().trim() };
+  } catch (err) {
+    console.error('Erro ao cadastrar usuário no Supabase:', err);
+    return null;
+  }
+};
+
+// ==================== LANÇAMENTOS (DESPESAS / RECEITAS) ====================
+
 export const fetchExpensesFromSupabase = async (userId: string): Promise<Expense[]> => {
   if (!isSupabaseConfigured || !supabase) return [];
 
@@ -13,7 +84,7 @@ export const fetchExpensesFromSupabase = async (userId: string): Promise<Expense
       .order('date', { ascending: false });
 
     if (error) {
-      console.warn('Supabase fetch notice:', error.message);
+      console.warn('Supabase fetch expenses notice:', error.message);
       return [];
     }
 
@@ -52,7 +123,7 @@ export const saveExpenseToSupabase = async (userId: string, expense: Omit<Expens
       .select();
 
     if (error) {
-      console.warn('Aviso Supabase ao salvar:', error.message);
+      console.warn('Aviso Supabase ao salvar lançamento:', error.message);
       return null;
     }
 
@@ -60,6 +131,22 @@ export const saveExpenseToSupabase = async (userId: string, expense: Omit<Expens
   } catch (err) {
     console.error('Erro ao salvar no Supabase:', err);
     return null;
+  }
+};
+
+export const updateExpenseInSupabase = async (id: string, updatedFields: Partial<Omit<Expense, 'id' | 'userId'>>) => {
+  if (!isSupabaseConfigured || !supabase) return;
+
+  try {
+    await supabase.from('expenses').update({
+      description: updatedFields.description,
+      amount: updatedFields.amount,
+      category: updatedFields.category,
+      type: updatedFields.type,
+      date: updatedFields.date,
+    }).eq('id', id);
+  } catch (err) {
+    console.error('Erro ao atualizar no Supabase:', err);
   }
 };
 

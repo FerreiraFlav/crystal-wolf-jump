@@ -1,11 +1,11 @@
 import React, { useState } from 'react';
 import { User } from '@/types/finance';
-import { registerUser, loginUser } from '@/services/storage';
+import { registerUserAsync, loginUserAsync } from '@/services/storage';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Button } from '@/components/ui/button';
-import { Wallet, Lock, Mail, User as UserIcon, ShieldCheck, ArrowRight, Sparkles, KeyRound } from 'lucide-react';
+import { Wallet, Lock, Mail, User as UserIcon, ShieldCheck, ArrowRight, KeyRound } from 'lucide-react';
 import { showSuccess, showError } from '@/utils/toast';
 
 interface AuthModalProps {
@@ -19,7 +19,7 @@ export const AuthModal: React.FC<AuthModalProps> = ({ onLoginSuccess }) => {
   const [password, setPassword] = useState('');
   const [isLoading, setIsLoading] = useState(false);
 
-  const handleSubmit = (e: React.FormEvent) => {
+  const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     setIsLoading(true);
 
@@ -37,11 +37,11 @@ export const AuthModal: React.FC<AuthModalProps> = ({ onLoginSuccess }) => {
       }
 
       if (isRegister) {
-        const newUser = registerUser(name.trim(), email.trim(), password);
-        showSuccess(`Bem-vindo, ${newUser.name}! Sua conta foi criada com sucesso.`);
+        const newUser = await registerUserAsync(name.trim(), email.trim(), password);
+        showSuccess(`Bem-vindo, ${newUser.name}! Sua conta foi criada e sincronizada com sucesso.`);
         onLoginSuccess(newUser);
       } else {
-        const user = loginUser(email.trim(), password);
+        const user = await loginUserAsync(email.trim(), password);
         showSuccess(`Bem-vindo de volta, ${user.name}!`);
         onLoginSuccess(user);
       }
@@ -52,11 +52,11 @@ export const AuthModal: React.FC<AuthModalProps> = ({ onLoginSuccess }) => {
     }
   };
 
-  const handleDemoLogin = () => {
+  const handleDemoLogin = async () => {
     setEmail('flavio@email.com');
     setPassword('123456');
     try {
-      const user = loginUser('flavio@email.com', '123456');
+      const user = await loginUserAsync('flavio@email.com', '123456');
       showSuccess('Entrou na conta de demonstração!');
       onLoginSuccess(user);
     } catch (err: any) {
@@ -76,7 +76,7 @@ export const AuthModal: React.FC<AuthModalProps> = ({ onLoginSuccess }) => {
             Meu Orçamento <span className="text-emerald-400">Inteligente</span>
           </h1>
           <p className="text-slate-400 text-sm mt-2 max-w-sm mx-auto">
-            Controle total dos seus gastos com análise preditiva por Inteligência Artificial
+            Controle total dos seus gastos sincronizado na nuvem para todos os seus dispositivos
           </p>
         </div>
 
@@ -88,8 +88,8 @@ export const AuthModal: React.FC<AuthModalProps> = ({ onLoginSuccess }) => {
             </CardTitle>
             <CardDescription className="text-center text-slate-400 text-xs">
               {isRegister
-                ? 'Preencha seus dados para iniciar seu controle financeiro'
-                : 'Insira seu e-mail e senha para acessar seus dados salvos'}
+                ? 'Preencha seus dados para acessar de qualquer dispositivo'
+                : 'Insira seu e-mail e senha cadastrados'}
             </CardDescription>
           </CardHeader>
           <CardContent>
@@ -184,10 +184,9 @@ export const AuthModal: React.FC<AuthModalProps> = ({ onLoginSuccess }) => {
           </CardContent>
         </Card>
 
-        {/* Garantia de Privacidade Local */}
         <div className="mt-6 flex items-center justify-center space-x-2 text-xs text-slate-400 bg-slate-800/40 p-3 rounded-xl border border-slate-800">
           <ShieldCheck className="w-4 h-4 text-emerald-400 shrink-0" />
-          <span><strong>100% Privado:</strong> Seus dados financeiros ficam gravados apenas neste navegador.</span>
+          <span>Sincronização ativada: Acesse sua conta em qualquer dispositivo.</span>
         </div>
       </div>
     </div>

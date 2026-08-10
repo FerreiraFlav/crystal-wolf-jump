@@ -14,7 +14,8 @@ import {
 import { 
   fetchExpensesFromSupabase, 
   saveExpenseToSupabase, 
-  deleteExpenseFromSupabase 
+  deleteExpenseFromSupabase,
+  updateExpenseInSupabase 
 } from '@/services/supabaseStorage';
 import { isSupabaseConfigured } from '@/lib/supabase';
 import { analyzeExpensesWithAI } from '@/services/aiAdvisor';
@@ -117,9 +118,14 @@ const Index = () => {
     loadUserData(currentUser.id);
   };
 
-  const handleEditExpense = (id: string, updated: { description: string; amount: number; category: CategoryType; type: TransactionType; date: string }) => {
+  const handleEditExpense = async (id: string, updated: { description: string; amount: number; category: CategoryType; type: TransactionType; date: string }) => {
     if (!currentUser) return;
     updateExpenseStorage(id, updated);
+
+    if (isSupabaseConfigured) {
+      await updateExpenseInSupabase(id, updated);
+    }
+
     loadUserData(currentUser.id);
   };
 
@@ -354,7 +360,7 @@ const Index = () => {
       {/* Footer */}
       <footer className="border-t border-slate-200 bg-white py-4 mt-8">
         <div className="max-w-7xl mx-auto px-4 text-center text-xs text-slate-500">
-          Meu Orçamento Inteligente (€) • Seus dados financeiros mantidos seguros.
+          Meu Orçamento Inteligente (€) • Seus dados financeiros mantidos seguros na nuvem.
         </div>
       </footer>
     </div>

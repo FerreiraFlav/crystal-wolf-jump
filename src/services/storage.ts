@@ -1,4 +1,11 @@
 import { User, Expense, CategoryType, CategoryBudget, PiggyBank, RecurringTransaction } from '@/types/finance';
+import { 
+  findUserInSupabase, 
+  registerUserInSupabase, 
+  fetchExpensesFromSupabase,
+  saveExpenseToSupabase
+} from './supabaseStorage';
+import { isSupabaseConfigured } from '@/lib/supabase';
 
 const USERS_KEY = 'meu_orcamento_users';
 const CURRENT_USER_KEY = 'meu_orcamento_current_user';
@@ -7,7 +14,6 @@ const BUDGETS_KEY = 'meu_orcamento_budgets';
 const PIGGY_BANKS_KEY = 'meu_orcamento_piggy_banks';
 const RECURRING_KEY = 'meu_orcamento_recurring';
 
-// Fallback em memória caso o navegador bloqueie localStorage/sessionStorage
 const memoryStore: Record<string, string> = {};
 
 const safeLocalStorage = {
@@ -111,40 +117,71 @@ export const getCurrentUser = (): User | null => {
   return data ? JSON.parse(data) : null;
 };
 
-export const registerUser = (name: string, email: string, passwordHash: string): User => {
+// Registro de Usuário Assíncrono com Supabase
+export const registerUserAsync = async (name: string, email: string, passwordHash: string): Promise<User> => {
   const users = getUsers();
-  const existing = users.find(u => u.email.toLowerCase() === email.toLowerCase());
-  if (existing) {
-    throw new Error('Já existe uma conta cadastrada com este e-mail.');
+  const existingLocal = users.find(u => u.email.toLowerCase() === email.toLowerCase());
+
+  // Salva no Supabase primeiro
+  let supabaseUser: User | null = null;
+  if (isSupabaseConfigured) {
+    supabaseUser = await registerUserInSupabase(name, email, passwordHash);
   }
 
-  const newUser: User = {
+  const newUser: User = supabaseUser || {
     id: 'usr_' + Date.now().toString(36),
     name,
     email,
   };
 
-  users.push({ ...newUser, passwordHash });
-  safeLocalStorage.setItem(USERS_KEY, JSON.stringify(users));
-  safeSessionStorage.setItem(CURRENT_USER_KEY, JSON.stringify(newUser));
+  if (!existingLocal) {
+    users.push({ ...newUser, passwordHash });
+    safeLocalStorage.setItem(USERS_KEY, JSON.stringify(users));
+  }
 
+  safeSessionStorage.setItem(CURRENT_USER_KEY, JSON.stringify(newUser));
   seedInitialData(newUser.id);
 
   return newUser;
 };
 
-export const loginUser = (email: string, passwordHash: string): User => {
+// Login de Usuário Assíncrono com Supabase
+export const loginUserAsync = async (email: string, passwordHash: string): Promise<User> => {
+  const formattedEmail = email.toLowerCase().trim();
+
+  // 1. Tenta buscar no Supabase
+  if (isSupabaseConfigured) {
+    const cloudUser = await findUserInSupabase(formattedEmail, passwordHash);
+    if (cloudUser) {
+      // Salva cópia local para cache
+      const users = getUsers();
+      if (!users.some(u => u.id === cloudUser.id)) {
+        users.push({ ...cloudUser, passwordHash });
+        safeLocalStorage.setItem(USERS_KEY, JSON.stringify(users));
+      }
+      safeSessionStorage.setItem(CURRENT_USER_KEY, JSON.stringify(cloudUser));
+      return cloudUser;
+    }
+  }
+
+  // 2. Fallback: Busca localmente
   const users = getUsers();
-  const user = users.find(
-    u => u.email.toLowerCase() === email.toLowerCase() && u.passwordHash === passwordHash
+  const localUser = users.find(
+    u => u.email.toLowerCase() === formattedEmail && u.passwordHash === passwordHash
   );
 
-  if (!user) {
+  if (!localUser) {
     throw new Error('E-mail ou senha incorretos.');
   }
 
-  const userDTO: User = { id: user.id, name: user.name, email: user.email };
+  const userDTO: User = { id: localUser.id, name: localUser.name, email: localUser.email };
   safeSessionStorage.setItem(CURRENT_USER_KEY, JSON.stringify(userDTO));
+
+  // Tenta sincronizar o usuário com o Supabase se ainda não estiver lá
+  if (isSupabaseConfigured) {
+    registerUserInSupabase(localUser.name, localUser.email, passwordHash).catch(() => {});
+  }
+
   return userDTO;
 };
 
@@ -276,7 +313,6 @@ export const deletePiggyBank = (userId: string, id: string) => {
   savePiggyBanks(userId, filtered);
 };
 
-// Recurring Transactions (Contas Fixas e Assinaturas)
 export const getRecurringTransactions = (userId: string): RecurringTransaction[] => {
   const data = safeLocalStorage.getItem(RECURRING_KEY);
   if (!data) return getDefaultRecurring(userId);
@@ -334,17 +370,20 @@ export const applyRecurringToMonth = (userId: string, year: number, month: numbe
       );
 
       if (!exists) {
-        addExpense(userId, {
+        const added = addExpense(userId, {
           description: rec.description,
           amount: rec.amount,
           category: rec.category,
           type: rec.type,
           date: dateStr,
         });
+        if (isSupabaseConfigured) {
+          saveExpenseToSupabase(userId, added);
+        }
         addedCount++;
       }
     } else if (freq === 'weekly' || freq === 'biweekly') {
-      const targetDayOfWeek = rec.dayOfWeek !== undefined ? rec.dayOfWeek : 5; // Padrão: Sexta-feira
+      const targetDayOfWeek = rec.dayOfWeek !== undefined ? rec.dayOfWeek : 5;
       const matchingDates: string[] = [];
 
       for (let d = 1; d <= daysInMonth; d++) {
@@ -355,7 +394,6 @@ export const applyRecurringToMonth = (userId: string, year: number, month: numbe
         }
       }
 
-      // Se for quinzenal (biweekly), pegar ocorrências intercaladas (índice 0, 2, ...)
       const datesToPost = freq === 'biweekly'
         ? matchingDates.filter((_, idx) => idx % 2 === 0)
         : matchingDates;
@@ -366,13 +404,16 @@ export const applyRecurringToMonth = (userId: string, year: number, month: numbe
         );
 
         if (!exists) {
-          addExpense(userId, {
+          const added = addExpense(userId, {
             description: rec.description,
             amount: rec.amount,
             category: rec.category,
             type: rec.type,
             date: dateStr,
           });
+          if (isSupabaseConfigured) {
+            saveExpenseToSupabase(userId, added);
+          }
           addedCount++;
         }
       });
@@ -389,7 +430,7 @@ const getDefaultPiggyBanks = (userId: string): PiggyBank[] => [
 
 const getDefaultRecurring = (userId: string): RecurringTransaction[] => [
   { id: 'rec_rent', userId, description: 'Renda / Aluguer Habitação', amount: 750, category: 'Moradia', type: 'expense', frequency: 'monthly', dayOfMonth: 5 },
-  { id: 'rec_salary', userId, description: 'Salário Semanal (Irlanda)', amount: 650, category: 'Salário', type: 'income', frequency: 'weekly', dayOfWeek: 5 }, // Sexta-feira
+  { id: 'rec_salary', userId, description: 'Salário Semanal (Irlanda)', amount: 650, category: 'Salário', type: 'income', frequency: 'weekly', dayOfWeek: 5 },
   { id: 'rec_gym', userId, description: 'Mensalidade Ginásio', amount: 35, category: 'Saúde', type: 'expense', frequency: 'monthly', dayOfMonth: 10 },
   { id: 'rec_net', userId, description: 'Netflix / Streaming', amount: 15.99, category: 'Lazer & Entretenimento', type: 'expense', frequency: 'monthly', dayOfMonth: 15 },
 ];
@@ -409,7 +450,6 @@ const seedInitialData = (userId: string) => {
   const ym2 = `${prevMonth2.getFullYear()}-${String(prevMonth2.getMonth() + 1).padStart(2, '0')}`;
 
   const demoTransactions: Omit<Expense, 'id' | 'userId' | 'createdAt'>[] = [
-    // Current Month
     { description: 'Salário Mensal', amount: 2800.00, category: 'Salário', type: 'income', date: `${year}-${month}-01` },
     { description: 'Projeto Freelance', amount: 650.00, category: 'Freelance', type: 'income', date: `${year}-${month}-10` },
     { description: 'Supermercado Mensal', amount: 320.50, category: 'Alimentação', type: 'expense', date: `${year}-${month}-02` },
@@ -420,13 +460,11 @@ const seedInitialData = (userId: string) => {
     { description: 'Jantar Restaurante', amount: 65.00, category: 'Lazer & Entretenimento', type: 'expense', date: `${year}-${month}-12` },
     { description: 'Seguro de Saúde', amount: 90.00, category: 'Saúde', type: 'expense', date: `${year}-${month}-15` },
 
-    // Previous Month 1
     { description: 'Salário Mensal', amount: 2800.00, category: 'Salário', type: 'income', date: `${ym1}-01` },
     { description: 'Aluguer Habitação', amount: 750.00, category: 'Moradia', type: 'expense', date: `${ym1}-05` },
     { description: 'Supermercado', amount: 410.00, category: 'Alimentação', type: 'expense', date: `${ym1}-08` },
     { description: 'Compras de Vestuário', amount: 180.00, category: 'Compras', type: 'expense', date: `${ym1}-14` },
 
-    // Previous Month 2
     { description: 'Salário Mensal', amount: 2800.00, category: 'Salário', type: 'income', date: `${ym2}-01` },
     { description: 'Projeto Freelance', amount: 500.00, category: 'Freelance', type: 'income', date: `${ym2}-12` },
     { description: 'Aluguer Habitação', amount: 750.00, category: 'Moradia', type: 'expense', date: `${ym2}-05` },

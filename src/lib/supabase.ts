@@ -8,7 +8,7 @@ export const isSupabaseConfigured = Boolean(
   supabaseAnonKey && 
   typeof supabaseUrl === 'string' &&
   supabaseUrl.startsWith('http') &&
-  !supabaseUrl.includes('wonxhsbnybwxdbevdqat')
+  !supabaseUrl.includes('placeholder')
 );
 
 export const supabase = isSupabaseConfigured 
