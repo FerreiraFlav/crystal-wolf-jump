@@ -1,5 +1,5 @@
 import { supabase, isSupabaseConfigured } from '@/lib/supabase';
-import { Expense, CategoryBudget, User, PiggyBank, RecurringTransaction } from '@/types/finance';
+import { Expense, User, PiggyBank, RecurringTransaction } from '@/types/finance';
 
 // ==================== USUÁRIOS (LOGIN & CADASTRO NA NUVEM) ====================
 

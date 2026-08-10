@@ -1,9 +1,7 @@
 import { User, Expense, CategoryType, CategoryBudget, PiggyBank, RecurringTransaction } from '@/types/finance';
 import { 
   findUserInSupabase, 
-  registerUserInSupabase, 
-  fetchExpensesFromSupabase,
-  saveExpenseToSupabase
+  registerUserInSupabase
 } from './supabaseStorage';
 import { isSupabaseConfigured } from '@/lib/supabase';
 
@@ -370,16 +368,13 @@ export const applyRecurringToMonth = (userId: string, year: number, month: numbe
       );
 
       if (!exists) {
-        const added = addExpense(userId, {
+        addExpense(userId, {
           description: rec.description,
           amount: rec.amount,
           category: rec.category,
           type: rec.type,
           date: dateStr,
         });
-        if (isSupabaseConfigured) {
-          saveExpenseToSupabase(userId, added);
-        }
         addedCount++;
       }
     } else if (freq === 'weekly' || freq === 'biweekly') {
@@ -404,16 +399,13 @@ export const applyRecurringToMonth = (userId: string, year: number, month: numbe
         );
 
         if (!exists) {
-          const added = addExpense(userId, {
+          addExpense(userId, {
             description: rec.description,
             amount: rec.amount,
             category: rec.category,
             type: rec.type,
             date: dateStr,
           });
-          if (isSupabaseConfigured) {
-            saveExpenseToSupabase(userId, added);
-          }
           addedCount++;
         }
       });
