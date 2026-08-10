@@ -43,14 +43,14 @@ export const ExpensePieChart: React.FC<ExpensePieChartProps> = ({ expenses, budg
     if (active && payload && payload.length) {
       const data = payload[0].payload;
       return (
-        <div className="bg-slate-900 text-white p-3 rounded-xl shadow-xl text-xs border border-slate-800 space-y-1">
-          <p className="font-bold text-slate-200">{data.name}</p>
-          <p className="text-emerald-400 font-semibold text-sm">
+        <div className="bg-white text-slate-800 p-3 rounded-xl shadow-xl text-xs border border-slate-200/90 space-y-1">
+          <p className="font-bold text-slate-900">{data.name}</p>
+          <p className="text-emerald-600 font-extrabold text-sm">
             {formatCurrency(data.value)}
           </p>
-          <p className="text-slate-400">{data.percentage}%</p>
+          <p className="text-slate-500 font-medium">{data.percentage}%</p>
           {data.limit > 0 && (
-            <p className="text-amber-300 font-medium text-[11px] border-t border-slate-800 pt-1 mt-1">
+            <p className="text-amber-700 font-medium text-[11px] border-t border-slate-100 pt-1 mt-1">
               Limite: {formatCurrency(data.limit)}
             </p>
           )}

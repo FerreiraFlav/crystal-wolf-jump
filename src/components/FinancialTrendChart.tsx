@@ -18,7 +18,6 @@ export const FinancialTrendChart: React.FC<FinancialTrendChartProps> = ({
 }) => {
   const { formatCurrency, t } = useLanguage();
 
-  // Generate last 6 months list starting from selectedMonth/selectedYear backwards
   const monthNames = [
     'Jan', 'Fev', 'Mar', 'Abr', 'Mai', 'Jun',
     'Jul', 'Ago', 'Set', 'Out', 'Nov', 'Dez'
@@ -46,15 +45,15 @@ export const FinancialTrendChart: React.FC<FinancialTrendChartProps> = ({
   const CustomTooltip = ({ active, payload, label }: any) => {
     if (active && payload && payload.length) {
       return (
-        <div className="bg-slate-900 text-white p-3 rounded-xl shadow-xl text-xs border border-slate-800 space-y-1">
-          <p className="font-bold text-slate-300">{label}</p>
-          <div className="flex items-center justify-between space-x-4">
-            <span className="text-emerald-400 font-semibold">{t('income')}:</span>
-            <span className="font-bold">{formatCurrency(payload[0]?.value || 0)}</span>
+        <div className="bg-white text-slate-800 p-3 rounded-xl shadow-xl text-xs border border-slate-200/90 space-y-1.5 min-w-[140px]">
+          <p className="font-extrabold text-slate-900 border-b border-slate-100 pb-1">{label}</p>
+          <div className="flex items-center justify-between space-x-3">
+            <span className="text-emerald-600 font-semibold">{t('income')}:</span>
+            <span className="font-bold text-emerald-700">{formatCurrency(payload[0]?.value || 0)}</span>
           </div>
-          <div className="flex items-center justify-between space-x-4">
-            <span className="text-red-400 font-semibold">{t('expense')}:</span>
-            <span className="font-bold">{formatCurrency(payload[1]?.value || 0)}</span>
+          <div className="flex items-center justify-between space-x-3">
+            <span className="text-red-500 font-semibold">{t('expense')}:</span>
+            <span className="font-bold text-red-600">{formatCurrency(payload[1]?.value || 0)}</span>
           </div>
         </div>
       );
@@ -85,7 +84,8 @@ export const FinancialTrendChart: React.FC<FinancialTrendChartProps> = ({
                 tickLine={false}
                 tickFormatter={(v) => `€${v}`}
               />
-              <Tooltip content={<CustomTooltip />} />
+              {/* cursor={{ fill: 'transparent' }} remove o fundo retangular cinza ao passar o mouse */}
+              <Tooltip cursor={{ fill: 'transparent' }} content={<CustomTooltip />} />
               <Legend
                 wrapperStyle={{ fontSize: '12px', paddingTop: '10px' }}
                 formatter={(value) => value === 'Receitas' ? t('income') : t('expense')}

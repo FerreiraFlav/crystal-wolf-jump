@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { RecurringTransaction, CategoryType, TransactionType } from '@/types/finance';
+import { RecurringTransaction, CategoryType, TransactionType, RecurrenceFrequency } from '@/types/finance';
 import { 
   getRecurringTransactions, 
   addRecurringTransaction, 
@@ -12,7 +12,7 @@ import { Dialog, DialogContent, DialogTitle, DialogDescription } from '@/compone
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Button } from '@/components/ui/button';
-import { Repeat, Plus, Trash2, Calendar, Zap, ArrowDownCircle, ArrowUpCircle } from 'lucide-react';
+import { Repeat, Plus, Trash2, Zap, ArrowDownCircle, ArrowUpCircle } from 'lucide-react';
 import { showSuccess, showError } from '@/utils/toast';
 import { useLanguage } from '@/context/LanguageContext';
 
@@ -44,7 +44,19 @@ export const RecurringTransactionsModal: React.FC<RecurringTransactionsModalProp
   const [amount, setAmount] = useState('');
   const [category, setCategory] = useState<CategoryType>('Moradia');
   const [type, setType] = useState<TransactionType>('expense');
+  const [frequency, setFrequency] = useState<RecurrenceFrequency>('monthly');
   const [dayOfMonth, setDayOfMonth] = useState('5');
+  const [dayOfWeek, setDayOfWeek] = useState('5'); // 5 = Sexta-feira por padrão
+
+  const daysOfWeekOptions = [
+    { value: 1, label: t('monday') },
+    { value: 2, label: t('tuesday') },
+    { value: 3, label: t('wednesday') },
+    { value: 4, label: t('thursday') },
+    { value: 5, label: t('friday') },
+    { value: 6, label: t('saturday') },
+    { value: 0, label: t('sunday') },
+  ];
 
   const categories = type === 'expense' ? EXPENSE_CATEGORIES : INCOME_CATEGORIES;
 
@@ -73,13 +85,16 @@ export const RecurringTransactionsModal: React.FC<RecurringTransactionsModalProp
     }
 
     const dayNum = parseInt(dayOfMonth, 10) || 1;
+    const weekDayNum = parseInt(dayOfWeek, 10) || 5;
 
     addRecurringTransaction(userId, {
       description: desc.trim(),
       amount: numAmount,
       category,
       type,
+      frequency,
       dayOfMonth: Math.min(31, Math.max(1, dayNum)),
+      dayOfWeek: weekDayNum,
     });
 
     showSuccess(`Conta fixa "${desc}" cadastrada com sucesso!`);
@@ -110,6 +125,11 @@ export const RecurringTransactionsModal: React.FC<RecurringTransactionsModalProp
     month: 'long',
     year: 'numeric',
   });
+
+  const getDayOfWeekName = (dayNum?: number) => {
+    const found = daysOfWeekOptions.find(d => d.value === dayNum);
+    return found ? found.label : t('friday');
+  };
 
   return (
     <Dialog open={isOpen} onOpenChange={onClose}>
@@ -229,18 +249,48 @@ export const RecurringTransactionsModal: React.FC<RecurringTransactionsModalProp
                   </select>
                 </div>
 
+                {/* Frequência (Mensal / Semanal / Quinzenal) */}
                 <div>
-                  <Label className="text-[11px] font-semibold text-slate-600">{t('dayOfMonth')}</Label>
-                  <Input
-                    type="number"
-                    min="1"
-                    max="31"
-                    value={dayOfMonth}
-                    onChange={e => setDayOfMonth(e.target.value)}
-                    className="h-9 text-xs rounded-lg"
-                    required
-                  />
+                  <Label className="text-[11px] font-semibold text-slate-600">{t('frequency')}</Label>
+                  <select
+                    value={frequency}
+                    onChange={e => setFrequency(e.target.value as RecurrenceFrequency)}
+                    className="w-full h-9 px-2 bg-white border border-slate-200 rounded-lg text-xs font-bold text-slate-800 outline-none"
+                  >
+                    <option value="monthly">{t('freqMonthly')}</option>
+                    <option value="weekly">{t('freqWeekly')}</option>
+                    <option value="biweekly">{t('freqBiweekly')}</option>
+                  </select>
                 </div>
+
+                {/* Dia do Mês vs Dia da Semana */}
+                {frequency === 'monthly' ? (
+                  <div>
+                    <Label className="text-[11px] font-semibold text-slate-600">{t('dayOfMonth')}</Label>
+                    <Input
+                      type="number"
+                      min="1"
+                      max="31"
+                      value={dayOfMonth}
+                      onChange={e => setDayOfMonth(e.target.value)}
+                      className="h-9 text-xs rounded-lg font-semibold"
+                      required
+                    />
+                  </div>
+                ) : (
+                  <div>
+                    <Label className="text-[11px] font-semibold text-slate-600">{t('dayOfWeek')}</Label>
+                    <select
+                      value={dayOfWeek}
+                      onChange={e => setDayOfWeek(e.target.value)}
+                      className="w-full h-9 px-2 bg-white border border-slate-200 rounded-lg text-xs font-semibold text-slate-800 outline-none"
+                    >
+                      {daysOfWeekOptions.map(d => (
+                        <option key={d.value} value={d.value}>{d.label}</option>
+                      ))}
+                    </select>
+                  </div>
+                )}
               </div>
 
               <div className="flex justify-end space-x-2 pt-1">
@@ -276,6 +326,16 @@ export const RecurringTransactionsModal: React.FC<RecurringTransactionsModalProp
               <div className="divide-y divide-slate-100 border border-slate-200 rounded-2xl overflow-hidden bg-white">
                 {recurringList.map(item => {
                   const isIncome = item.type === 'income';
+                  const freq = item.frequency || 'monthly';
+
+                  let freqLabel = '';
+                  if (freq === 'monthly') {
+                    freqLabel = `Mensal • Dia ${item.dayOfMonth || 1}`;
+                  } else if (freq === 'weekly') {
+                    freqLabel = `Toda Semana • ${getDayOfWeekName(item.dayOfWeek)}`;
+                  } else {
+                    freqLabel = `A cada 15 dias • ${getDayOfWeekName(item.dayOfWeek)}`;
+                  }
 
                   return (
                     <div
@@ -291,7 +351,7 @@ export const RecurringTransactionsModal: React.FC<RecurringTransactionsModalProp
                         <div>
                           <h5 className="font-bold text-xs text-slate-800">{item.description}</h5>
                           <span className="text-[10px] text-slate-500 font-medium">
-                            {item.category} • Dia {item.dayOfMonth}
+                            {item.category} • <strong className="text-slate-700">{freqLabel}</strong>
                           </span>
                         </div>
                       </div>

@@ -276,12 +276,15 @@ export const deletePiggyBank = (userId: string, id: string) => {
   savePiggyBanks(userId, filtered);
 };
 
-// Recurring Transactions (Contas Fixas)
+// Recurring Transactions (Contas Fixas e Assinaturas)
 export const getRecurringTransactions = (userId: string): RecurringTransaction[] => {
   const data = safeLocalStorage.getItem(RECURRING_KEY);
   if (!data) return getDefaultRecurring(userId);
   const allMap: Record<string, RecurringTransaction[]> = JSON.parse(data);
-  return allMap[userId] || getDefaultRecurring(userId);
+  return (allMap[userId] || getDefaultRecurring(userId)).map(r => ({
+    ...r,
+    frequency: r.frequency || 'monthly',
+  }));
 };
 
 export const saveRecurringTransactions = (userId: string, items: RecurringTransaction[]) => {
@@ -317,25 +320,62 @@ export const applyRecurringToMonth = (userId: string, year: number, month: numbe
   const monthExpenses = getExpenses(userId).filter(e => e.date.startsWith(yearMonthStr));
 
   let addedCount = 0;
+  const daysInMonth = new Date(year, month + 1, 0).getDate();
 
   recurring.forEach(rec => {
-    // Evitar lançar se já existe lançamento com mesma descrição e valor neste mês
-    const exists = monthExpenses.some(
-      e => e.description.toLowerCase() === rec.description.toLowerCase() && e.amount === rec.amount
-    );
+    const freq = rec.frequency || 'monthly';
 
-    if (!exists) {
-      const day = String(Math.min(28, rec.dayOfMonth || 1)).padStart(2, '0');
+    if (freq === 'monthly') {
+      const day = String(Math.min(daysInMonth, rec.dayOfMonth || 1)).padStart(2, '0');
       const dateStr = `${yearMonthStr}-${day}`;
 
-      addExpense(userId, {
-        description: rec.description,
-        amount: rec.amount,
-        category: rec.category,
-        type: rec.type,
-        date: dateStr,
+      const exists = monthExpenses.some(
+        e => e.description.toLowerCase() === rec.description.toLowerCase() && e.amount === rec.amount && e.date === dateStr
+      );
+
+      if (!exists) {
+        addExpense(userId, {
+          description: rec.description,
+          amount: rec.amount,
+          category: rec.category,
+          type: rec.type,
+          date: dateStr,
+        });
+        addedCount++;
+      }
+    } else if (freq === 'weekly' || freq === 'biweekly') {
+      const targetDayOfWeek = rec.dayOfWeek !== undefined ? rec.dayOfWeek : 5; // Padrão: Sexta-feira
+      const matchingDates: string[] = [];
+
+      for (let d = 1; d <= daysInMonth; d++) {
+        const dateObj = new Date(year, month, d);
+        if (dateObj.getDay() === targetDayOfWeek) {
+          const dayStr = String(d).padStart(2, '0');
+          matchingDates.push(`${yearMonthStr}-${dayStr}`);
+        }
+      }
+
+      // Se for quinzenal (biweekly), pegar ocorrências intercaladas (índice 0, 2, ...)
+      const datesToPost = freq === 'biweekly'
+        ? matchingDates.filter((_, idx) => idx % 2 === 0)
+        : matchingDates;
+
+      datesToPost.forEach(dateStr => {
+        const exists = monthExpenses.some(
+          e => e.description.toLowerCase() === rec.description.toLowerCase() && e.amount === rec.amount && e.date === dateStr
+        );
+
+        if (!exists) {
+          addExpense(userId, {
+            description: rec.description,
+            amount: rec.amount,
+            category: rec.category,
+            type: rec.type,
+            date: dateStr,
+          });
+          addedCount++;
+        }
       });
-      addedCount++;
     }
   });
 
@@ -348,10 +388,10 @@ const getDefaultPiggyBanks = (userId: string): PiggyBank[] => [
 ];
 
 const getDefaultRecurring = (userId: string): RecurringTransaction[] => [
-  { id: 'rec_rent', userId, description: 'Renda / Aluguer Habitação', amount: 750, category: 'Moradia', type: 'expense', dayOfMonth: 5 },
-  { id: 'rec_salary', userId, description: 'Salário Mensal', amount: 2800, category: 'Salário', type: 'income', dayOfMonth: 1 },
-  { id: 'rec_gym', userId, description: 'Mensalidade Ginásio', amount: 35, category: 'Saúde', type: 'expense', dayOfMonth: 10 },
-  { id: 'rec_net', userId, description: 'Netflix / Streaming', amount: 15.99, category: 'Lazer & Entretenimento', type: 'expense', dayOfMonth: 15 },
+  { id: 'rec_rent', userId, description: 'Renda / Aluguer Habitação', amount: 750, category: 'Moradia', type: 'expense', frequency: 'monthly', dayOfMonth: 5 },
+  { id: 'rec_salary', userId, description: 'Salário Semanal (Irlanda)', amount: 650, category: 'Salário', type: 'income', frequency: 'weekly', dayOfWeek: 5 }, // Sexta-feira
+  { id: 'rec_gym', userId, description: 'Mensalidade Ginásio', amount: 35, category: 'Saúde', type: 'expense', frequency: 'monthly', dayOfMonth: 10 },
+  { id: 'rec_net', userId, description: 'Netflix / Streaming', amount: 15.99, category: 'Lazer & Entretenimento', type: 'expense', frequency: 'monthly', dayOfMonth: 15 },
 ];
 
 const seedInitialData = (userId: string) => {

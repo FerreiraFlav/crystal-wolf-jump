@@ -6,6 +6,8 @@ export interface User {
 
 export type TransactionType = 'expense' | 'income';
 
+export type RecurrenceFrequency = 'monthly' | 'weekly' | 'biweekly';
+
 export type CategoryType = 
   | 'Alimentação'
   | 'Moradia'
@@ -54,7 +56,9 @@ export interface RecurringTransaction {
   amount: number;
   category: CategoryType;
   type: TransactionType;
-  dayOfMonth: number;
+  frequency: RecurrenceFrequency; // 'monthly' | 'weekly' | 'biweekly'
+  dayOfMonth?: number; // 1-31
+  dayOfWeek?: number; // 0 = Domingo, 1 = Segunda, 2 = Terça, 3 = Quarta, 4 = Quinta, 5 = Sexta, 6 = Sábado
 }
 
 export interface AIAdvice {
