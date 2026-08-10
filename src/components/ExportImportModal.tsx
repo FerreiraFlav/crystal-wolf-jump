@@ -3,7 +3,7 @@ import { Expense } from '@/types/finance';
 import { importExpenses } from '@/services/storage';
 import { Dialog, DialogContent, DialogTitle, DialogDescription } from '@/components/ui/dialog';
 import { Button } from '@/components/ui/button';
-import { Download, Upload, FileText, FileCode, HelpCircle, FileCheck, Printer } from 'lucide-react';
+import { Download, Upload, FileText, FileCode, HelpCircle, FileCheck } from 'lucide-react';
 import { showSuccess, showError } from '@/utils/toast';
 import { useLanguage } from '@/context/LanguageContext';
 
