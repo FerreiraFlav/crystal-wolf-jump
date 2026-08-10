@@ -1,11 +1,12 @@
 import React, { useState } from 'react';
 import { User } from '@/types/finance';
 import { registerUserAsync, loginUserAsync } from '@/services/storage';
+import { isSupabaseConfigured } from '@/lib/supabase';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Button } from '@/components/ui/button';
-import { Wallet, Lock, Mail, User as UserIcon, ShieldCheck, ArrowRight, KeyRound } from 'lucide-react';
+import { Wallet, Lock, Mail, User as UserIcon, ShieldCheck, ArrowRight, KeyRound, Wifi, Database } from 'lucide-react';
 import { showSuccess, showError } from '@/utils/toast';
 
 interface AuthModalProps {
@@ -38,7 +39,7 @@ export const AuthModal: React.FC<AuthModalProps> = ({ onLoginSuccess }) => {
 
       if (isRegister) {
         const newUser = await registerUserAsync(name.trim(), email.trim(), password);
-        showSuccess(`Bem-vindo, ${newUser.name}! Sua conta foi criada e sincronizada com sucesso.`);
+        showSuccess(`Bem-vindo, ${newUser.name}! Sua conta foi cadastrada com sucesso na nuvem.`);
         onLoginSuccess(newUser);
       } else {
         try {
@@ -46,8 +47,7 @@ export const AuthModal: React.FC<AuthModalProps> = ({ onLoginSuccess }) => {
           showSuccess(`Bem-vindo de volta, ${user.name}!`);
           onLoginSuccess(user);
         } catch (err: any) {
-          // Oferece atalho claro para cadastrar se a conta ainda não existir na nuvem
-          showError(err.message || 'Conta não encontrada. Se criou recentemente no PC, clique em "Criar nova conta" no celular para ativar na nuvem!');
+          showError(err.message || 'Conta não encontrada.');
         }
       }
     } catch (err: any) {
@@ -65,10 +65,9 @@ export const AuthModal: React.FC<AuthModalProps> = ({ onLoginSuccess }) => {
       showSuccess('Entrou na conta de demonstração!');
       onLoginSuccess(user);
     } catch (err: any) {
-      // Se não estiver no Supabase, cria automaticamente a conta de teste
       try {
         const demoUser = await registerUserAsync('Flavio', 'flavio@email.com', '123456');
-        showSuccess('Conta de teste sincronizada e acessada!');
+        showSuccess('Conta de teste criada e acessada!');
         onLoginSuccess(demoUser);
       } catch {
         showError(err.message);
@@ -80,27 +79,42 @@ export const AuthModal: React.FC<AuthModalProps> = ({ onLoginSuccess }) => {
     <div className="min-h-screen bg-slate-900 bg-[radial-gradient(ellipse_80%_80%_at_50%_-20%,rgba(16,185,129,0.15),rgba(255,255,255,0))] flex flex-col justify-center items-center p-4">
       <div className="w-full max-w-md">
         {/* Cabeçalho da Marca */}
-        <div className="text-center mb-8">
-          <div className="inline-flex items-center justify-center p-4 bg-emerald-500/10 border border-emerald-500/30 rounded-2xl mb-4 text-emerald-400 shadow-xl shadow-emerald-950/50">
+        <div className="text-center mb-6">
+          <div className="inline-flex items-center justify-center p-4 bg-emerald-500/10 border border-emerald-500/30 rounded-2xl mb-3 text-emerald-400 shadow-xl shadow-emerald-950/50">
             <Wallet className="w-10 h-10" />
           </div>
           <h1 className="text-3xl font-extrabold text-white tracking-tight">
             Meu Orçamento <span className="text-emerald-400">Inteligente</span>
           </h1>
-          <p className="text-slate-400 text-sm mt-2 max-w-sm mx-auto">
+          <p className="text-slate-400 text-xs mt-1.5 max-w-sm mx-auto">
             Controle total dos seus gastos sincronizado na nuvem para todos os seus dispositivos
           </p>
+
+          {/* Badge de Conexão com Supabase */}
+          <div className="mt-3 flex items-center justify-center">
+            {isSupabaseConfigured ? (
+              <span className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-[11px] font-bold bg-emerald-500/20 text-emerald-300 border border-emerald-500/30">
+                <Wifi className="w-3.5 h-3.5 text-emerald-400 animate-pulse" />
+                Modo Nuvem (Supabase Conectado)
+              </span>
+            ) : (
+              <span className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-[11px] font-bold bg-amber-500/20 text-amber-300 border border-amber-500/30">
+                <Database className="w-3.5 h-3.5 text-amber-400" />
+                Modo Offline / Local (Verifique Vercel)
+              </span>
+            )}
+          </div>
         </div>
 
         {/* Card do Formulário */}
         <Card className="border-slate-800 bg-slate-900/90 backdrop-blur-xl text-slate-100 shadow-2xl shadow-slate-950/80 rounded-2xl">
           <CardHeader className="space-y-1 pb-4">
             <CardTitle className="text-xl font-bold text-center text-white">
-              {isRegister ? 'Criar nova conta' : 'Entrar na sua conta'}
+              {isRegister ? 'Criar nova conta na Nuvem' : 'Entrar na sua conta'}
             </CardTitle>
             <CardDescription className="text-center text-slate-400 text-xs">
               {isRegister
-                ? 'Preencha seus dados para acessar de qualquer dispositivo'
+                ? 'Sua conta ficará salva na nuvem e acessível de qualquer dispositivo'
                 : 'Insira seu e-mail e senha cadastrados'}
             </CardDescription>
           </CardHeader>

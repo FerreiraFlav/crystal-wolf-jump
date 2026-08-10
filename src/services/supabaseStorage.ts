@@ -40,7 +40,6 @@ export const registerUserInSupabase = async (name: string, email: string, passwo
     const formattedEmail = email.toLowerCase().trim();
     const userId = 'usr_' + Date.now().toString(36) + Math.random().toString(36).substring(2, 5);
     
-    // Usa upsert no e-mail para sincronizar mesmo se o e-mail já existir
     const { data, error } = await supabase
       .from('users')
       .upsert(
@@ -57,8 +56,8 @@ export const registerUserInSupabase = async (name: string, email: string, passwo
       .select('id, name, email');
 
     if (error) {
-      console.warn('Aviso ao cadastrar usuário no Supabase:', error.message);
-      return { id: userId, name: name.trim(), email: formattedEmail };
+      console.error('Erro no Supabase:', error.message);
+      throw new Error(`Erro ao salvar no Supabase: ${error.message}. Verifique se a tabela 'users' existe no Supabase.`);
     }
 
     if (data && data[0]) {
@@ -69,10 +68,10 @@ export const registerUserInSupabase = async (name: string, email: string, passwo
       };
     }
 
-    return { id: userId, name: name.trim(), email: formattedEmail };
-  } catch (err) {
-    console.error('Erro ao cadastrar usuário no Supabase:', err);
     return null;
+  } catch (err: any) {
+    console.error('Erro ao cadastrar usuário no Supabase:', err);
+    throw err;
   }
 };
 

@@ -118,12 +118,15 @@ export const getCurrentUser = (): User | null => {
 // Registro de Usuário Assíncrono com Supabase
 export const registerUserAsync = async (name: string, email: string, passwordHash: string): Promise<User> => {
   const users = getUsers();
-  const existingLocal = users.find(u => u.email.toLowerCase() === email.toLowerCase());
 
-  // Salva no Supabase primeiro
   let supabaseUser: User | null = null;
   if (isSupabaseConfigured) {
-    supabaseUser = await registerUserInSupabase(name, email, passwordHash);
+    try {
+      supabaseUser = await registerUserInSupabase(name, email, passwordHash);
+    } catch (err: any) {
+      console.error('Falha ao registrar no Supabase:', err);
+      throw new Error(err.message || 'Erro ao registrar usuário na nuvem.');
+    }
   }
 
   const newUser: User = supabaseUser || {
@@ -132,6 +135,7 @@ export const registerUserAsync = async (name: string, email: string, passwordHas
     email,
   };
 
+  const existingLocal = users.find(u => u.email.toLowerCase() === email.toLowerCase());
   if (!existingLocal) {
     users.push({ ...newUser, passwordHash });
     safeLocalStorage.setItem(USERS_KEY, JSON.stringify(users));
@@ -151,7 +155,6 @@ export const loginUserAsync = async (email: string, passwordHash: string): Promi
   if (isSupabaseConfigured) {
     const cloudUser = await findUserInSupabase(formattedEmail, passwordHash);
     if (cloudUser) {
-      // Salva cópia local para cache
       const users = getUsers();
       if (!users.some(u => u.id === cloudUser.id)) {
         users.push({ ...cloudUser, passwordHash });
@@ -175,7 +178,6 @@ export const loginUserAsync = async (email: string, passwordHash: string): Promi
   const userDTO: User = { id: localUser.id, name: localUser.name, email: localUser.email };
   safeSessionStorage.setItem(CURRENT_USER_KEY, JSON.stringify(userDTO));
 
-  // Tenta sincronizar o usuário com o Supabase se ainda não estiver lá
   if (isSupabaseConfigured) {
     registerUserInSupabase(localUser.name, localUser.email, passwordHash).catch(() => {});
   }
