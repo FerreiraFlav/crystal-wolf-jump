@@ -47,6 +47,16 @@ export interface PiggyBank {
   color: string;
 }
 
+export interface RecurringTransaction {
+  id: string;
+  userId: string;
+  description: string;
+  amount: number;
+  category: CategoryType;
+  type: TransactionType;
+  dayOfMonth: number;
+}
+
 export interface AIAdvice {
   diagnosis: string;
   healthScore: number; // 0-100

@@ -30,9 +30,10 @@ import { BudgetManagerModal } from '@/components/BudgetManagerModal';
 import { ExportImportModal } from '@/components/ExportImportModal';
 import { AIAdvisorModal } from '@/components/AIAdvisorModal';
 import { CofrinhoModal } from '@/components/CofrinhoModal';
+import { RecurringTransactionsModal } from '@/components/RecurringTransactionsModal';
 import { PiggyBankWidget } from '@/components/PiggyBankWidget';
 import { Button } from '@/components/ui/button';
-import { Sparkles, BrainCircuit, Target, Download, PiggyBank as PiggyIcon } from 'lucide-react';
+import { Sparkles, BrainCircuit, Target, Download, PiggyBank as PiggyIcon, Repeat } from 'lucide-react';
 import { showSuccess } from '@/utils/toast';
 import { useLanguage } from '@/context/LanguageContext';
 
@@ -53,6 +54,7 @@ const Index = () => {
   const [isBudgetModalOpen, setIsBudgetModalOpen] = useState(false);
   const [isExportModalOpen, setIsExportModalOpen] = useState(false);
   const [isCofrinhoModalOpen, setIsCofrinhoModalOpen] = useState(false);
+  const [isRecurringModalOpen, setIsRecurringModalOpen] = useState(false);
   
   const [aiAdvice, setAiAdvice] = useState<AIAdvice | null>(null);
   const [isAnalyzing, setIsAnalyzing] = useState(false);
@@ -197,6 +199,16 @@ const Index = () => {
             <Button
               variant="outline"
               size="sm"
+              onClick={() => setIsRecurringModalOpen(true)}
+              className="rounded-xl border-teal-200 bg-teal-50/50 text-teal-800 hover:bg-teal-100 text-xs font-bold flex items-center gap-1.5"
+            >
+              <Repeat className="w-4 h-4 text-teal-600" />
+              {t('recurringBills')}
+            </Button>
+
+            <Button
+              variant="outline"
+              size="sm"
               onClick={() => setIsCofrinhoModalOpen(true)}
               className="rounded-xl border-emerald-200 bg-emerald-50/50 text-emerald-800 hover:bg-emerald-100 text-xs font-bold flex items-center gap-1.5"
             >
@@ -312,6 +324,15 @@ const Index = () => {
         userId={currentUser.id}
         availableBalance={availableBalance}
         onUpdate={() => loadUserData(currentUser.id)}
+      />
+
+      <RecurringTransactionsModal
+        isOpen={isRecurringModalOpen}
+        onClose={() => setIsRecurringModalOpen(false)}
+        userId={currentUser.id}
+        selectedYear={selectedYear}
+        selectedMonth={selectedMonth}
+        onRefreshData={() => loadUserData(currentUser.id)}
       />
 
       <BudgetManagerModal

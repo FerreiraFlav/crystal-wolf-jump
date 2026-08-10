@@ -1,12 +1,13 @@
-import { User, Expense, CategoryType, CategoryBudget, PiggyBank } from '@/types/finance';
+import { User, Expense, CategoryType, CategoryBudget, PiggyBank, RecurringTransaction } from '@/types/finance';
 
 const USERS_KEY = 'meu_orcamento_users';
 const CURRENT_USER_KEY = 'meu_orcamento_current_user';
 const EXPENSES_KEY = 'meu_orcamento_expenses';
 const BUDGETS_KEY = 'meu_orcamento_budgets';
 const PIGGY_BANKS_KEY = 'meu_orcamento_piggy_banks';
+const RECURRING_KEY = 'meu_orcamento_recurring';
 
-// Fallback em memória caso o navegador bloqueie localStorage/sessionStorage (ex: abas anônimas estritas)
+// Fallback em memória caso o navegador bloqueie localStorage/sessionStorage
 const memoryStore: Record<string, string> = {};
 
 const safeLocalStorage = {
@@ -266,7 +267,7 @@ export const updatePiggyBankAmount = (userId: string, id: string, amountChange: 
     }
     return p;
   });
-  savePiggyBanks(userId, updated);
+  savePiggyBanks(userId, current);
 };
 
 export const deletePiggyBank = (userId: string, id: string) => {
@@ -275,9 +276,82 @@ export const deletePiggyBank = (userId: string, id: string) => {
   savePiggyBanks(userId, filtered);
 };
 
+// Recurring Transactions (Contas Fixas)
+export const getRecurringTransactions = (userId: string): RecurringTransaction[] => {
+  const data = safeLocalStorage.getItem(RECURRING_KEY);
+  if (!data) return getDefaultRecurring(userId);
+  const allMap: Record<string, RecurringTransaction[]> = JSON.parse(data);
+  return allMap[userId] || getDefaultRecurring(userId);
+};
+
+export const saveRecurringTransactions = (userId: string, items: RecurringTransaction[]) => {
+  const data = safeLocalStorage.getItem(RECURRING_KEY);
+  const allMap: Record<string, RecurringTransaction[]> = data ? JSON.parse(data) : {};
+  allMap[userId] = items;
+  safeLocalStorage.setItem(RECURRING_KEY, JSON.stringify(allMap));
+};
+
+export const addRecurringTransaction = (userId: string, item: Omit<RecurringTransaction, 'id' | 'userId'>): RecurringTransaction => {
+  const current = getRecurringTransactions(userId);
+  const newRecurring: RecurringTransaction = {
+    id: 'rec_' + Date.now().toString(36),
+    userId,
+    ...item,
+  };
+  current.push(newRecurring);
+  saveRecurringTransactions(userId, current);
+  return newRecurring;
+};
+
+export const deleteRecurringTransaction = (userId: string, id: string) => {
+  const current = getRecurringTransactions(userId);
+  const filtered = current.filter(r => r.id !== id);
+  saveRecurringTransactions(userId, filtered);
+};
+
+export const applyRecurringToMonth = (userId: string, year: number, month: number): number => {
+  const recurring = getRecurringTransactions(userId);
+  if (recurring.length === 0) return 0;
+
+  const yearMonthStr = `${year}-${String(month + 1).padStart(2, '0')}`;
+  const monthExpenses = getExpenses(userId).filter(e => e.date.startsWith(yearMonthStr));
+
+  let addedCount = 0;
+
+  recurring.forEach(rec => {
+    // Evitar lançar se já existe lançamento com mesma descrição e valor neste mês
+    const exists = monthExpenses.some(
+      e => e.description.toLowerCase() === rec.description.toLowerCase() && e.amount === rec.amount
+    );
+
+    if (!exists) {
+      const day = String(Math.min(28, rec.dayOfMonth || 1)).padStart(2, '0');
+      const dateStr = `${yearMonthStr}-${day}`;
+
+      addExpense(userId, {
+        description: rec.description,
+        amount: rec.amount,
+        category: rec.category,
+        type: rec.type,
+        date: dateStr,
+      });
+      addedCount++;
+    }
+  });
+
+  return addedCount;
+};
+
 const getDefaultPiggyBanks = (userId: string): PiggyBank[] => [
   { id: 'pgy_reserva', userId, name: 'Reserva de Emergência', targetAmount: 3000, currentAmount: 1200, color: '#10B981' },
   { id: 'pgy_viagem', userId, name: 'Viagem / Férias', targetAmount: 1500, currentAmount: 450, color: '#3B82F6' },
+];
+
+const getDefaultRecurring = (userId: string): RecurringTransaction[] => [
+  { id: 'rec_rent', userId, description: 'Renda / Aluguer Habitação', amount: 750, category: 'Moradia', type: 'expense', dayOfMonth: 5 },
+  { id: 'rec_salary', userId, description: 'Salário Mensal', amount: 2800, category: 'Salário', type: 'income', dayOfMonth: 1 },
+  { id: 'rec_gym', userId, description: 'Mensalidade Ginásio', amount: 35, category: 'Saúde', type: 'expense', dayOfMonth: 10 },
+  { id: 'rec_net', userId, description: 'Netflix / Streaming', amount: 15.99, category: 'Lazer & Entretenimento', type: 'expense', dayOfMonth: 15 },
 ];
 
 const seedInitialData = (userId: string) => {
@@ -288,7 +362,6 @@ const seedInitialData = (userId: string) => {
   const year = today.getFullYear();
   const month = String(today.getMonth() + 1).padStart(2, '0');
 
-  // Generate demo data across current month and previous months for trend visualization
   const prevMonth1 = new Date(today.getFullYear(), today.getMonth() - 1, 1);
   const ym1 = `${prevMonth1.getFullYear()}-${String(prevMonth1.getMonth() + 1).padStart(2, '0')}`;
 
@@ -323,4 +396,5 @@ const seedInitialData = (userId: string) => {
   demoTransactions.forEach(t => addExpense(userId, t));
   saveBudgets(userId, getDefaultBudgets());
   savePiggyBanks(userId, getDefaultPiggyBanks(userId));
+  saveRecurringTransactions(userId, getDefaultRecurring(userId));
 };

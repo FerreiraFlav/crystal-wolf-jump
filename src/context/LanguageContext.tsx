@@ -81,7 +81,14 @@ const translations: Record<Language, Record<string, string>> = {
     createCofrinho: "Criar Cofrinho",
     financialTrend: "Evolução Financeira (6 Meses)",
     editTransaction: "Editar Lançamento",
-    saveChanges: "Salvar Alterações"
+    saveChanges: "Salvar Alterações",
+    recurringBills: "Contas Fixas & Assinaturas",
+    recurringDesc: "Cadastre despesas e salários fixos mensais para lançá-los com 1 clique no mês atual.",
+    postCurrentMonth: "Lançar no Mês Atual",
+    dayOfMonth: "Dia do Mês",
+    addRecurring: "Adicionar Conta Fixa",
+    noRecurring: "Nenhuma conta fixa cadastrada.",
+    itemAddedToMonth: "lançamento(s) recorrente(s) adicionado(s) a este mês!"
   },
   en: {
     appTitle: "Smart Budget Planner",
@@ -154,7 +161,14 @@ const translations: Record<Language, Record<string, string>> = {
     createCofrinho: "Create Piggy Bank",
     financialTrend: "Financial Evolution (6 Months)",
     editTransaction: "Edit Transaction",
-    saveChanges: "Save Changes"
+    saveChanges: "Save Changes",
+    recurringBills: "Fixed Bills & Subscriptions",
+    recurringDesc: "Manage monthly fixed expenses and incomes to post them into the active month with 1 click.",
+    postCurrentMonth: "Post into Selected Month",
+    dayOfMonth: "Day of Month",
+    addRecurring: "Add Fixed Item",
+    noRecurring: "No fixed bills registered.",
+    itemAddedToMonth: "recurring item(s) added to this month!"
   },
   es: {
     appTitle: "Mi Presupuesto Inteligente",
@@ -227,7 +241,14 @@ const translations: Record<Language, Record<string, string>> = {
     createCofrinho: "Crear Hucha",
     financialTrend: "Evolución Financiera (6 Meses)",
     editTransaction: "Editar Transacción",
-    saveChanges: "Guardar Cambios"
+    saveChanges: "Guardar Cambios",
+    recurringBills: "Cuentas Fijas y Suscripciones",
+    recurringDesc: "Gestione sus gastos fijos e ingresos mensuales para publicarlos en el mes activo en 1 clic.",
+    postCurrentMonth: "Publicar en el Mes Seleccionado",
+    dayOfMonth: "Día del Mes",
+    addRecurring: "Añadir Cuenta Fija",
+    noRecurring: "No hay cuentas fijas registradas.",
+    itemAddedToMonth: "registro(s) recurrente(s) añadido(s) a este mes!"
   }
 };
 
