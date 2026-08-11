@@ -404,7 +404,7 @@ export const ExportImportModal: React.FC<ExportImportModalProps> = ({
 
             <textarea
               rows={2}
-              placeholder="[ { &quot;description&quot;: &quot;Lidl&quot;, &quot;amount&quot;: 22.11, &quot;category&quot;: &quot;Alimentação&quot;, &quot;type&quot;: &quot;expense&quot;, &quot;date&quot;: &quot;2026-08-07&quot; } ]"
+              placeholder='[ { "description": "Lidl", "amount": 22.11, "category": "Alimentação", "type": "expense", "date": "2026-08-07" } ]'
               value={jsonInput}
               onChange={e => setJsonInput(e.target.value)}
               className="w-full p-3 bg-slate-50 border border-slate-200 rounded-xl text-[11px] font-mono outline-none focus:border-emerald-500 focus:ring-1 focus:ring-emerald-500"
@@ -426,7 +426,7 @@ export const ExportImportModal: React.FC<ExportImportModalProps> = ({
               <HelpCircle className="w-3.5 h-3.5 text-emerald-600" />
               Dica para salvar o PDF:
             </div>
-            <p>Ao clicar no botão verde de PDF, a janela de impressão abrirá. Selecione a opção <strong>"Salvar como PDF"</strong> no seu navegador para salvar o arquivo no computador.</p>
+            <p>Ao clicar no botão verde de PDF, a janela de impressão abrirá. Selecione a opção <strong>{"\"Salvar como PDF\""}</strong> no seu navegador para salvar o arquivo no computador.</p>
           </div>
         </div>
       </DialogContent>

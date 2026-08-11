@@ -25,7 +25,7 @@ export const testSupabaseConnection = async (): Promise<{ success: boolean; mess
     }
     return { success: true, message: 'Conexão com o Supabase estabelecida com sucesso e tabelas detectadas!' };
   } catch (err: any) {
-    return { success: false, message: err.message || 'Erro de conexão com o Supabase.' };
+    return { success: false, message: err?.message || 'Erro de conexão com o Supabase.' };
   }
 };
 
@@ -135,7 +135,7 @@ export const fetchExpensesFromSupabase = async (userId: string): Promise<Expense
       date: item.date,
       createdAt: item.created_at || new Date().toISOString(),
     }));
-  } catch (err) {
+  } catch (err: any) {
     console.error('Erro ao buscar lançamentos no Supabase:', err);
     return [];
   }
@@ -166,7 +166,7 @@ export const saveExpenseToSupabase = async (userId: string, expense: Omit<Expens
 
     return data?.[0] || null;
   } catch (err: any) {
-    showError(`Erro ao conectar com a nuvem: ${err.message}`);
+    showError(`Erro ao conectar com a nuvem: ${err?.message || err}`);
     return null;
   }
 };
@@ -221,7 +221,7 @@ export const fetchPiggyBanksFromSupabase = async (userId: string): Promise<Piggy
       currentAmount: Number(p.current_amount),
       color: p.color || '#10B981',
     }));
-  } catch (err) {
+  } catch (err: any) {
     return [];
   }
 };
@@ -239,7 +239,7 @@ export const savePiggyBankToSupabase = async (userId: string, piggy: Omit<PiggyB
         color: piggy.color,
       }
     ]);
-  } catch (err) {
+  } catch (err: any) {
     console.error('Erro ao salvar cofrinho no Supabase:', err);
   }
 };
@@ -249,7 +249,7 @@ export const updatePiggyBankAmountInSupabase = async (id: string, newAmount: num
 
   try {
     await supabase.from('piggy_banks').update({ current_amount: newAmount }).eq('id', id);
-  } catch (err) {
+  } catch (err: any) {
     console.error('Erro ao atualizar valor do cofrinho no Supabase:', err);
   }
 };
@@ -259,7 +259,7 @@ export const deletePiggyBankFromSupabase = async (id: string) => {
 
   try {
     await supabase.from('piggy_banks').delete().eq('id', id);
-  } catch (err) {
+  } catch (err: any) {
     console.error('Erro ao remover cofrinho no Supabase:', err);
   }
 };
@@ -288,7 +288,7 @@ export const fetchRecurringTransactionsFromSupabase = async (userId: string): Pr
       dayOfMonth: r.day_of_month,
       dayOfWeek: r.day_of_week,
     }));
-  } catch (err) {
+  } catch (err: any) {
     return [];
   }
 };
@@ -309,7 +309,7 @@ export const saveRecurringTransactionToSupabase = async (userId: string, item: O
         day_of_week: item.dayOfWeek,
       }
     ]);
-  } catch (err) {
+  } catch (err: any) {
     console.error('Erro ao salvar conta fixa no Supabase:', err);
   }
 };
@@ -319,7 +319,7 @@ export const deleteRecurringTransactionFromSupabase = async (id: string) => {
 
   try {
     await supabase.from('recurring_transactions').delete().eq('id', id);
-  } catch (err) {
+  } catch (err: any) {
     console.error('Erro ao deletar conta fixa no Supabase:', err);
   }
 };

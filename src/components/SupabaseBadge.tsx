@@ -175,7 +175,7 @@ ALTER TABLE recurring_transactions DISABLE ROW LEVEL SECURITY;`;
               </div>
 
               <p className="text-[11px] text-slate-500">
-                Acesse <a href="https://supabase.com" target="_blank" rel="noreferrer" className="text-emerald-600 font-bold underline">supabase.com</a> > seu projeto > <strong>SQL Editor</strong> > colar e clicar em <strong>Run</strong>.
+                Acesse <a href="https://supabase.com" target="_blank" rel="noreferrer" className="text-emerald-600 font-bold underline">supabase.com</a> {">"} seu projeto {">"} <strong>SQL Editor</strong> {">"} colar e clicar em <strong>Run</strong>.
               </p>
 
               <pre className="p-3 bg-slate-900 text-emerald-400 font-mono text-[10px] rounded-xl overflow-x-auto max-h-32 border border-slate-800 leading-normal">
