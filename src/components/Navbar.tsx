@@ -1,10 +1,10 @@
 import React, { useState } from 'react';
 import { User } from '@/types/finance';
 import { Button } from '@/components/ui/button';
-import { Wallet, LogOut, Sparkles, Globe, User as UserIcon } from 'lucide-react';
+import { Wallet, LogOut, Sparkles, Globe, Coins } from 'lucide-react';
 import { SupabaseBadge } from './SupabaseBadge';
 import { UserProfileModal } from './UserProfileModal';
-import { useLanguage, Language } from '@/context/LanguageContext';
+import { useLanguage, Language, CurrencyCode, POPULAR_CURRENCIES } from '@/context/LanguageContext';
 
 interface NavbarProps {
   user: User;
@@ -12,7 +12,7 @@ interface NavbarProps {
 }
 
 export const Navbar: React.FC<NavbarProps> = ({ user, onLogout }) => {
-  const { language, setLanguage, t } = useLanguage();
+  const { language, setLanguage, currency, setCurrency, t } = useLanguage();
   const [isProfileModalOpen, setIsProfileModalOpen] = useState(false);
 
   const languages: { code: Language; label: string; flag: string }[] = [
@@ -43,10 +43,27 @@ export const Navbar: React.FC<NavbarProps> = ({ user, onLogout }) => {
             </div>
           </div>
 
-          {/* Status do Supabase, Seletor de Idioma & Usuário Clicável */}
-          <div className="flex items-center space-x-2 sm:space-x-3">
+          {/* Status do Supabase, Seletor de Moeda, Idioma & Usuário Clicável */}
+          <div className="flex items-center space-x-1.5 sm:space-x-3">
             <div className="hidden lg:block">
               <SupabaseBadge />
+            </div>
+
+            {/* Seletor de Moeda Popular (Até 5 moedas) */}
+            <div className="relative flex items-center bg-slate-100 p-1 rounded-xl border border-slate-200/80">
+              <Coins className="w-3.5 h-3.5 text-emerald-600 ml-1.5 mr-1 hidden sm:block" />
+              <select
+                value={currency}
+                onChange={(e) => setCurrency(e.target.value as CurrencyCode)}
+                className="bg-transparent text-xs font-bold text-slate-700 outline-none cursor-pointer pr-1 py-0.5"
+                title="Selecione a moeda do sistema"
+              >
+                {POPULAR_CURRENCIES.map(c => (
+                  <option key={c.code} value={c.code}>
+                    {c.symbol} ({c.code})
+                  </option>
+                ))}
+              </select>
             </div>
 
             {/* Seletor de Idioma */}
@@ -74,7 +91,7 @@ export const Navbar: React.FC<NavbarProps> = ({ user, onLogout }) => {
               <div className="w-5 h-5 rounded-full bg-emerald-100 group-hover:bg-emerald-600 group-hover:text-white text-emerald-700 flex items-center justify-center font-bold text-[10px] transition-colors">
                 {user.name.charAt(0).toUpperCase()}
               </div>
-              <span className="font-semibold text-xs max-w-[80px] sm:max-w-[130px] truncate">
+              <span className="font-semibold text-xs max-w-[80px] sm:max-w-[120px] truncate">
                 {user.name}
               </span>
             </button>

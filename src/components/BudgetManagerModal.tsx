@@ -23,7 +23,7 @@ export const BudgetManagerModal: React.FC<BudgetManagerModalProps> = ({
   expenses,
   onSaveBudgets,
 }) => {
-  const { formatCurrency, t } = useLanguage();
+  const { formatCurrency, currencySymbol, t } = useLanguage();
 
   const [localBudgets, setLocalBudgets] = useState<Record<string, string>>(() => {
     const initial: Record<string, string> = {};
@@ -45,7 +45,7 @@ export const BudgetManagerModal: React.FC<BudgetManagerModalProps> = ({
     }));
 
     onSaveBudgets(updatedBudgets);
-    showSuccess('Limites em Euro salvos com sucesso!');
+    showSuccess(`Limites em (${currencySymbol}) salvos com sucesso!`);
     onClose();
   };
 
@@ -65,7 +65,7 @@ export const BudgetManagerModal: React.FC<BudgetManagerModalProps> = ({
             </div>
             <div>
               <DialogTitle className="text-xl font-bold text-white">
-                {t('setBudgetLimits')}
+                {t('setBudgetLimits')} ({currencySymbol})
               </DialogTitle>
               <DialogDescription className="text-slate-200 text-xs mt-0.5">
                 {t('setBudgetDesc')}
@@ -90,7 +90,7 @@ export const BudgetManagerModal: React.FC<BudgetManagerModalProps> = ({
                   </div>
 
                   <div className="flex items-center space-x-1 w-32">
-                    <span className="text-xs text-slate-500 font-semibold">€</span>
+                    <span className="text-xs text-slate-500 font-semibold">{currencySymbol}</span>
                     <Input
                       type="number"
                       step="10"

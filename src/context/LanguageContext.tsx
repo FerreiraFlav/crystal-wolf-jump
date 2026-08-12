@@ -1,10 +1,29 @@
 import React, { createContext, useContext, useState } from 'react';
 
 export type Language = 'pt' | 'en' | 'es';
+export type CurrencyCode = 'EUR' | 'USD' | 'BRL' | 'GBP' | 'CHF';
+
+export interface CurrencyInfo {
+  code: CurrencyCode;
+  symbol: string;
+  name: string;
+  locale: string;
+}
+
+export const POPULAR_CURRENCIES: CurrencyInfo[] = [
+  { code: 'EUR', symbol: '€', name: 'Euro (€)', locale: 'pt-PT' },
+  { code: 'USD', symbol: '$', name: 'Dólar ($)', locale: 'en-US' },
+  { code: 'BRL', symbol: 'R$', name: 'Real (R$)', locale: 'pt-BR' },
+  { code: 'GBP', symbol: '£', name: 'Libra (£)', locale: 'en-GB' },
+  { code: 'CHF', symbol: 'CHF', name: 'Franco Suíço (CHF)', locale: 'de-CH' },
+];
 
 interface LanguageContextType {
   language: Language;
   setLanguage: (lang: Language) => void;
+  currency: CurrencyCode;
+  setCurrency: (curr: CurrencyCode) => void;
+  currencySymbol: string;
   formatCurrency: (amount: number) => string;
   t: (key: string) => string;
 }
@@ -22,7 +41,7 @@ const translations: Record<Language, Record<string, string>> = {
     newTransaction: "Novo Lançamento",
     expense: "Despesa",
     income: "Receita",
-    amount: "Valor (€)",
+    amount: "Valor",
     description: "Descrição",
     category: "Categoria",
     date: "Data",
@@ -36,14 +55,14 @@ const translations: Record<Language, Record<string, string>> = {
     expenseBreakdown: "Divisão de Despesas",
     noExpensesMonth: "Nenhuma despesa registrada neste mês",
     aiBannerTitle: "Quer saber onde economizar?",
-    aiBannerDesc: "Análise inteligente das suas entradas e saídas para indicar cortes no orçamento, pontuação financeira e sugestões de economia em Euro.",
+    aiBannerDesc: "Análise inteligente das suas entradas e saídas para indicar cortes no orçamento, pontuação financeira e sugestões de economia.",
     analyzeBtn: "Analisar Gastos com IA",
     analyzingBtn: "Analisando gastos...",
     categoryGoals: "Metas por Categoria",
     exportImport: "Exportar / Importar",
     today: "Hoje",
-    setBudgetLimits: "Definir Limites de Gastos em Euro",
-    setBudgetDesc: "Configure limites mensais em € por categoria para monitorar estouros de orçamento.",
+    setBudgetLimits: "Definir Limites de Gastos por Categoria",
+    setBudgetDesc: "Configure limites mensais por categoria para monitorar estouros de orçamento.",
     spent: "Gasto",
     ofLimit: "do limite",
     exceededBy: "Excedido em",
@@ -74,7 +93,7 @@ const translations: Record<Language, Record<string, string>> = {
     piggyBankDesc: "Separe dinheiro guardado para objetivos específicos como Viagens, Reserva de Emergência ou Compras.",
     deposit: "Guardar",
     withdraw: "Resgatar",
-    targetAmount: "Meta (€)",
+    targetAmount: "Meta",
     savedAmount: "Guardado",
     totalInPiggyBanks: "Total Guardado em Cofrinhos",
     cofrinhoName: "Nome do Objetivo",
@@ -114,7 +133,7 @@ const translations: Record<Language, Record<string, string>> = {
     newTransaction: "New Transaction",
     expense: "Expense",
     income: "Income",
-    amount: "Amount (€)",
+    amount: "Amount",
     description: "Description",
     category: "Category",
     date: "Date",
@@ -128,14 +147,14 @@ const translations: Record<Language, Record<string, string>> = {
     expenseBreakdown: "Expense Breakdown",
     noExpensesMonth: "No expenses recorded this month",
     aiBannerTitle: "Want to know where to save?",
-    aiBannerDesc: "Smart analysis of your income and expenses to spot budget leaks, financial score, and tailored savings suggestions in Euro.",
+    aiBannerDesc: "Smart analysis of your income and expenses to spot budget leaks, financial score, and tailored savings suggestions.",
     analyzeBtn: "Analyze Expenses with AI",
     analyzingBtn: "Analyzing expenses...",
     categoryGoals: "Category Goals",
     exportImport: "Export / Import",
     today: "Today",
-    setBudgetLimits: "Set Expense Limits in Euro",
-    setBudgetDesc: "Set monthly limits in € per category to monitor budget overruns.",
+    setBudgetLimits: "Set Expense Limits per Category",
+    setBudgetDesc: "Set monthly limits per category to monitor budget overruns.",
     spent: "Spent",
     ofLimit: "of limit",
     exceededBy: "Exceeded by",
@@ -166,7 +185,7 @@ const translations: Record<Language, Record<string, string>> = {
     piggyBankDesc: "Set money aside for specific goals like Vacations, Emergency Fund, or Big Purchases.",
     deposit: "Deposit",
     withdraw: "Withdraw",
-    targetAmount: "Goal (€)",
+    targetAmount: "Goal",
     savedAmount: "Saved",
     totalInPiggyBanks: "Total Saved in Piggy Banks",
     cofrinhoName: "Goal Name",
@@ -206,7 +225,7 @@ const translations: Record<Language, Record<string, string>> = {
     newTransaction: "Nuevo Registro",
     expense: "Gasto",
     income: "Ingreso",
-    amount: "Monto (€)",
+    amount: "Monto",
     description: "Descripción",
     category: "Categoría",
     date: "Fecha",
@@ -220,14 +239,14 @@ const translations: Record<Language, Record<string, string>> = {
     expenseBreakdown: "Desglose de Gastos",
     noExpensesMonth: "No hay gastos registrados este mes",
     aiBannerTitle: "¿Quieres saber dónde ahorrar?",
-    aiBannerDesc: "Análisis inteligente de sus ingresos y gastos para identificar oportunidades de ahorro, puntuación financiera y recomendaciones en Euros.",
+    aiBannerDesc: "Análisis inteligente de sus ingresos y gastos para identificar oportunidades de ahorro, puntuación financiera y recomendaciones.",
     analyzeBtn: "Analizar Gastos con IA",
     analyzingBtn: "Analizando gastos...",
     categoryGoals: "Metas por Categoría",
     exportImport: "Exportar / Importar",
     today: "Hoy",
-    setBudgetLimits: "Definir Límites de Gastos en Euro",
-    setBudgetDesc: "Configure límites mensuales en € por categoría para controlar su presupuesto.",
+    setBudgetLimits: "Definir Límites de Gastos por Categoría",
+    setBudgetDesc: "Configure límites mensuales por categoría para controlar su presupuesto.",
     spent: "Gastado",
     ofLimit: "del límite",
     exceededBy: "Excedido por",
@@ -258,7 +277,7 @@ const translations: Record<Language, Record<string, string>> = {
     piggyBankDesc: "Guarde dinero para metas específicas como Fondo de Emergencia, Viajes o Compras.",
     deposit: "Depositar",
     withdraw: "Retirar",
-    targetAmount: "Meta (€)",
+    targetAmount: "Meta",
     savedAmount: "Guardado",
     totalInPiggyBanks: "Total Guardado en Huchas",
     cofrinhoName: "Nombre de la Meta",
@@ -300,6 +319,15 @@ export const LanguageProvider: React.FC<{ children: React.ReactNode }> = ({ chil
     }
   });
 
+  const [currency, setCurrencyState] = useState<CurrencyCode>(() => {
+    try {
+      const saved = localStorage.getItem('app_currency') as CurrencyCode;
+      return saved && POPULAR_CURRENCIES.some(c => c.code === saved) ? saved : 'EUR';
+    } catch {
+      return 'EUR';
+    }
+  });
+
   const setLanguage = (lang: Language) => {
     setLanguageState(lang);
     try {
@@ -309,15 +337,21 @@ export const LanguageProvider: React.FC<{ children: React.ReactNode }> = ({ chil
     }
   };
 
+  const setCurrency = (curr: CurrencyCode) => {
+    setCurrencyState(curr);
+    try {
+      localStorage.setItem('app_currency', curr);
+    } catch {
+      // Ignorar caso o armazenamento esteja desativado
+    }
+  };
+
+  const currentCurrencyInfo = POPULAR_CURRENCIES.find(c => c.code === currency) || POPULAR_CURRENCIES[0];
+
   const formatCurrency = (amount: number): string => {
-    const localeMap: Record<Language, string> = {
-      pt: 'pt-BR',
-      en: 'en-IE',
-      es: 'es-ES'
-    };
-    return new Intl.NumberFormat(localeMap[language] || 'pt-BR', {
+    return new Intl.NumberFormat(currentCurrencyInfo.locale, {
       style: 'currency',
-      currency: 'EUR',
+      currency: currentCurrencyInfo.code,
       minimumFractionDigits: 2,
       maximumFractionDigits: 2,
     }).format(amount);
@@ -328,7 +362,15 @@ export const LanguageProvider: React.FC<{ children: React.ReactNode }> = ({ chil
   };
 
   return (
-    <LanguageContext.Provider value={{ language, setLanguage, formatCurrency, t }}>
+    <LanguageContext.Provider value={{ 
+      language, 
+      setLanguage, 
+      currency, 
+      setCurrency, 
+      currencySymbol: currentCurrencyInfo.symbol, 
+      formatCurrency, 
+      t 
+    }}>
       {children}
     </LanguageContext.Provider>
   );

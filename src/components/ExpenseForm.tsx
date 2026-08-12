@@ -14,7 +14,7 @@ interface ExpenseFormProps {
 }
 
 export const ExpenseForm: React.FC<ExpenseFormProps> = ({ onAddExpense }) => {
-  const { t } = useLanguage();
+  const { t, currencySymbol } = useLanguage();
   const todayStr = new Date().toISOString().split('T')[0];
 
   const [type, setType] = useState<TransactionType>('expense');
@@ -98,18 +98,22 @@ export const ExpenseForm: React.FC<ExpenseFormProps> = ({ onAddExpense }) => {
 
       <CardContent className="pt-4">
         <form onSubmit={handleSubmit} className="space-y-4">
-          {/* Valor (€) */}
+          {/* Valor (Símbolo Dinâmico) */}
           <div className="space-y-1.5">
-            <Label htmlFor="amount" className="text-xs font-semibold text-slate-700">{t('amount')}</Label>
+            <Label htmlFor="amount" className="text-xs font-semibold text-slate-700">
+              {t('amount')} ({currencySymbol})
+            </Label>
             <div className="relative">
-              <span className="absolute left-3 top-2.5 text-slate-500 font-bold text-sm">€</span>
+              <span className="absolute left-3 top-2.5 text-slate-500 font-bold text-sm">
+                {currencySymbol}
+              </span>
               <Input
                 id="amount"
                 type="text"
                 placeholder="0,00"
                 value={amount}
                 onChange={e => setAmount(e.target.value)}
-                className="pl-8 font-bold text-slate-800 text-lg rounded-xl border-slate-200 focus:border-emerald-500 focus:ring-emerald-500"
+                className="pl-9 font-bold text-slate-800 text-lg rounded-xl border-slate-200 focus:border-emerald-500 focus:ring-emerald-500"
                 required
               />
             </div>
