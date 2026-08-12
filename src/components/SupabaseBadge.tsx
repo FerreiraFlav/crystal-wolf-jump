@@ -12,7 +12,7 @@ export const SupabaseBadge: React.FC = () => {
   const [isTesting, setIsTesting] = useState(false);
   const [testResult, setTestResult] = useState<{ success: boolean; message: string } | null>(null);
 
-  const sqlScript = `-- SCRIPT DE CRIAÇÃO DE TABELAS PARA MEU ORÇAMENTO INTELIGENTE
+  const sqlScript = `-- SCRIPT DE PERMISSÕES E TABELAS DO SUPABASE
 
 CREATE TABLE IF NOT EXISTS users (
   id TEXT PRIMARY KEY,
@@ -56,7 +56,7 @@ CREATE TABLE IF NOT EXISTS recurring_transactions (
   created_at TIMESTAMP WITH TIME ZONE DEFAULT NOW()
 );
 
--- DESATIVAR BLOQUEIO DE RLS
+-- DESATIVAR RLS PARA ACESSO COMPLETO
 ALTER TABLE users DISABLE ROW LEVEL SECURITY;
 ALTER TABLE expenses DISABLE ROW LEVEL SECURITY;
 ALTER TABLE piggy_banks DISABLE ROW LEVEL SECURITY;

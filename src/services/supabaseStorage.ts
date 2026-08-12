@@ -21,6 +21,12 @@ export const testSupabaseConnection = async (): Promise<{ success: boolean; mess
           message: 'As tabelas ainda não foram criadas no Supabase. Execute o script SQL no SQL Editor do Supabase.' 
         };
       }
+      if (error.code === '42501' || error.message.includes('row-level security')) {
+        return {
+          success: false,
+          message: 'As tabelas do Supabase estão bloqueadas por RLS. Execute o script SQL no painel do Supabase para liberar o acesso.'
+        };
+      }
       return { success: false, message: `Erro do Supabase: ${error.message}` };
     }
     return { success: true, message: 'Conexão com o Supabase estabelecida com sucesso e tabelas detectadas!' };
@@ -45,7 +51,6 @@ export const findUserInSupabase = async (email: string, passwordHash: string): P
 
     if (error) {
       console.error('Erro de busca no Supabase:', error.message);
-      showError(`Erro ao buscar no Supabase: ${error.message}`);
       return null;
     }
 
@@ -64,7 +69,7 @@ export const findUserInSupabase = async (email: string, passwordHash: string): P
 
 export const registerUserInSupabase = async (name: string, email: string, passwordHash: string): Promise<User | null> => {
   if (!isSupabaseConfigured || !supabase) {
-    throw new Error('Supabase não configurado. Verifique as variáveis de ambiente no Vercel.');
+    return null;
   }
 
   try {
@@ -87,9 +92,13 @@ export const registerUserInSupabase = async (name: string, email: string, passwo
       .select('id, name, email');
 
     if (error) {
-      console.error('Erro grave no Supabase:', error);
-      showError(`Erro ao salvar no Supabase: ${error.message}`);
-      throw new Error(`Erro no Supabase: ${error.message}`);
+      console.warn('Bloqueio no Supabase (RLS ou Tabela):', error.message);
+      if (error.code === '42501' || error.message.includes('row-level security')) {
+        showError('Supabase bloqueado por RLS. Execute o script SQL no Painel do Supabase para ativar a nuvem.');
+      } else {
+        showError(`Supabase: ${error.message}`);
+      }
+      return null;
     }
 
     if (data && data[0]) {
@@ -102,8 +111,8 @@ export const registerUserInSupabase = async (name: string, email: string, passwo
 
     return { id: userId, name: name.trim(), email: formattedEmail };
   } catch (err: any) {
-    console.error('Erro ao cadastrar usuário no Supabase:', err);
-    throw err;
+    console.warn('Erro genérico ao registrar no Supabase:', err);
+    return null;
   }
 };
 
@@ -121,7 +130,6 @@ export const fetchExpensesFromSupabase = async (userId: string): Promise<Expense
 
     if (error) {
       console.warn('Aviso Supabase:', error.message);
-      showError(`Erro ao carregar do Supabase: ${error.message}`);
       return [];
     }
 
@@ -160,13 +168,12 @@ export const saveExpenseToSupabase = async (userId: string, expense: Omit<Expens
       .select();
 
     if (error) {
-      showError(`Falha ao salvar no banco em nuvem: ${error.message}`);
+      console.warn('Erro ao salvar no Supabase:', error.message);
       return null;
     }
 
     return data?.[0] || null;
   } catch (err: any) {
-    showError(`Erro ao conectar com a nuvem: ${err?.message || err}`);
     return null;
   }
 };
@@ -175,15 +182,13 @@ export const updateExpenseInSupabase = async (id: string, updatedFields: Partial
   if (!isSupabaseConfigured || !supabase) return;
 
   try {
-    const { error } = await supabase.from('expenses').update({
+    await supabase.from('expenses').update({
       description: updatedFields.description,
       amount: updatedFields.amount,
       category: updatedFields.category,
       type: updatedFields.type,
       date: updatedFields.date,
     }).eq('id', id);
-
-    if (error) showError(`Erro ao atualizar na nuvem: ${error.message}`);
   } catch (err: any) {
     console.error('Erro ao atualizar no Supabase:', err);
   }
@@ -193,8 +198,7 @@ export const deleteExpenseFromSupabase = async (id: string) => {
   if (!isSupabaseConfigured || !supabase) return;
 
   try {
-    const { error } = await supabase.from('expenses').delete().eq('id', id);
-    if (error) showError(`Erro ao deletar da nuvem: ${error.message}`);
+    await supabase.from('expenses').delete().eq('id', id);
   } catch (err: any) {
     console.error('Erro ao deletar do Supabase:', err);
   }

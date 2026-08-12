@@ -124,8 +124,7 @@ export const registerUserAsync = async (name: string, email: string, passwordHas
     try {
       supabaseUser = await registerUserInSupabase(name, email, passwordHash);
     } catch (err: any) {
-      console.error('Falha ao registrar no Supabase:', err);
-      throw new Error(err.message || 'Erro ao registrar usuário na nuvem.');
+      console.warn('Não foi possível gravar no Supabase, continuando localmente:', err);
     }
   }
 
