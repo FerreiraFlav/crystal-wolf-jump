@@ -16,7 +16,7 @@ export const FinancialTrendChart: React.FC<FinancialTrendChartProps> = ({
   selectedYear,
   selectedMonth,
 }) => {
-  const { formatCurrency, t } = useLanguage();
+  const { formatCurrency, currencySymbol, t } = useLanguage();
 
   const monthNames = [
     'Jan', 'Fev', 'Mar', 'Abr', 'Mai', 'Jun',
@@ -82,9 +82,8 @@ export const FinancialTrendChart: React.FC<FinancialTrendChartProps> = ({
                 tick={{ fontSize: 10, fill: '#64748B' }}
                 axisLine={false}
                 tickLine={false}
-                tickFormatter={(v) => `€${v}`}
+                tickFormatter={(v) => `${currencySymbol}${v}`}
               />
-              {/* cursor={{ fill: 'transparent' }} remove o fundo retangular cinza ao passar o mouse */}
               <Tooltip cursor={{ fill: 'transparent' }} content={<CustomTooltip />} />
               <Legend
                 wrapperStyle={{ fontSize: '12px', paddingTop: '10px' }}

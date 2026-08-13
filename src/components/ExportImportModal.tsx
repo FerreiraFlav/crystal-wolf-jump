@@ -22,7 +22,7 @@ export const ExportImportModal: React.FC<ExportImportModalProps> = ({
   expenses,
   onRefreshData,
 }) => {
-  const { formatCurrency } = useLanguage();
+  const { formatCurrency, currencySymbol } = useLanguage();
   const [jsonInput, setJsonInput] = useState('');
   const fileInputRef = useRef<HTMLInputElement>(null);
 
@@ -109,7 +109,7 @@ export const ExportImportModal: React.FC<ExportImportModalProps> = ({
             <div class="brand-title">Meu Orçamento <span>Inteligente</span></div>
           </div>
           <div class="meta">
-            <strong>Relatório Financeiro Pessoal</strong><br/>
+            <strong>Relatório Financeiro Pessoal (${currencySymbol})</strong><br/>
             Gerado em: ${new Date().toLocaleDateString('pt-BR')} às ${new Date().toLocaleTimeString('pt-BR')}<br/>
             Total de Lançamentos: ${expenses.length}
           </div>
@@ -143,7 +143,7 @@ export const ExportImportModal: React.FC<ExportImportModalProps> = ({
               <th>Descrição</th>
               <th>Categoria</th>
               <th>Tipo</th>
-              <th style="text-align: right;">Valor</th>
+              <th style="text-align: right;">Valor (${currencySymbol})</th>
             </tr>
           </thead>
           <tbody>
@@ -166,7 +166,7 @@ export const ExportImportModal: React.FC<ExportImportModalProps> = ({
         </table>
 
         <div class="footer">
-          Meu Orçamento Inteligente (€) • Documento gerado para controle e planejamento financeiro pessoal.
+          Meu Orçamento Inteligente (${currencySymbol}) • Documento gerado para controle e planejamento financeiro pessoal.
         </div>
 
         <script>
@@ -191,7 +191,7 @@ export const ExportImportModal: React.FC<ExportImportModalProps> = ({
       return;
     }
 
-    const headers = ['ID', 'Tipo', 'Descrição', 'Valor (€)', 'Categoria', 'Data'];
+    const headers = ['ID', 'Tipo', 'Descrição', `Valor (${currencySymbol})`, 'Categoria', 'Data'];
     const rows = expenses.map(e => [
       e.id,
       e.type === 'income' ? 'Receita' : 'Despesa',

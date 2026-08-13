@@ -39,7 +39,7 @@ import { showSuccess } from '@/utils/toast';
 import { useLanguage } from '@/context/LanguageContext';
 
 const Index = () => {
-  const { t } = useLanguage();
+  const { t, currencySymbol } = useLanguage();
   const today = new Date();
   const [currentUser, setCurrentUser] = useState<User | null>(null);
   const [expenses, setExpenses] = useState<Expense[]>([]);
@@ -360,7 +360,7 @@ const Index = () => {
       {/* Footer */}
       <footer className="border-t border-slate-200 bg-white py-4 mt-8">
         <div className="max-w-7xl mx-auto px-4 text-center text-xs text-slate-500">
-          Meu Orçamento Inteligente (€) • Seus dados financeiros mantidos seguros na nuvem.
+          Meu Orçamento Inteligente ({currencySymbol}) • Seus dados financeiros mantidos seguros na nuvem.
         </div>
       </footer>
     </div>
