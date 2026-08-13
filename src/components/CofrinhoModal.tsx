@@ -28,7 +28,7 @@ export const CofrinhoModal: React.FC<CofrinhoModalProps> = ({
   availableBalance = 0,
   onUpdate,
 }) => {
-  const { formatCurrency, t } = useLanguage();
+  const { formatCurrency, currencySymbol, t } = useLanguage();
 
   const [piggyBanks, setPiggyBanks] = useState<PiggyBank[]>(() => getPiggyBanks(userId));
   const [isCreating, setIsCreating] = useState(false);
@@ -69,26 +69,27 @@ export const CofrinhoModal: React.FC<CofrinhoModalProps> = ({
   };
 
   const handleApplyAction = (piggy: PiggyBank) => {
-    const num = parseFloat(actionAmount.replace(',', '.'));
+    const num = Math.round((parseFloat(actionAmount.replace(',', '.')) || 0) * 100) / 100;
     if (isNaN(num) || num <= 0) {
       showError('Informe um valor válido maior que zero.');
       return;
     }
 
     if (actionType === 'deposit') {
-      const maxAllowed = Math.max(0, availableBalance);
-      if (availableBalance <= 0) {
+      const maxAllowed = Math.round(Math.max(0, availableBalance) * 100) / 100;
+      if (maxAllowed <= 0) {
         showError('Você não possui saldo livre neste mês para guardar no cofrinho.');
         return;
       }
-      if (num > maxAllowed) {
+      if (Math.round(num * 100) > Math.round(maxAllowed * 100)) {
         showError(
           `O valor digitado (${formatCurrency(num)}) ultrapassa o saldo disponível (${formatCurrency(maxAllowed)}).`
         );
         return;
       }
     } else if (actionType === 'withdraw') {
-      if (num > piggy.currentAmount) {
+      const currentPiggyVal = Math.round(piggy.currentAmount * 100) / 100;
+      if (Math.round(num * 100) > Math.round(currentPiggyVal * 100)) {
         showError(
           `O valor do resgate (${formatCurrency(num)}) é maior do que o saldo guardado no cofrinho (${formatCurrency(piggy.currentAmount)}).`
         );
@@ -296,10 +297,16 @@ export const CofrinhoModal: React.FC<CofrinhoModalProps> = ({
 
                     {/* Formulário de Depósito ou Resgate Inline */}
                     {isActionOpen && (
-                      <div className="p-3 bg-emerald-50/60 border border-emerald-200/80 rounded-xl flex flex-col space-y-2 mt-2">
+                      <form 
+                        onSubmit={(e) => {
+                          e.preventDefault();
+                          handleApplyAction(piggy);
+                        }} 
+                        className="p-3 bg-emerald-50/60 border border-emerald-200/80 rounded-xl flex flex-col space-y-2 mt-2"
+                      >
                         <div className="flex flex-wrap items-center justify-between gap-2">
                           <span className="text-xs font-bold text-slate-800 flex items-center gap-1">
-                            {actionType === 'deposit' ? 'Guardar €:' : 'Resgatar €:'}
+                            {actionType === 'deposit' ? `Guardar (${currencySymbol}):` : `Resgatar (${currencySymbol}):`}
                           </span>
 
                           {actionType === 'deposit' ? (
@@ -337,6 +344,7 @@ export const CofrinhoModal: React.FC<CofrinhoModalProps> = ({
                           </div>
 
                           <Button
+                            type="button"
                             size="sm"
                             variant="ghost"
                             onClick={() => setActiveActionId(null)}
@@ -346,14 +354,14 @@ export const CofrinhoModal: React.FC<CofrinhoModalProps> = ({
                           </Button>
 
                           <Button
+                            type="submit"
                             size="sm"
-                            onClick={() => handleApplyAction(piggy)}
                             className="h-8 bg-emerald-700 hover:bg-emerald-800 text-white font-semibold text-xs rounded-lg shadow-sm"
                           >
                             Confirmar
                           </Button>
                         </div>
-                      </div>
+                      </form>
                     )}
                   </div>
                 );

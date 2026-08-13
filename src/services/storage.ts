@@ -1,7 +1,8 @@
 import { User, Expense, CategoryType, CategoryBudget, PiggyBank, RecurringTransaction } from '@/types/finance';
 import { 
   findUserInSupabase, 
-  registerUserInSupabase
+  registerUserInSupabase,
+  updatePiggyBankAmountInSupabase
 } from './supabaseStorage';
 import { isSupabaseConfigured } from '@/lib/supabase';
 
@@ -298,12 +299,15 @@ export const updatePiggyBankAmount = (userId: string, id: string, amountChange: 
   const current = getPiggyBanks(userId);
   const updated = current.map(p => {
     if (p.id === id) {
-      const newAmount = Math.max(0, p.currentAmount + amountChange);
+      const newAmount = Math.max(0, Math.round((p.currentAmount + amountChange) * 100) / 100);
+      if (isSupabaseConfigured) {
+        updatePiggyBankAmountInSupabase(p.id, newAmount);
+      }
       return { ...p, currentAmount: newAmount };
     }
     return p;
   });
-  savePiggyBanks(userId, current);
+  savePiggyBanks(userId, updated);
 };
 
 export const deletePiggyBank = (userId: string, id: string) => {
