@@ -1,14 +1,15 @@
 import React from 'react';
-import { Expense } from '@/types/finance';
+import { Expense, PiggyBank } from '@/types/finance';
 import { Card, CardContent } from '@/components/ui/card';
-import { ArrowUpCircle, ArrowDownCircle, Wallet, PiggyBank } from 'lucide-react';
+import { ArrowUpCircle, ArrowDownCircle, Wallet, PiggyBank as PiggyIcon } from 'lucide-react';
 import { useLanguage } from '@/context/LanguageContext';
 
 interface SummaryCardsProps {
   expenses: Expense[];
+  piggyBanks?: PiggyBank[];
 }
 
-export const SummaryCards: React.FC<SummaryCardsProps> = ({ expenses }) => {
+export const SummaryCards: React.FC<SummaryCardsProps> = ({ expenses, piggyBanks = [] }) => {
   const { formatCurrency, t } = useLanguage();
 
   const totalIncome = expenses
@@ -19,7 +20,10 @@ export const SummaryCards: React.FC<SummaryCardsProps> = ({ expenses }) => {
     .filter(e => e.type === 'expense')
     .reduce((acc, curr) => acc + curr.amount, 0);
 
-  const netBalance = totalIncome - totalSpent;
+  const totalSavedInPiggy = piggyBanks.reduce((acc, curr) => acc + curr.currentAmount, 0);
+
+  // Saldo Líquido Disponível (Receitas - Despesas - Guardado nos Cofrinhos)
+  const netBalance = totalIncome - totalSpent - totalSavedInPiggy;
   const savingsRate = totalIncome > 0 ? ((totalIncome - totalSpent) / totalIncome) * 100 : 0;
 
   return (
@@ -62,7 +66,7 @@ export const SummaryCards: React.FC<SummaryCardsProps> = ({ expenses }) => {
         </CardContent>
       </Card>
 
-      {/* Saldo Líquido */}
+      {/* Saldo Líquido Disponível */}
       <Card className={`rounded-2xl shadow-sm border ${
         netBalance >= 0 ? 'bg-gradient-to-br from-emerald-600 to-teal-700 text-white border-none' : 'bg-red-50 border-red-200 text-red-900'
       }`}>
@@ -79,6 +83,11 @@ export const SummaryCards: React.FC<SummaryCardsProps> = ({ expenses }) => {
             <span className="text-2xl font-black tracking-tight">
               {formatCurrency(netBalance)}
             </span>
+            {totalSavedInPiggy > 0 && (
+              <span className={`block text-[11px] font-medium mt-1 ${netBalance >= 0 ? 'text-emerald-100' : 'text-red-700'}`}>
+                ({formatCurrency(totalSavedInPiggy)} guardados nos cofrinhos)
+              </span>
+            )}
           </div>
         </CardContent>
       </Card>
@@ -91,7 +100,7 @@ export const SummaryCards: React.FC<SummaryCardsProps> = ({ expenses }) => {
               {t('savingsRate')}
             </span>
             <div className="p-2 bg-blue-50 text-blue-600 rounded-xl">
-              <PiggyBank className="w-5 h-5" />
+              <PiggyIcon className="w-5 h-5" />
             </div>
           </div>
           <div className="mt-3 flex items-baseline justify-between">

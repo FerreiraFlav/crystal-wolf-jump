@@ -177,7 +177,10 @@ const Index = () => {
     .filter(e => e.type === 'expense')
     .reduce((acc, curr) => acc + curr.amount, 0);
 
-  const availableBalance = totalIncome - totalSpent;
+  const totalSavedInPiggy = piggyBanks.reduce((acc, curr) => acc + curr.currentAmount, 0);
+
+  // Saldo disponível deduz os valores alocados nos cofrinhos
+  const availableBalance = totalIncome - totalSpent - totalSavedInPiggy;
 
   const monthLabel = new Date(selectedYear, selectedMonth, 1).toLocaleDateString('pt-BR', {
     month: 'long',
@@ -275,7 +278,7 @@ const Index = () => {
         </div>
 
         {/* Summary Cards */}
-        <SummaryCards expenses={currentMonthExpenses} />
+        <SummaryCards expenses={currentMonthExpenses} piggyBanks={piggyBanks} />
 
         {/* Widget de Cofrinhos */}
         <PiggyBankWidget
