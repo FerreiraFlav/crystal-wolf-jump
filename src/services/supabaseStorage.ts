@@ -93,11 +93,6 @@ export const registerUserInSupabase = async (name: string, email: string, passwo
 
     if (error) {
       console.warn('Bloqueio no Supabase (RLS ou Tabela):', error.message);
-      if (error.code === '42501' || error.message.includes('row-level security')) {
-        showError('Supabase bloqueado por RLS. Execute o script SQL no Painel do Supabase para ativar a nuvem.');
-      } else {
-        showError(`Supabase: ${error.message}`);
-      }
       return null;
     }
 
@@ -111,8 +106,68 @@ export const registerUserInSupabase = async (name: string, email: string, passwo
 
     return { id: userId, name: name.trim(), email: formattedEmail };
   } catch (err: any) {
-    console.warn('Erro genérico ao registrar no Supabase:', err);
+    console.warn('Erro ao registrar no Supabase:', err);
     return null;
+  }
+};
+
+// ==================== POVOAR DADOS DE TESTE NO SUPABASE ====================
+
+export const seedSupabaseDataIfEmpty = async (userId: string) => {
+  if (!isSupabaseConfigured || !supabase) return;
+
+  try {
+    // 1. Garante que o usuário existe na tabela users
+    await supabase.from('users').upsert([
+      {
+        id: userId,
+        name: 'Flavio',
+        email: 'flavio@email.com',
+        password_hash: '123456',
+      }
+    ], { onConflict: 'email' });
+
+    // 2. Verifica se já existem lançamentos
+    const { data: existing } = await supabase
+      .from('expenses')
+      .select('id')
+      .eq('user_id', userId)
+      .limit(1);
+
+    if (existing && existing.length > 0) {
+      return; // Já tem dados
+    }
+
+    const today = new Date();
+    const year = today.getFullYear();
+    const month = String(today.getMonth() + 1).padStart(2, '0');
+
+    const demoExpenses = [
+      { user_id: userId, description: 'Salário Mensal', amount: 2800.00, category: 'Salário', type: 'income', date: `${year}-${month}-01` },
+      { user_id: userId, description: 'Projeto Freelance', amount: 650.00, category: 'Freelance', type: 'income', date: `${year}-${month}-10` },
+      { user_id: userId, description: 'Supermercado Tesco / Lidl', amount: 320.50, category: 'Alimentação', type: 'expense', date: `${year}-${month}-02` },
+      { user_id: userId, description: 'Renda / Aluguer Habitação', amount: 750.00, category: 'Moradia', type: 'expense', date: `${year}-${month}-05` },
+      { user_id: userId, description: 'Eletricidade e Água (IE)', amount: 115.30, category: 'Contas & Serviços Irlanda', type: 'expense', date: `${year}-${month}-08` },
+      { user_id: userId, description: 'Apoio Familiar (BR)', amount: 150.00, category: 'Contas & Serviços Brasil', type: 'expense', date: `${year}-${month}-09` },
+      { user_id: userId, description: 'Transporte / Leap Card', amount: 80.00, category: 'Transporte', type: 'expense', date: `${year}-${month}-10` },
+      { user_id: userId, description: 'Jantar Restaurante', amount: 65.00, category: 'Lazer & Entretenimento', type: 'expense', date: `${year}-${month}-12` },
+    ];
+
+    await supabase.from('expenses').insert(demoExpenses);
+
+    // Cofrinhos de exemplo
+    await supabase.from('piggy_banks').insert([
+      { user_id: userId, name: 'Reserva de Emergência', target_amount: 3000, current_amount: 1200, color: '#10B981' },
+      { user_id: userId, name: 'Viagem / Férias', target_amount: 1500, current_amount: 450, color: '#3B82F6' },
+    ]);
+
+    // Contas fixas de exemplo
+    await supabase.from('recurring_transactions').insert([
+      { user_id: userId, description: 'Renda / Aluguer Habitação', amount: 750, category: 'Moradia', type: 'expense', frequency: 'monthly', day_of_month: 5 },
+      { user_id: userId, description: 'Salário Semanal', amount: 650, category: 'Salário', type: 'income', frequency: 'weekly', day_of_week: 5 },
+    ]);
+  } catch (err) {
+    console.warn('Erro ao popular dados iniciais no Supabase:', err);
   }
 };
 

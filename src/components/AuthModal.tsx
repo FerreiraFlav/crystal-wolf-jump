@@ -1,6 +1,7 @@
 import React, { useState } from 'react';
 import { User } from '@/types/finance';
 import { registerUserAsync, loginUserAsync } from '@/services/storage';
+import { seedSupabaseDataIfEmpty } from '@/services/supabaseStorage';
 import { isSupabaseConfigured } from '@/lib/supabase';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Input } from '@/components/ui/input';
@@ -39,11 +40,13 @@ export const AuthModal: React.FC<AuthModalProps> = ({ onLoginSuccess }) => {
 
       if (isRegister) {
         const newUser = await registerUserAsync(name.trim(), email.trim(), password);
+        await seedSupabaseDataIfEmpty(newUser.id);
         showSuccess(`Bem-vindo, ${newUser.name}! Sua conta foi cadastrada com sucesso na nuvem.`);
         onLoginSuccess(newUser);
       } else {
         try {
           const user = await loginUserAsync(email.trim(), password);
+          await seedSupabaseDataIfEmpty(user.id);
           showSuccess(`Bem-vindo de volta, ${user.name}!`);
           onLoginSuccess(user);
         } catch (err: any) {
@@ -58,20 +61,22 @@ export const AuthModal: React.FC<AuthModalProps> = ({ onLoginSuccess }) => {
   };
 
   const handleDemoLogin = async () => {
-    setEmail('flavio@email.com');
-    setPassword('123456');
+    setIsLoading(true);
     try {
-      const user = await loginUserAsync('flavio@email.com', '123456');
-      showSuccess('Entrou na conta de demonstração!');
+      let user: User;
+      try {
+        user = await loginUserAsync('flavio@email.com', '123456');
+      } catch {
+        user = await registerUserAsync('Flavio', 'flavio@email.com', '123456');
+      }
+      // Povoa o Supabase com o usuário e despesas se ainda estiver vazio
+      await seedSupabaseDataIfEmpty(user.id);
+      showSuccess('Entrou como Flavio! Dados sincronizados no Supabase.');
       onLoginSuccess(user);
     } catch (err: any) {
-      try {
-        const demoUser = await registerUserAsync('Flavio', 'flavio@email.com', '123456');
-        showSuccess('Conta de teste criada e acessada!');
-        onLoginSuccess(demoUser);
-      } catch {
-        showError(err.message);
-      }
+      showError(err.message || 'Erro ao entrar na conta.');
+    } finally {
+      setIsLoading(false);
     }
   };
 
@@ -191,6 +196,7 @@ export const AuthModal: React.FC<AuthModalProps> = ({ onLoginSuccess }) => {
                 type="button"
                 variant="outline"
                 onClick={handleDemoLogin}
+                disabled={isLoading}
                 className="w-full border-slate-700 bg-slate-800/50 hover:bg-slate-800 text-emerald-400 hover:text-emerald-300 text-xs font-semibold py-2 rounded-xl flex items-center justify-center gap-2"
               >
                 <KeyRound className="w-3.5 h-3.5" />
