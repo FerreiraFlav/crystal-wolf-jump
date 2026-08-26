@@ -1,6 +1,5 @@
 import { supabase, isSupabaseConfigured } from '@/lib/supabase';
 import { Expense, User, PiggyBank, RecurringTransaction } from '@/types/finance';
-import { showError } from '@/utils/toast';
 
 // ==================== TESTE DE CONEXÃO E TABELAS ====================
 
@@ -8,7 +7,7 @@ export const testSupabaseConnection = async (): Promise<{ success: boolean; mess
   if (!isSupabaseConfigured || !supabase) {
     return { 
       success: false, 
-      message: 'As variáveis de ambiente do Supabase não estão ativas no Vercel. Lembre-se de fazer um Redeploy no Vercel!' 
+      message: 'As variáveis de ambiente do Supabase não estão configuradas. Configure-as no painel ou insira-as manualmente no modal.' 
     };
   }
 
@@ -24,7 +23,7 @@ export const testSupabaseConnection = async (): Promise<{ success: boolean; mess
       if (error.code === '42501' || error.message.includes('row-level security')) {
         return {
           success: false,
-          message: 'As tabelas do Supabase estão bloqueadas por RLS. Execute o script SQL no painel do Supabase para liberar o acesso.'
+          message: 'As tabelas do Supabase estão com RLS ativo. Execute o script SQL no painel do Supabase para liberar o acesso.'
         };
       }
       return { success: false, message: `Erro do Supabase: ${error.message}` };
@@ -50,7 +49,7 @@ export const findUserInSupabase = async (email: string, passwordHash: string): P
       .maybeSingle();
 
     if (error) {
-      console.error('Erro de busca no Supabase:', error.message);
+      console.warn('Aviso de busca no Supabase:', error.message);
       return null;
     }
 
@@ -61,8 +60,7 @@ export const findUserInSupabase = async (email: string, passwordHash: string): P
       name: data.name,
       email: data.email,
     };
-  } catch (err: any) {
-    console.error('Erro ao buscar usuário no Supabase:', err);
+  } catch {
     return null;
   }
 };
@@ -92,7 +90,7 @@ export const registerUserInSupabase = async (name: string, email: string, passwo
       .select('id, name, email');
 
     if (error) {
-      console.warn('Bloqueio no Supabase (RLS ou Tabela):', error.message);
+      console.warn('Aviso ao registrar no Supabase:', error.message);
       return null;
     }
 
@@ -105,8 +103,7 @@ export const registerUserInSupabase = async (name: string, email: string, passwo
     }
 
     return { id: userId, name: name.trim(), email: formattedEmail };
-  } catch (err: any) {
-    console.warn('Erro ao registrar no Supabase:', err);
+  } catch {
     return null;
   }
 };
@@ -135,7 +132,7 @@ export const seedSupabaseDataIfEmpty = async (userId: string) => {
       .limit(1);
 
     if (existing && existing.length > 0) {
-      return; // Já tem dados
+      return;
     }
 
     const today = new Date();
@@ -167,7 +164,7 @@ export const seedSupabaseDataIfEmpty = async (userId: string) => {
       { user_id: userId, description: 'Salário Semanal', amount: 650, category: 'Salário', type: 'income', frequency: 'weekly', day_of_week: 5 },
     ]);
   } catch (err) {
-    console.warn('Erro ao popular dados iniciais no Supabase:', err);
+    console.warn('Aviso ao popular dados iniciais no Supabase:', err);
   }
 };
 
@@ -184,7 +181,6 @@ export const fetchExpensesFromSupabase = async (userId: string): Promise<Expense
       .order('date', { ascending: false });
 
     if (error) {
-      console.warn('Aviso Supabase:', error.message);
       return [];
     }
 
@@ -198,8 +194,7 @@ export const fetchExpensesFromSupabase = async (userId: string): Promise<Expense
       date: item.date,
       createdAt: item.created_at || new Date().toISOString(),
     }));
-  } catch (err: any) {
-    console.error('Erro ao buscar lançamentos no Supabase:', err);
+  } catch {
     return [];
   }
 };
@@ -223,12 +218,11 @@ export const saveExpenseToSupabase = async (userId: string, expense: Omit<Expens
       .select();
 
     if (error) {
-      console.warn('Erro ao salvar no Supabase:', error.message);
       return null;
     }
 
     return data?.[0] || null;
-  } catch (err: any) {
+  } catch {
     return null;
   }
 };
@@ -244,8 +238,8 @@ export const updateExpenseInSupabase = async (id: string, updatedFields: Partial
       type: updatedFields.type,
       date: updatedFields.date,
     }).eq('id', id);
-  } catch (err: any) {
-    console.error('Erro ao atualizar no Supabase:', err);
+  } catch {
+    // Ignorar falhas silenciosas
   }
 };
 
@@ -254,8 +248,8 @@ export const deleteExpenseFromSupabase = async (id: string) => {
 
   try {
     await supabase.from('expenses').delete().eq('id', id);
-  } catch (err: any) {
-    console.error('Erro ao deletar do Supabase:', err);
+  } catch {
+    // Ignorar falhas silenciosas
   }
 };
 
@@ -280,7 +274,7 @@ export const fetchPiggyBanksFromSupabase = async (userId: string): Promise<Piggy
       currentAmount: Number(p.current_amount),
       color: p.color || '#10B981',
     }));
-  } catch (err: any) {
+  } catch {
     return [];
   }
 };
@@ -298,8 +292,8 @@ export const savePiggyBankToSupabase = async (userId: string, piggy: Omit<PiggyB
         color: piggy.color,
       }
     ]);
-  } catch (err: any) {
-    console.error('Erro ao salvar cofrinho no Supabase:', err);
+  } catch {
+    // Ignorar falhas silenciosas
   }
 };
 
@@ -308,8 +302,8 @@ export const updatePiggyBankAmountInSupabase = async (id: string, newAmount: num
 
   try {
     await supabase.from('piggy_banks').update({ current_amount: newAmount }).eq('id', id);
-  } catch (err: any) {
-    console.error('Erro ao atualizar valor do cofrinho no Supabase:', err);
+  } catch {
+    // Ignorar falhas silenciosas
   }
 };
 
@@ -318,8 +312,8 @@ export const deletePiggyBankFromSupabase = async (id: string) => {
 
   try {
     await supabase.from('piggy_banks').delete().eq('id', id);
-  } catch (err: any) {
-    console.error('Erro ao remover cofrinho no Supabase:', err);
+  } catch {
+    // Ignorar falhas silenciosas
   }
 };
 
@@ -347,7 +341,7 @@ export const fetchRecurringTransactionsFromSupabase = async (userId: string): Pr
       dayOfMonth: r.day_of_month,
       dayOfWeek: r.day_of_week,
     }));
-  } catch (err: any) {
+  } catch {
     return [];
   }
 };
@@ -368,8 +362,8 @@ export const saveRecurringTransactionToSupabase = async (userId: string, item: O
         day_of_week: item.dayOfWeek,
       }
     ]);
-  } catch (err: any) {
-    console.error('Erro ao salvar conta fixa no Supabase:', err);
+  } catch {
+    // Ignorar falhas silenciosas
   }
 };
 
@@ -378,7 +372,7 @@ export const deleteRecurringTransactionFromSupabase = async (id: string) => {
 
   try {
     await supabase.from('recurring_transactions').delete().eq('id', id);
-  } catch (err: any) {
-    console.error('Erro ao deletar conta fixa no Supabase:', err);
+  } catch {
+    // Ignorar falhas silenciosas
   }
 };
