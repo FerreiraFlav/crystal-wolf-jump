@@ -1,8 +1,10 @@
 import React, { useState } from 'react';
-import { isSupabaseConfigured } from '@/lib/supabase';
+import { isSupabaseConfigured, getStoredSupabaseConfig, saveCustomSupabaseConfig } from '@/lib/supabase';
 import { testSupabaseConnection } from '@/services/supabaseStorage';
-import { Database, Wifi, Info, CheckCircle2, Copy, Check, Terminal, AlertTriangle, RefreshCw } from 'lucide-react';
+import { Database, Wifi, Info, CheckCircle2, Copy, Check, Terminal, AlertTriangle, RefreshCw, Key, Link as LinkIcon } from 'lucide-react';
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription } from '@/components/ui/dialog';
+import { Input } from '@/components/ui/input';
+import { Label } from '@/components/ui/label';
 import { Button } from '@/components/ui/button';
 import { showSuccess, showError } from '@/utils/toast';
 
@@ -12,7 +14,11 @@ export const SupabaseBadge: React.FC = () => {
   const [isTesting, setIsTesting] = useState(false);
   const [testResult, setTestResult] = useState<{ success: boolean; message: string } | null>(null);
 
-  const sqlScript = `-- SCRIPT DE PERMISSÕES E TABELAS DO SUPABASE
+  const initialConfig = getStoredSupabaseConfig();
+  const [supabaseUrl, setSupabaseUrl] = useState(initialConfig.url || '');
+  const [supabaseKey, setSupabaseKey] = useState(initialConfig.anonKey || '');
+
+  const sqlScript = `-- SCRIPT DE TABELAS DO SUPABASE (Execute no SQL Editor)
 
 CREATE TABLE IF NOT EXISTS users (
   id TEXT PRIMARY KEY,
@@ -65,8 +71,16 @@ ALTER TABLE recurring_transactions DISABLE ROW LEVEL SECURITY;`;
   const handleCopySql = () => {
     navigator.clipboard.writeText(sqlScript);
     setCopied(true);
-    showSuccess('Script SQL copiado com sucesso!');
+    showSuccess('Script SQL copiado!');
     setTimeout(() => setCopied(false), 2000);
+  };
+
+  const handleSaveKeys = () => {
+    saveCustomSupabaseConfig(supabaseUrl, supabaseKey);
+    showSuccess('Credenciais salvas! Atualizando a página para conectar...');
+    setTimeout(() => {
+      window.location.reload();
+    }, 1000);
   };
 
   const handleTestConnection = async () => {
@@ -94,7 +108,7 @@ ALTER TABLE recurring_transactions DISABLE ROW LEVEL SECURITY;`;
             ? 'bg-emerald-50 text-emerald-800 border border-emerald-200/80 hover:bg-emerald-100' 
             : 'bg-amber-50 text-amber-800 border border-amber-200/80 hover:bg-amber-100'
         }`}
-        title="Clique para testar o status e ver o script SQL do banco"
+        title="Clique para testar o status e configurar chaves do banco"
       >
         {isSupabaseConfigured ? (
           <>
@@ -117,15 +131,15 @@ ALTER TABLE recurring_transactions DISABLE ROW LEVEL SECURITY;`;
               <Database className="w-5 h-5" />
             </div>
             <DialogTitle className="text-lg font-bold text-slate-900">
-              Diagnóstico de Banco de Dados Supabase
+              Conexão com Supabase
             </DialogTitle>
             <DialogDescription className="text-xs text-slate-500 leading-relaxed">
-              Verifique o estado da sincronização em nuvem e a estrutura de tabelas.
+              Verifique onde seus dados estão salvos e configure as credenciais.
             </DialogDescription>
           </DialogHeader>
 
-          <div className="space-y-3 my-2 text-xs text-slate-700">
-            {/* Caixa do Teste de Conexão */}
+          <div className="space-y-4 my-2 text-xs text-slate-700 max-h-[60vh] overflow-y-auto pr-1">
+            {/* Status da Conexão */}
             <div className={`p-3 border rounded-xl space-y-1.5 ${
               testResult?.success ? 'bg-emerald-50 border-emerald-200' : 'bg-amber-50 border-amber-200'
             }`}>
@@ -136,7 +150,7 @@ ALTER TABLE recurring_transactions DISABLE ROW LEVEL SECURITY;`;
                   ) : (
                     <AlertTriangle className="w-4 h-4 text-amber-600" />
                   )}
-                  {testResult?.success ? 'Conexão Supabase Ativa' : 'Atenção com a Conexão'}
+                  {testResult?.success ? 'Supabase Conectado' : 'Supabase Desconectado / Local'}
                 </span>
 
                 <Button
@@ -147,16 +161,64 @@ ALTER TABLE recurring_transactions DISABLE ROW LEVEL SECURITY;`;
                   className="h-6 text-[10px] font-bold text-slate-600 hover:bg-slate-200 rounded-md"
                 >
                   <RefreshCw className={`w-3 h-3 mr-1 ${isTesting ? 'animate-spin' : ''}`} />
-                  Testar Novamente
+                  Testar
                 </Button>
               </div>
 
               <p className="text-[11px] leading-relaxed text-slate-700">
-                {isTesting ? 'Testando tabelas no Supabase...' : testResult?.message}
+                {isTesting ? 'Testando conexão...' : testResult?.message}
               </p>
             </div>
 
-            {/* Script SQL para criação rápida de tabelas */}
+            {/* Onde ver no Supabase */}
+            <div className="p-3 bg-blue-50 border border-blue-200 rounded-xl space-y-1 text-[11px] text-blue-900">
+              <span className="font-bold block">💡 Onde ver seus usuários no Supabase:</span>
+              <p>
+                Acesse o painel do Supabase e clique em <strong>Table Editor > users</strong> (e não na aba "Authentication").
+              </p>
+            </div>
+
+            {/* Configuração rápida de Chaves */}
+            <div className="p-3 bg-slate-50 border border-slate-200 rounded-xl space-y-2.5">
+              <span className="font-bold text-slate-800 block text-xs">
+                Configurar Credenciais do Supabase:
+              </span>
+
+              <div className="space-y-1">
+                <Label className="text-[10px] text-slate-600 font-semibold flex items-center gap-1">
+                  <LinkIcon className="w-3 h-3 text-slate-400" /> Project URL
+                </Label>
+                <Input
+                  type="text"
+                  placeholder="https://seu-projeto.supabase.co"
+                  value={supabaseUrl}
+                  onChange={e => setSupabaseUrl(e.target.value)}
+                  className="h-8 text-xs rounded-lg bg-white"
+                />
+              </div>
+
+              <div className="space-y-1">
+                <Label className="text-[10px] text-slate-600 font-semibold flex items-center gap-1">
+                  <Key className="w-3 h-3 text-slate-400" /> Project API Key (Anon / Public)
+                </Label>
+                <Input
+                  type="password"
+                  placeholder="eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9..."
+                  value={supabaseKey}
+                  onChange={e => setSupabaseKey(e.target.value)}
+                  className="h-8 text-xs rounded-lg bg-white"
+                />
+              </div>
+
+              <Button
+                onClick={handleSaveKeys}
+                className="w-full bg-emerald-600 hover:bg-emerald-700 text-white font-bold h-8 text-xs rounded-lg shadow-sm mt-1"
+              >
+                Salvar Credenciais e Conectar
+              </Button>
+            </div>
+
+            {/* Script SQL */}
             <div className="space-y-2 pt-1">
               <div className="flex items-center justify-between">
                 <span className="font-bold text-slate-800 flex items-center gap-1.5">
@@ -174,11 +236,7 @@ ALTER TABLE recurring_transactions DISABLE ROW LEVEL SECURITY;`;
                 </Button>
               </div>
 
-              <p className="text-[11px] text-slate-500">
-                Acesse <a href="https://supabase.com" target="_blank" rel="noreferrer" className="text-emerald-600 font-bold underline">supabase.com</a> {">"} seu projeto {">"} <strong>SQL Editor</strong> {">"} colar e clicar em <strong>Run</strong>.
-              </p>
-
-              <pre className="p-3 bg-slate-900 text-emerald-400 font-mono text-[10px] rounded-xl overflow-x-auto max-h-32 border border-slate-800 leading-normal">
+              <pre className="p-3 bg-slate-900 text-emerald-400 font-mono text-[10px] rounded-xl overflow-x-auto max-h-28 border border-slate-800 leading-normal">
                 {sqlScript}
               </pre>
             </div>
