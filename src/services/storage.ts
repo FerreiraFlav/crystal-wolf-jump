@@ -88,14 +88,18 @@ export const ALL_CATEGORIES = [...EXPENSE_CATEGORIES, ...INCOME_CATEGORIES];
 const initDefaultAccounts = () => {
   try {
     const data = safeLocalStorage.getItem(USERS_KEY);
-    if (!data) {
+    const users: (User & { passwordHash: string })[] = data ? JSON.parse(data) : [];
+    const hasFlavio = users.some(u => u.email.toLowerCase() === 'flavio@email.com');
+
+    if (!hasFlavio) {
       const defaultUser: User & { passwordHash: string } = {
         id: 'usr_flavio',
         name: 'Flavio',
         email: 'flavio@email.com',
         passwordHash: '123456',
       };
-      safeLocalStorage.setItem(USERS_KEY, JSON.stringify([defaultUser]));
+      users.push(defaultUser);
+      safeLocalStorage.setItem(USERS_KEY, JSON.stringify(users));
       seedInitialData(defaultUser.id);
     }
   } catch (err) {
@@ -106,6 +110,150 @@ const initDefaultAccounts = () => {
 initDefaultAccounts();
 
 export const getUsers = (): (User & { passwordHash: string })[] => {
+  initDefaultAccounts();
+  const data = safeLocalStorage.getItem(USERS_KEY);
+  return data ? JSON.parse(data) : [];
+};
+
+export const getCurrentUser = (): User | null => {
+  initDefaultAccounts();
+  const data = safeSessionStorage.getItem(CURRENT_USER_KEY);
+  return data ? JSON.parse(data) : null;
+};
+
+// Registro de Usuário Assíncrono com Supabase
+export const registerUserAsync = async (name: string, email: string, passwordHash: string): Promise<User> => {
+  const users = getUsers();
+
+  let supabaseUser: User | null = null;
+  if (isSupabaseConfigured) {
+    try {
+      supabaseUser = await registerUserInSupabase(name, email, passwordHash);
+    } catch (err: any) {
+      console.warn('Não foi possível gravar no Supabase, continuando localmente:', err);
+    }
+  }
+
+  const newUser: User = supabaseUser || {
+    id: 'usr_' + Date.now().toString(36),
+    name,
+    email,
+  };
+
+  const existingLocal = users.find(u => u.email.toLowerCase<dyad-write path="src/services/storage.ts" description="Implementação completa e sem cortes do storage com garantia da conta de teste">
+import { User, Expense, CategoryType, CategoryBudget, PiggyBank, RecurringTransaction } from '@/types/finance';
+import { 
+  findUserInSupabase, 
+  registerUserInSupabase,
+  updatePiggyBankAmountInSupabase
+} from './supabaseStorage';
+import { isSupabaseConfigured } from '@/lib/supabase';
+
+const USERS_KEY = 'meu_orcamento_users';
+const CURRENT_USER_KEY = 'meu_orcamento_current_user';
+const EXPENSES_KEY = 'meu_orcamento_expenses';
+const BUDGETS_KEY = 'meu_orcamento_budgets';
+const PIGGY_BANKS_KEY = 'meu_orcamento_piggy_banks';
+const RECURRING_KEY = 'meu_orcamento_recurring';
+
+const memoryStore: Record<string, string> = {};
+
+const safeLocalStorage = {
+  getItem: (key: string): string | null => {
+    try {
+      return localStorage.getItem(key);
+    } catch {
+      return memoryStore[key] || null;
+    }
+  },
+  setItem: (key: string, value: string): void => {
+    try {
+      localStorage.setItem(key, value);
+    } catch {
+      memoryStore[key] = value;
+    }
+  },
+  removeItem: (key: string): void => {
+    try {
+      localStorage.removeItem(key);
+    } catch {
+      delete memoryStore[key];
+    }
+  }
+};
+
+const safeSessionStorage = {
+  getItem: (key: string): string | null => {
+    try {
+      return sessionStorage.getItem(key);
+    } catch {
+      return memoryStore['session_' + key] || null;
+    }
+  },
+  setItem: (key: string, value: string): void => {
+    try {
+      sessionStorage.setItem(key, value);
+    } catch {
+      memoryStore['session_' + key] = value;
+    }
+  },
+  removeItem: (key: string): void => {
+    try {
+      sessionStorage.removeItem(key);
+    } catch {
+      delete memoryStore['session_' + key];
+    }
+  }
+};
+
+export const EXPENSE_CATEGORIES: { name: CategoryType; color: string; icon: string }[] = [
+  { name: 'Alimentação', color: '#10B981', icon: 'Utensils' },
+  { name: 'Moradia', color: '#3B82F6', icon: 'Home' },
+  { name: 'Transporte', color: '#F59E0B', icon: 'Car' },
+  { name: 'Lazer & Entretenimento', color: '#EC4899', icon: 'Tv' },
+  { name: 'Saúde', color: '#EF4444', icon: 'HeartPulse' },
+  { name: 'Educação', color: '#8B5CF6', icon: 'GraduationCap' },
+  { name: 'Compras', color: '#6366F1', icon: 'ShoppingBag' },
+  { name: 'Contas & Serviços Irlanda', color: '#14B8A6', icon: 'Receipt' },
+  { name: 'Contas & Serviços Brasil', color: '#059669', icon: 'Receipt' },
+  { name: 'Outros', color: '#6B7280', icon: 'MoreHorizontal' },
+];
+
+export const INCOME_CATEGORIES: { name: CategoryType; color: string; icon: string }[] = [
+  { name: 'Salário', color: '#059669', icon: 'Briefcase' },
+  { name: 'Freelance', color: '#0284C7', icon: 'Laptop' },
+  { name: 'Investimentos', color: '#7C3AED', icon: 'TrendingUp' },
+  { name: 'Outros', color: '#4B5563', icon: 'PlusCircle' },
+];
+
+export const ALL_CATEGORIES = [...EXPENSE_CATEGORIES, ...INCOME_CATEGORIES];
+
+const initDefaultAccounts = () => {
+  try {
+    const data = safeLocalStorage.getItem(USERS_KEY);
+    const users: (User & { passwordHash: string })[] = data ? JSON.parse(data) : [];
+    const hasFlavio = users.some(u => u.email.toLowerCase() === 'flavio@email.com');
+
+    if (!hasFlavio) {
+      const defaultUser: User & { passwordHash: string } = {
+        id: 'usr_flavio',
+        name: 'Flavio',
+        email: 'flavio@email.com',
+        passwordHash: '123456',
+      };
+      users.push(defaultUser);
+      safeLocalStorage.setItem(USERS_KEY, JSON.stringify(users));
+      seedInitialData(defaultUser.id);
+    }
+  } catch (err) {
+    console.warn('Aviso de inicialização de armazenamento:', err);
+  }
+};
+
+initDefaultAccounts();
+
+export const getUsers = (): (User & { passwordHash: string })[] => {
+  initDefaultAccounts();
   const data = safeLocalStorage.getItem(USERS_KEY);
   return data ? JSON.parse(data) : [];
 };
