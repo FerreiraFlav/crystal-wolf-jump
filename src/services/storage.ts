@@ -4,7 +4,7 @@ import {
   registerUserInSupabase,
   updatePiggyBankAmountInSupabase
 } from './supabaseStorage';
-import { isSupabaseConfigured } from '@/lib/supabase';
+import { checkIsConfigured } from '@/lib/supabase';
 
 const USERS_KEY = 'meu_orcamento_users';
 const CURRENT_USER_KEY = 'meu_orcamento_current_user';
@@ -215,7 +215,7 @@ export const registerUserAsync = async (name: string, email: string, passwordHas
   const users = getUsers();
 
   let supabaseUser: User | null = null;
-  if (isSupabaseConfigured) {
+  if (checkIsConfigured()) {
     try {
       supabaseUser = await registerUserInSupabase(name, email, passwordHash);
     } catch (err: any) {
@@ -246,7 +246,7 @@ export const loginUserAsync = async (email: string, passwordHash: string): Promi
   const formattedEmail = email.toLowerCase().trim();
 
   // 1. Tenta buscar no Supabase
-  if (isSupabaseConfigured) {
+  if (checkIsConfigured()) {
     const cloudUser = await findUserInSupabase(formattedEmail, passwordHash);
     if (cloudUser) {
       const users = getUsers();
@@ -272,7 +272,7 @@ export const loginUserAsync = async (email: string, passwordHash: string): Promi
   const userDTO: User = { id: localUser.id, name: localUser.name, email: localUser.email };
   safeSessionStorage.setItem(CURRENT_USER_KEY, JSON.stringify(userDTO));
 
-  if (isSupabaseConfigured) {
+  if (checkIsConfigured()) {
     registerUserInSupabase(localUser.name, localUser.email, passwordHash).catch(() => {});
   }
 
@@ -359,7 +359,7 @@ export const updatePiggyBankAmount = (userId: string, id: string, amountChange: 
   const updated = current.map(p => {
     if (p.id === id) {
       const newAmount = Math.max(0, Math.round((p.currentAmount + amountChange) * 100) / 100);
-      if (isSupabaseConfigured) {
+      if (checkIsConfigured()) {
         updatePiggyBankAmountInSupabase(p.id, newAmount);
       }
       return { ...p, currentAmount: newAmount };
