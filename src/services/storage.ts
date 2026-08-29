@@ -85,148 +85,94 @@ export const INCOME_CATEGORIES: { name: CategoryType; color: string; icon: strin
 
 export const ALL_CATEGORIES = [...EXPENSE_CATEGORIES, ...INCOME_CATEGORIES];
 
-const initDefaultAccounts = () => {
-  try {
-    const data = safeLocalStorage.getItem(USERS_KEY);
-    const users: (User & { passwordHash: string })[] = data ? JSON.parse(data) : [];
-    const hasFlavio = users.some(u => u.email.toLowerCase() === 'flavio@email.com');
+const getDefaultBudgets = (): CategoryBudget[] => [
+  { category: 'Alimentação', limitAmount: 450 },
+  { category: 'Moradia', limitAmount: 900 },
+  { category: 'Transporte', limitAmount: 150 },
+  { category: 'Lazer & Entretenimento', limitAmount: 200 },
+  { category: 'Saúde', limitAmount: 150 },
+  { category: 'Compras', limitAmount: 250 },
+  { category: 'Contas & Serviços Irlanda', limitAmount: 180 },
+  { category: 'Contas & Serviços Brasil', limitAmount: 100 },
+];
 
-    if (!hasFlavio) {
-      const defaultUser: User & { passwordHash: string } = {
-        id: 'usr_flavio',
-        name: 'Flavio',
-        email: 'flavio@email.com',
-        passwordHash: '123456',
-      };
-      users.push(defaultUser);
-      safeLocalStorage.setItem(USERS_KEY, JSON.stringify(users));
-      seedInitialData(defaultUser.id);
-    }
-  } catch (err) {
-    console.warn('Aviso de inicialização de armazenamento:', err);
-  }
+const getDefaultPiggyBanks = (userId: string): PiggyBank[] => [
+  { id: 'pgy_reserva', userId, name: 'Reserva de Emergência', targetAmount: 3000, currentAmount: 1200, color: '#10B981' },
+  { id: 'pgy_viagem', userId, name: 'Viagem / Férias', targetAmount: 1500, currentAmount: 450, color: '#3B82F6' },
+];
+
+const getDefaultRecurring = (userId: string): RecurringTransaction[] => [
+  { id: 'rec_rent', userId, description: 'Renda / Aluguer Habitação', amount: 750, category: 'Moradia', type: 'expense', frequency: 'monthly', dayOfMonth: 5 },
+  { id: 'rec_salary', userId, description: 'Salário Semanal (Irlanda)', amount: 650, category: 'Salário', type: 'income', frequency: 'weekly', dayOfWeek: 5 },
+  { id: 'rec_gym', userId, description: 'Mensalidade Ginásio', amount: 35, category: 'Saúde', type: 'expense', frequency: 'monthly', dayOfMonth: 10 },
+  { id: 'rec_net', userId, description: 'Netflix / Streaming', amount: 15.99, category: 'Lazer & Entretenimento', type: 'expense', frequency: 'monthly', dayOfMonth: 15 },
+];
+
+export const getExpenses = (userId: string): Expense[] => {
+  const data = safeLocalStorage.getItem(EXPENSES_KEY);
+  const all: Expense[] = data ? JSON.parse(data) : [];
+  return all
+    .filter(e => e.userId === userId)
+    .map(e => ({ ...e, type: e.type || 'expense' }));
 };
 
-initDefaultAccounts();
+export const addExpense = (userId: string, expense: Omit<Expense, 'id' | 'userId' | 'createdAt'>): Expense => {
+  const data = safeLocalStorage.getItem(EXPENSES_KEY);
+  const all: Expense[] = data ? JSON.parse(data) : [];
 
-export const getUsers = (): (User & { passwordHash: string })[] => {
-  initDefaultAccounts();
-  const data = safeLocalStorage.getItem(USERS_KEY);
-  return data ? JSON.parse(data) : [];
-};
-
-export const getCurrentUser = (): User | null => {
-  initDefaultAccounts();
-  const data = safeSessionStorage.getItem(CURRENT_USER_KEY);
-  return data ? JSON.parse(data) : null;
-};
-
-// Registro de Usuário Assíncrono com Supabase
-export const registerUserAsync = async (name: string, email: string, passwordHash: string): Promise<User> => {
-  const users = getUsers();
-
-  let supabaseUser: User | null = null;
-  if (isSupabaseConfigured) {
-    try {
-      supabaseUser = await registerUserInSupabase(name, email, passwordHash);
-    } catch (err: any) {
-      console.warn('Não foi possível gravar no Supabase, continuando localmente:', err);
-    }
-  }
-
-  const newUser: User = supabaseUser || {
-    id: 'usr_' + Date.now().toString(36),
-    name,
-    email,
+  const newExpense: Expense = {
+    ...expense,
+    id: 'exp_' + Date.now().toString(36) + Math.random().toString(36).substring(2, 5),
+    userId,
+    createdAt: new Date().toISOString(),
   };
 
-  const existingLocal = users.find(u => u.email.toLowerCase<dyad-write path="src/services/storage.ts" description="Implementação completa e sem cortes do storage com garantia da conta de teste">
-import { User, Expense, CategoryType, CategoryBudget, PiggyBank, RecurringTransaction } from '@/types/finance';
-import { 
-  findUserInSupabase, 
-  registerUserInSupabase,
-  updatePiggyBankAmountInSupabase
-} from './supabaseStorage';
-import { isSupabaseConfigured } from '@/lib/supabase';
-
-const USERS_KEY = 'meu_orcamento_users';
-const CURRENT_USER_KEY = 'meu_orcamento_current_user';
-const EXPENSES_KEY = 'meu_orcamento_expenses';
-const BUDGETS_KEY = 'meu_orcamento_budgets';
-const PIGGY_BANKS_KEY = 'meu_orcamento_piggy_banks';
-const RECURRING_KEY = 'meu_orcamento_recurring';
-
-const memoryStore: Record<string, string> = {};
-
-const safeLocalStorage = {
-  getItem: (key: string): string | null => {
-    try {
-      return localStorage.getItem(key);
-    } catch {
-      return memoryStore[key] || null;
-    }
-  },
-  setItem: (key: string, value: string): void => {
-    try {
-      localStorage.setItem(key, value);
-    } catch {
-      memoryStore[key] = value;
-    }
-  },
-  removeItem: (key: string): void => {
-    try {
-      localStorage.removeItem(key);
-    } catch {
-      delete memoryStore[key];
-    }
-  }
+  all.unshift(newExpense);
+  safeLocalStorage.setItem(EXPENSES_KEY, JSON.stringify(all));
+  return newExpense;
 };
 
-const safeSessionStorage = {
-  getItem: (key: string): string | null => {
-    try {
-      return sessionStorage.getItem(key);
-    } catch {
-      return memoryStore['session_' + key] || null;
-    }
-  },
-  setItem: (key: string, value: string): void => {
-    try {
-      sessionStorage.setItem(key, value);
-    } catch {
-      memoryStore['session_' + key] = value;
-    }
-  },
-  removeItem: (key: string): void => {
-    try {
-      sessionStorage.removeItem(key);
-    } catch {
-      delete memoryStore['session_' + key];
-    }
-  }
+const seedInitialData = (userId: string) => {
+  const existingExpenses = getExpenses(userId);
+  if (existingExpenses.length > 0) return;
+
+  const today = new Date();
+  const year = today.getFullYear();
+  const month = String(today.getMonth() + 1).padStart(2, '0');
+
+  const prevMonth1 = new Date(today.getFullYear(), today.getMonth() - 1, 1);
+  const ym1 = `${prevMonth1.getFullYear()}-${String(prevMonth1.getMonth() + 1).padStart(2, '0')}`;
+
+  const prevMonth2 = new Date(today.getFullYear(), today.getMonth() - 2, 1);
+  const ym2 = `${prevMonth2.getFullYear()}-${String(prevMonth2.getMonth() + 1).padStart(2, '0')}`;
+
+  const demoTransactions: Omit<Expense, 'id' | 'userId' | 'createdAt'>[] = [
+    { description: 'Salário Mensal', amount: 2800.00, category: 'Salário', type: 'income', date: `${year}-${month}-01` },
+    { description: 'Projeto Freelance', amount: 650.00, category: 'Freelance', type: 'income', date: `${year}-${month}-10` },
+    { description: 'Supermercado Mensal', amount: 320.50, category: 'Alimentação', type: 'expense', date: `${year}-${month}-02` },
+    { description: 'Renda / Aluguer Habitação', amount: 750.00, category: 'Moradia', type: 'expense', date: `${year}-${month}-05` },
+    { description: 'Eletricidade e Água (IE)', amount: 115.30, category: 'Contas & Serviços Irlanda', type: 'expense', date: `${year}-${month}-08` },
+    { description: 'Apoio Familiar (BR)', amount: 150.00, category: 'Contas & Serviços Brasil', type: 'expense', date: `${year}-${month}-09` },
+    { description: 'Passe Navegante / Combustível', amount: 80.00, category: 'Transporte', type: 'expense', date: `${year}-${month}-10` },
+    { description: 'Jantar Restaurante', amount: 65.00, category: 'Lazer & Entretenimento', type: 'expense', date: `${year}-${month}-12` },
+    { description: 'Seguro de Saúde', amount: 90.00, category: 'Saúde', type: 'expense', date: `${year}-${month}-15` },
+
+    { description: 'Salário Mensal', amount: 2800.00, category: 'Salário', type: 'income', date: `${ym1}-01` },
+    { description: 'Aluguer Habitação', amount: 750.00, category: 'Moradia', type: 'expense', date: `${ym1}-05` },
+    { description: 'Supermercado', amount: 410.00, category: 'Alimentação', type: 'expense', date: `${ym1}-08` },
+    { description: 'Compras de Vestuário', amount: 180.00, category: 'Compras', type: 'expense', date: `${ym1}-14` },
+
+    { description: 'Salário Mensal', amount: 2800.00, category: 'Salário', type: 'income', date: `${ym2}-01` },
+    { description: 'Projeto Freelance', amount: 500.00, category: 'Freelance', type: 'income', date: `${ym2}-12` },
+    { description: 'Aluguer Habitação', amount: 750.00, category: 'Moradia', type: 'expense', date: `${ym2}-05` },
+    { description: 'Supermercado', amount: 350.00, category: 'Alimentação', type: 'expense', date: `${ym2}-09` },
+  ];
+
+  demoTransactions.forEach(t => addExpense(userId, t));
+  saveBudgets(userId, getDefaultBudgets());
+  savePiggyBanks(userId, getDefaultPiggyBanks(userId));
+  saveRecurringTransactions(userId, getDefaultRecurring(userId));
 };
-
-export const EXPENSE_CATEGORIES: { name: CategoryType; color: string; icon: string }[] = [
-  { name: 'Alimentação', color: '#10B981', icon: 'Utensils' },
-  { name: 'Moradia', color: '#3B82F6', icon: 'Home' },
-  { name: 'Transporte', color: '#F59E0B', icon: 'Car' },
-  { name: 'Lazer & Entretenimento', color: '#EC4899', icon: 'Tv' },
-  { name: 'Saúde', color: '#EF4444', icon: 'HeartPulse' },
-  { name: 'Educação', color: '#8B5CF6', icon: 'GraduationCap' },
-  { name: 'Compras', color: '#6366F1', icon: 'ShoppingBag' },
-  { name: 'Contas & Serviços Irlanda', color: '#14B8A6', icon: 'Receipt' },
-  { name: 'Contas & Serviços Brasil', color: '#059669', icon: 'Receipt' },
-  { name: 'Outros', color: '#6B7280', icon: 'MoreHorizontal' },
-];
-
-export const INCOME_CATEGORIES: { name: CategoryType; color: string; icon: string }[] = [
-  { name: 'Salário', color: '#059669', icon: 'Briefcase' },
-  { name: 'Freelance', color: '#0284C7', icon: 'Laptop' },
-  { name: 'Investimentos', color: '#7C3AED', icon: 'TrendingUp' },
-  { name: 'Outros', color: '#4B5563', icon: 'PlusCircle' },
-];
-
-export const ALL_CATEGORIES = [...EXPENSE_CATEGORIES, ...INCOME_CATEGORIES];
 
 const initDefaultAccounts = () => {
   try {
@@ -337,30 +283,6 @@ export const logoutUser = () => {
   safeSessionStorage.removeItem(CURRENT_USER_KEY);
 };
 
-export const getExpenses = (userId: string): Expense[] => {
-  const data = safeLocalStorage.getItem(EXPENSES_KEY);
-  const all: Expense[] = data ? JSON.parse(data) : [];
-  return all
-    .filter(e => e.userId === userId)
-    .map(e => ({ ...e, type: e.type || 'expense' }));
-};
-
-export const addExpense = (userId: string, expense: Omit<Expense, 'id' | 'userId' | 'createdAt'>): Expense => {
-  const data = safeLocalStorage.getItem(EXPENSES_KEY);
-  const all: Expense[] = data ? JSON.parse(data) : [];
-
-  const newExpense: Expense = {
-    ...expense,
-    id: 'exp_' + Date.now().toString(36) + Math.random().toString(36).substring(2, 5),
-    userId,
-    createdAt: new Date().toISOString(),
-  };
-
-  all.unshift(newExpense);
-  safeLocalStorage.setItem(EXPENSES_KEY, JSON.stringify(all));
-  return newExpense;
-};
-
 export const updateExpenseAmount = (id: string, newAmount: number) => {
   const data = safeLocalStorage.getItem(EXPENSES_KEY);
   if (!data) return;
@@ -402,17 +324,6 @@ export const saveBudgets = (userId: string, budgets: CategoryBudget[]) => {
   allMap[userId] = budgets;
   safeLocalStorage.setItem(BUDGETS_KEY, JSON.stringify(allMap));
 };
-
-const getDefaultBudgets = (): CategoryBudget[] => [
-  { category: 'Alimentação', limitAmount: 450 },
-  { category: 'Moradia', limitAmount: 900 },
-  { category: 'Transporte', limitAmount: 150 },
-  { category: 'Lazer & Entretenimento', limitAmount: 200 },
-  { category: 'Saúde', limitAmount: 150 },
-  { category: 'Compras', limitAmount: 250 },
-  { category: 'Contas & Serviços Irlanda', limitAmount: 180 },
-  { category: 'Contas & Serviços Brasil', limitAmount: 100 },
-];
 
 export const getPiggyBanks = (userId: string): PiggyBank[] => {
   const data = safeLocalStorage.getItem(PIGGY_BANKS_KEY);
@@ -566,58 +477,4 @@ export const applyRecurringToMonth = (userId: string, year: number, month: numbe
   });
 
   return addedCount;
-};
-
-const getDefaultPiggyBanks = (userId: string): PiggyBank[] => [
-  { id: 'pgy_reserva', userId, name: 'Reserva de Emergência', targetAmount: 3000, currentAmount: 1200, color: '#10B981' },
-  { id: 'pgy_viagem', userId, name: 'Viagem / Férias', targetAmount: 1500, currentAmount: 450, color: '#3B82F6' },
-];
-
-const getDefaultRecurring = (userId: string): RecurringTransaction[] => [
-  { id: 'rec_rent', userId, description: 'Renda / Aluguer Habitação', amount: 750, category: 'Moradia', type: 'expense', frequency: 'monthly', dayOfMonth: 5 },
-  { id: 'rec_salary', userId, description: 'Salário Semanal (Irlanda)', amount: 650, category: 'Salário', type: 'income', frequency: 'weekly', dayOfWeek: 5 },
-  { id: 'rec_gym', userId, description: 'Mensalidade Ginásio', amount: 35, category: 'Saúde', type: 'expense', frequency: 'monthly', dayOfMonth: 10 },
-  { id: 'rec_net', userId, description: 'Netflix / Streaming', amount: 15.99, category: 'Lazer & Entretenimento', type: 'expense', frequency: 'monthly', dayOfMonth: 15 },
-];
-
-const seedInitialData = (userId: string) => {
-  const existingExpenses = getExpenses(userId);
-  if (existingExpenses.length > 0) return;
-
-  const today = new Date();
-  const year = today.getFullYear();
-  const month = String(today.getMonth() + 1).padStart(2, '0');
-
-  const prevMonth1 = new Date(today.getFullYear(), today.getMonth() - 1, 1);
-  const ym1 = `${prevMonth1.getFullYear()}-${String(prevMonth1.getMonth() + 1).padStart(2, '0')}`;
-
-  const prevMonth2 = new Date(today.getFullYear(), today.getMonth() - 2, 1);
-  const ym2 = `${prevMonth2.getFullYear()}-${String(prevMonth2.getMonth() + 1).padStart(2, '0')}`;
-
-  const demoTransactions: Omit<Expense, 'id' | 'userId' | 'createdAt'>[] = [
-    { description: 'Salário Mensal', amount: 2800.00, category: 'Salário', type: 'income', date: `${year}-${month}-01` },
-    { description: 'Projeto Freelance', amount: 650.00, category: 'Freelance', type: 'income', date: `${year}-${month}-10` },
-    { description: 'Supermercado Mensal', amount: 320.50, category: 'Alimentação', type: 'expense', date: `${year}-${month}-02` },
-    { description: 'Renda / Aluguer Habitação', amount: 750.00, category: 'Moradia', type: 'expense', date: `${year}-${month}-05` },
-    { description: 'Eletricidade e Água (IE)', amount: 115.30, category: 'Contas & Serviços Irlanda', type: 'expense', date: `${year}-${month}-08` },
-    { description: 'Apoio Familiar (BR)', amount: 150.00, category: 'Contas & Serviços Brasil', type: 'expense', date: `${year}-${month}-09` },
-    { description: 'Passe Navegante / Combustível', amount: 80.00, category: 'Transporte', type: 'expense', date: `${year}-${month}-10` },
-    { description: 'Jantar Restaurante', amount: 65.00, category: 'Lazer & Entretenimento', type: 'expense', date: `${year}-${month}-12` },
-    { description: 'Seguro de Saúde', amount: 90.00, category: 'Saúde', type: 'expense', date: `${year}-${month}-15` },
-
-    { description: 'Salário Mensal', amount: 2800.00, category: 'Salário', type: 'income', date: `${ym1}-01` },
-    { description: 'Aluguer Habitação', amount: 750.00, category: 'Moradia', type: 'expense', date: `${ym1}-05` },
-    { description: 'Supermercado', amount: 410.00, category: 'Alimentação', type: 'expense', date: `${ym1}-08` },
-    { description: 'Compras de Vestuário', amount: 180.00, category: 'Compras', type: 'expense', date: `${ym1}-14` },
-
-    { description: 'Salário Mensal', amount: 2800.00, category: 'Salário', type: 'income', date: `${ym2}-01` },
-    { description: 'Projeto Freelance', amount: 500.00, category: 'Freelance', type: 'income', date: `${ym2}-12` },
-    { description: 'Aluguer Habitação', amount: 750.00, category: 'Moradia', type: 'expense', date: `${ym2}-05` },
-    { description: 'Supermercado', amount: 350.00, category: 'Alimentação', type: 'expense', date: `${ym2}-09` },
-  ];
-
-  demoTransactions.forEach(t => addExpense(userId, t));
-  saveBudgets(userId, getDefaultBudgets());
-  savePiggyBanks(userId, getDefaultPiggyBanks(userId));
-  saveRecurringTransactions(userId, getDefaultRecurring(userId));
 };
