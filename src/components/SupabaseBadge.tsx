@@ -1,3 +1,4 @@
+' para '>' no JSX de SupabaseBadge">
 import React, { useState } from 'react';
 import { checkIsConfigured, getStoredSupabaseConfig, saveCustomSupabaseConfig } from '@/lib/supabase';
 import { testSupabaseConnection } from '@/services/supabaseStorage';
