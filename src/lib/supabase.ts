@@ -89,8 +89,8 @@ export const getSupabase = (): SupabaseClient | null => {
   try {
     cachedClient = createClient(config.url, config.anonKey, {
       auth: {
-        persistSession: false,
-        autoRefreshToken: false,
+        persistSession: true,
+        autoRefreshToken: true,
       },
     });
     lastUsedUrl = config.url;

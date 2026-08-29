@@ -212,71 +212,28 @@ export const getCurrentUser = (): User | null => {
 
 // Registro de Usuário Assíncrono com Supabase
 export const registerUserAsync = async (name: string, email: string, passwordHash: string): Promise<User> => {
-  const users = getUsers();
-
-  let supabaseUser: User | null = null;
-  if (checkIsConfigured()) {
-    try {
-      supabaseUser = await registerUserInSupabase(name, email, passwordHash);
-    } catch (err: any) {
-      console.warn('Não foi possível gravar no Supabase, continuando localmente:', err);
-    }
+  if (!checkIsConfigured()) {
+    throw new Error('O aplicativo ainda não está conectado ao Supabase.');
   }
 
-  const newUser: User = supabaseUser || {
-    id: 'usr_' + Date.now().toString(36),
-    name,
-    email,
-  };
-
-  const existingLocal = users.find(u => u.email.toLowerCase() === email.toLowerCase());
-  if (!existingLocal) {
-    users.push({ ...newUser, passwordHash });
-    safeLocalStorage.setItem(USERS_KEY, JSON.stringify(users));
-  }
+  const newUser = await registerUserInSupabase(name, email, passwordHash);
+  if (!newUser) throw new Error('Não foi possível criar a conta.');
 
   safeSessionStorage.setItem(CURRENT_USER_KEY, JSON.stringify(newUser));
-  seedInitialData(newUser.id);
-
   return newUser;
 };
 
 // Login de Usuário Assíncrono com Supabase
 export const loginUserAsync = async (email: string, passwordHash: string): Promise<User> => {
-  const formattedEmail = email.toLowerCase().trim();
-
-  // 1. Tenta buscar no Supabase
-  if (checkIsConfigured()) {
-    const cloudUser = await findUserInSupabase(formattedEmail, passwordHash);
-    if (cloudUser) {
-      const users = getUsers();
-      if (!users.some(u => u.id === cloudUser.id)) {
-        users.push({ ...cloudUser, passwordHash });
-        safeLocalStorage.setItem(USERS_KEY, JSON.stringify(users));
-      }
-      safeSessionStorage.setItem(CURRENT_USER_KEY, JSON.stringify(cloudUser));
-      return cloudUser;
-    }
+  if (!checkIsConfigured()) {
+    throw new Error('O aplicativo ainda não está conectado ao Supabase.');
   }
 
-  // 2. Fallback: Busca localmente
-  const users = getUsers();
-  const localUser = users.find(
-    u => u.email.toLowerCase() === formattedEmail && u.passwordHash === passwordHash
-  );
+  const user = await findUserInSupabase(email, passwordHash);
+  if (!user) throw new Error('E-mail ou senha incorretos.');
 
-  if (!localUser) {
-    throw new Error('E-mail ou senha incorretos.');
-  }
-
-  const userDTO: User = { id: localUser.id, name: localUser.name, email: localUser.email };
-  safeSessionStorage.setItem(CURRENT_USER_KEY, JSON.stringify(userDTO));
-
-  if (checkIsConfigured()) {
-    registerUserInSupabase(localUser.name, localUser.email, passwordHash).catch(() => {});
-  }
-
-  return userDTO;
+  safeSessionStorage.setItem(CURRENT_USER_KEY, JSON.stringify(user));
+  return user;
 };
 
 export const logoutUser = () => {

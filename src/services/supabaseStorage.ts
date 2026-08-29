@@ -37,77 +37,46 @@ export const testSupabaseConnection = async (): Promise<{ success: boolean; mess
 
 // ==================== USUÁRIOS (LOGIN & CADASTRO NA NUVEM) ====================
 
-export const findUserInSupabase = async (email: string, passwordHash: string): Promise<User | null> => {
+export const findUserInSupabase = async (email: string, password: string): Promise<User | null> => {
   const client = getSupabase();
-  if (!client) return null;
+  if (!client) throw new Error('A conexão com o Supabase não está configurada.');
 
-  try {
-    const formattedEmail = email.toLowerCase().trim();
-    const { data, error } = await client
-      .from('users')
-      .select('id, name, email')
-      .eq('email', formattedEmail)
-      .eq('password_hash', passwordHash)
-      .maybeSingle();
+  const { data, error } = await client.auth.signInWithPassword({
+    email: email.toLowerCase().trim(),
+    password,
+  });
 
-    if (error) {
-      console.warn('Aviso de busca de usuário no Supabase:', error.message);
-      return null;
-    }
-
-    if (!data) return null;
-
-    return {
-      id: data.id,
-      name: data.name,
-      email: data.email,
-    };
-  } catch {
-    return null;
+  if (error || !data.user) {
+    throw new Error(error?.message || 'Não foi possível entrar na conta.');
   }
+
+  return {
+    id: data.user.id,
+    name: typeof data.user.user_metadata?.name === 'string' ? data.user.user_metadata.name : data.user.email?.split('@')[0] || 'Usuário',
+    email: data.user.email || email.toLowerCase().trim(),
+  };
 };
 
-export const registerUserInSupabase = async (name: string, email: string, passwordHash: string): Promise<User | null> => {
+export const registerUserInSupabase = async (name: string, email: string, password: string): Promise<User | null> => {
   const client = getSupabase();
-  if (!client) return null;
+  if (!client) throw new Error('A conexão com o Supabase não está configurada.');
 
-  try {
-    const formattedEmail = email.toLowerCase().trim();
-    const userId = 'usr_' + Date.now().toString(36) + Math.random().toString(36).substring(2, 6);
-    
-    const { data, error } = await client
-      .from('users')
-      .upsert(
-        [
-          {
-            id: userId,
-            name: name.trim(),
-            email: formattedEmail,
-            password_hash: passwordHash,
-          }
-        ],
-        { onConflict: 'email' }
-      )
-      .select('id, name, email');
+  const formattedEmail = email.toLowerCase().trim();
+  const { data, error } = await client.auth.signUp({
+    email: formattedEmail,
+    password,
+    options: { data: { name: name.trim() } },
+  });
 
-    if (error) {
-      console.error('Erro ao gravar usuário no Supabase:', error.message);
-      return null;
-    }
-
-    if (data && data[0]) {
-      return {
-        id: data[0].id,
-        name: data[0].name,
-        email: data[0].email,
-      };
-    }
-
-    return { id: userId, name: name.trim(), email: formattedEmail };
-  } catch (err) {
-    console.error('Erro de conexão ao registrar usuário:', err);
-    return null;
+  if (error || !data.user) {
+    throw new Error(error?.message || 'Não foi possível criar a conta.');
   }
+
+  if (!data.session) {
+    throw new Error('Conta criada. Confirme o e-mail enviado pelo Supabase antes de entrar.');
+  }
+
+  return { id: data.user.id, name: name.trim(), email: formattedEmail };
 };
 
 // ==================== POVOAR DADOS INICIAIS NO SUPABASE ====================
