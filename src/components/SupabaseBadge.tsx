@@ -64,7 +64,98 @@ CREATE TABLE IF NOT EXISTS recurring_transactions (
 );
 
 -- DESATIVAR RLS PARA ACESSO COMPLETO
-ALTER TABLE users DISABLE ROW LEVEL SECURITY;<dyad-write path="src/components/SupabaseBadge.tsx" description="Finalizando a correção completa de SupabaseBadge sem erros de sintaxe">
+ALTER TABLE users DISABLE ROW LEVEL SECURITY;
+ALTER TABLE expenses DISABLE ROW LEVEL SECURITY;
+ALTER TABLE piggy_banks DISABLE ROW LEVEL SECURITY;
+ALTER TABLE recurring_transactions DISABLE ROW LEVEL SECURITY;`;
+
+  const handleCopySql = () => {
+    navigator.clipboard.writeText(sqlScript);
+    setCopied(true);
+    showSuccess('Script SQL copiado!');
+    setTimeout(() => setCopied(false), 2000);
+  };
+
+  const handleSaveKeys = () => {
+    saveCustomSupabaseConfig(supabaseUrl, supabaseKey);
+    showSuccess('Credenciais salvas! Atualizando a página para conectar...');
+    setTimeout(() => {
+      window.location.reload();
+    }, 1000);
+  };
+
+  const handleTestConnection = async () => {
+    setIsTesting(true);
+    const result = await testSupabaseConnection();
+    setTestResult(result);
+    setIsTesting(false);
+    if (result.success) {
+      showSuccess(result.message);
+    } else {
+      showError(result.message);
+    }
+  };
+
+  return (
+    <>
+      <button
+        type="button"
+        onClick={() => {
+          setIsOpen(true);
+          handleTestConnection();
+        }}
+        className={`flex items-center space-x-1.5 text-xs px-3 py-1 rounded-full font-semibold shadow-xs cursor-pointer transition-all ${
+          isConfigured 
+            ? 'bg-emerald-50 text-emerald-800 border border-emerald-200/80 hover:bg-emerald-100' 
+            : 'bg-amber-50 text-amber-800 border border-amber-200/80 hover:bg-amber-100'
+        }`}
+        title="Clique para testar o status e configurar chaves do banco"
+      >
+        {isConfigured ? (
+          <>
+            <Wifi className="w-3.5 h-3.5 text-emerald-600 animate-pulse" />
+            <span>Sincronizado (Nuvem)</span>
+          </>
+        ) : (
+          <>
+            <Database className="w-3.5 h-3.5 text-amber-600" />
+            <span>Modo Local (Off-line)</span>
+            <Info className="w-3 h-3 text-amber-600 ml-0.5" />
+          </>
+        )}
+      </button>
+
+      <Dialog open={isOpen} onOpenChange={setIsOpen}>
+        <DialogContent className="max-w-lg bg-white border-slate-200 rounded-2xl p-6 shadow-2xl">
+          <DialogHeader className="space-y-2">
+            <div className="w-10 h-10 rounded-xl bg-emerald-100 text-emerald-700 flex items-center justify-center font-bold mb-1">
+              <Database className="w-5 h-5" />
+            </div>
+            <DialogTitle className="text-lg font-bold text-slate-900">
+              Conexão com Supabase
+            </DialogTitle>
+            <DialogDescription className="text-xs text-slate-500 leading-relaxed">
+              Verifique onde seus dados estão salvos e configure as credenciais.
+            </DialogDescription>
+          </DialogHeader>
+
+          <div className="space-y-4 my-2 text-xs text-slate-700 max-h-[60vh] overflow-y-auto pr-1">
+            {/* Status da Conexão */}
+            <div className={`p-3 border rounded-xl space-y-1.5 ${
+              testResult?.success ? 'bg-emerald-50 border-emerald-200' : 'bg-amber-50 border-amber-200'
+            }`}>
+              <div className="flex items-center justify-between">
+                <span className="font-bold text-slate-900 flex items-center gap-1.5">
+                  {testResult?.success ? (
+                    <CheckCircle2 className="w-4 h-4 text-emerald-600" />
+                  ) : (
+                    <AlertTriangle className="w-4 h-4 text-amber-600" />
+                  )}
+                  {testResult?.success ? 'Supabase Conectado' : 'Supabase Desconectado / Local'}
+                </span>
+
+                <Button
+                  size="<dyad-write path="src/components/SupabaseBadge.tsx" description="Finalizando a escrita do componente SupabaseBadge">
 import React, { useState } from 'react';
 import { checkIsConfigured, getStoredSupabaseConfig, saveCustomSupabaseConfig } from '@/lib/supabase';
 import { testSupabaseConnection } from '@/services/supabaseStorage';
