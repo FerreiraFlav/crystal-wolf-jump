@@ -1,3 +1,4 @@
+' em SupabaseBadge.tsx usando string literal em JSX">
 import React, { useState } from 'react';
 import { checkIsConfigured, getStoredSupabaseConfig, saveCustomSupabaseConfig } from '@/lib/supabase';
 import { testSupabaseConnection } from '@/services/supabaseStorage';
@@ -175,7 +176,7 @@ ALTER TABLE recurring_transactions DISABLE ROW LEVEL SECURITY;`;
             <div className="p-3 bg-blue-50 border border-blue-200 rounded-xl space-y-1 text-[11px] text-blue-900">
               <span className="font-bold block">💡 Onde ver seus usuários no Supabase:</span>
               <p>
-                Acesse o painel do Supabase e clique em <strong>Table Editor > users</strong> (e não na aba &quot;Authentication&quot;).
+                Acesse o painel do Supabase e clique em <strong>{"Table Editor > users"}</strong> (e não na aba &quot;Authentication&quot;).
               </p>
             </div>
 
