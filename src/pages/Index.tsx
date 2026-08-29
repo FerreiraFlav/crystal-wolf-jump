@@ -17,7 +17,7 @@ import {
   deleteExpenseFromSupabase,
   updateExpenseInSupabase 
 } from '@/services/supabaseStorage';
-import { isSupabaseConfigured } from '@/lib/supabase';
+import { checkIsConfigured } from '@/lib/supabase';
 import { analyzeExpensesWithAI } from '@/services/aiAdvisor';
 import { AuthModal } from '@/components/AuthModal';
 import { Navbar } from '@/components/Navbar';
@@ -83,7 +83,7 @@ const Index = () => {
       const budgetData = getBudgets(userId);
       setBudgets(budgetData);
 
-      if (isSupabaseConfigured) {
+      if (checkIsConfigured()) {
         const supabaseExpenses = await fetchExpensesFromSupabase(userId);
         if (supabaseExpenses && supabaseExpenses.length > 0) {
           setExpenses(supabaseExpenses);
@@ -111,7 +111,7 @@ const Index = () => {
 
     addExpenseStorage(currentUser.id, newExp);
 
-    if (isSupabaseConfigured) {
+    if (checkIsConfigured()) {
       await saveExpenseToSupabase(currentUser.id, newExp);
     }
 
@@ -122,7 +122,7 @@ const Index = () => {
     if (!currentUser) return;
     updateExpenseStorage(id, updated);
 
-    if (isSupabaseConfigured) {
+    if (checkIsConfigured()) {
       await updateExpenseInSupabase(id, updated);
     }
 
@@ -132,7 +132,7 @@ const Index = () => {
   const handleDeleteExpense = async (id: string) => {
     deleteExpenseStorage(id);
 
-    if (isSupabaseConfigured) {
+    if (checkIsConfigured()) {
       await deleteExpenseFromSupabase(id);
     }
 

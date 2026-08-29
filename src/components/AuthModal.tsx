@@ -2,7 +2,7 @@ import React, { useState } from 'react';
 import { User } from '@/types/finance';
 import { registerUserAsync, loginUserAsync } from '@/services/storage';
 import { seedSupabaseDataIfEmpty } from '@/services/supabaseStorage';
-import { isSupabaseConfigured } from '@/lib/supabase';
+import { checkIsConfigured } from '@/lib/supabase';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
@@ -20,6 +20,8 @@ export const AuthModal: React.FC<AuthModalProps> = ({ onLoginSuccess }) => {
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [isLoading, setIsLoading] = useState(false);
+
+  const isConnected = checkIsConfigured();
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -41,7 +43,7 @@ export const AuthModal: React.FC<AuthModalProps> = ({ onLoginSuccess }) => {
       if (isRegister) {
         const newUser = await registerUserAsync(name.trim(), email.trim(), password);
         await seedSupabaseDataIfEmpty(newUser.id);
-        showSuccess(`Bem-vindo, ${newUser.name}! Sua conta foi cadastrada com sucesso na nuvem.`);
+        showSuccess(`Conta criada com sucesso e sincronizada! Bem-vindo, ${newUser.name}.`);
         onLoginSuccess(newUser);
       } else {
         try {
@@ -50,7 +52,7 @@ export const AuthModal: React.FC<AuthModalProps> = ({ onLoginSuccess }) => {
           showSuccess(`Bem-vindo de volta, ${user.name}!`);
           onLoginSuccess(user);
         } catch (err: any) {
-          showError(err.message || 'Conta não encontrada.');
+          showError(err.message || 'E-mail ou senha incorretos.');
         }
       }
     } catch (err: any) {
@@ -69,9 +71,8 @@ export const AuthModal: React.FC<AuthModalProps> = ({ onLoginSuccess }) => {
       } catch {
         user = await registerUserAsync('Flavio', 'flavio@email.com', '123456');
       }
-      // Povoa o Supabase com o usuário e despesas se ainda estiver vazio
       await seedSupabaseDataIfEmpty(user.id);
-      showSuccess('Entrou como Flavio! Dados sincronizados no Supabase.');
+      showSuccess('Entrou como Flavio! Dados salvos no banco.');
       onLoginSuccess(user);
     } catch (err: any) {
       showError(err.message || 'Erro ao entrar na conta.');
@@ -92,20 +93,127 @@ export const AuthModal: React.FC<AuthModalProps> = ({ onLoginSuccess }) => {
             Meu Orçamento <span className="text-emerald-400">Inteligente</span>
           </h1>
           <p className="text-slate-400 text-xs mt-1.5 max-w-sm mx-auto">
-            Controle total dos seus gastos sincronizado na nuvem para todos os seus dispositivos
+            Controle financeiro pessoal com Inteligência Artificial e sincronização no Supabase
           </p>
 
           {/* Badge de Conexão com Supabase */}
           <div className="mt-3 flex items-center justify-center">
-            {isSupabaseConfigured ? (
+            {isConnected ? (
               <span className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-[11px] font-bold bg-emerald-500/20 text-emerald-300 border border-emerald-500/30">
                 <Wifi className="w-3.5 h-3.5 text-emerald-400 animate-pulse" />
-                Modo Nuvem (Supabase Conectado)
+                Supabase Conectado (Nuvem)
+              </span>
+            ) : (
+              <span className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-[11px] font-bold bg-amber-500/20 text-amber-3<dyad-write path="src/components/AuthModal.tsx" description="Finalizando componente AuthModal com sincronização segura ao Supabase">
+import React, { useState } from 'react';
+import { User } from '@/types/finance';
+import { registerUserAsync, loginUserAsync } from '@/services/storage';
+import { seedSupabaseDataIfEmpty } from '@/services/supabaseStorage';
+import { checkIsConfigured } from '@/lib/supabase';
+import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
+import { Input } from '@/components/ui/input';
+import { Label } from '@/components/ui/label';
+import { Button } from '@/components/ui/button';
+import { Wallet, Lock, Mail, User as UserIcon, ShieldCheck, ArrowRight, KeyRound, Wifi, Database } from 'lucide-react';
+import { showSuccess, showError } from '@/utils/toast';
+
+interface AuthModalProps {
+  onLoginSuccess: (user: User) => void;
+}
+
+export const AuthModal: React.FC<AuthModalProps> = ({ onLoginSuccess }) => {
+  const [isRegister, setIsRegister] = useState(false);
+  const [name, setName] = useState('');
+  const [email, setEmail] = useState('');
+  const [password, setPassword] = useState('');
+  const [isLoading, setIsLoading] = useState(false);
+
+  const isConnected = checkIsConfigured();
+
+  const handleSubmit = async (e: React.FormEvent) => {
+    e.preventDefault();
+    setIsLoading(true);
+
+    try {
+      if (!email || !password || (isRegister && !name)) {
+        showError('Por favor, preencha todos os campos.');
+        setIsLoading(false);
+        return;
+      }
+
+      if (password.length < 4) {
+        showError('A senha deve ter pelo menos 4 caracteres.');
+        setIsLoading(false);
+        return;
+      }
+
+      if (isRegister) {
+        const newUser = await registerUserAsync(name.trim(), email.trim(), password);
+        await seedSupabaseDataIfEmpty(newUser.id);
+        showSuccess(`Conta criada com sucesso e sincronizada! Bem-vindo, ${newUser.name}.`);
+        onLoginSuccess(newUser);
+      } else {
+        try {
+          const user = await loginUserAsync(email.trim(), password);
+          await seedSupabaseDataIfEmpty(user.id);
+          showSuccess(`Bem-vindo de volta, ${user.name}!`);
+          onLoginSuccess(user);
+        } catch (err: any) {
+          showError(err.message || 'E-mail ou senha incorretos.');
+        }
+      }
+    } catch (err: any) {
+      showError(err.message || 'Ocorreu um erro ao autenticar.');
+    } finally {
+      setIsLoading(false);
+    }
+  };
+
+  const handleDemoLogin = async () => {
+    setIsLoading(true);
+    try {
+      let user: User;
+      try {
+        user = await loginUserAsync('flavio@email.com', '123456');
+      } catch {
+        user = await registerUserAsync('Flavio', 'flavio@email.com', '123456');
+      }
+      await seedSupabaseDataIfEmpty(user.id);
+      showSuccess('Entrou como Flavio! Dados salvos no banco.');
+      onLoginSuccess(user);
+    } catch (err: any) {
+      showError(err.message || 'Erro ao entrar na conta.');
+    } finally {
+      setIsLoading(false);
+    }
+  };
+
+  return (
+    <div className="min-h-screen bg-slate-900 bg-[radial-gradient(ellipse_80%_80%_at_50%_-20%,rgba(16,185,129,0.15),rgba(255,255,255,0))] flex flex-col justify-center items-center p-4">
+      <div className="w-full max-w-md">
+        {/* Cabeçalho da Marca */}
+        <div className="text-center mb-6">
+          <div className="inline-flex items-center justify-center p-4 bg-emerald-500/10 border border-emerald-500/30 rounded-2xl mb-3 text-emerald-400 shadow-xl shadow-emerald-950/50">
+            <Wallet className="w-10 h-10" />
+          </div>
+          <h1 className="text-3xl font-extrabold text-white tracking-tight">
+            Meu Orçamento <span className="text-emerald-400">Inteligente</span>
+          </h1>
+          <p className="text-slate-400 text-xs mt-1.5 max-w-sm mx-auto">
+            Controle financeiro pessoal com Inteligência Artificial e sincronização no Supabase
+          </p>
+
+          {/* Badge de Conexão com Supabase */}
+          <div className="mt-3 flex items-center justify-center">
+            {isConnected ? (
+              <span className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-[11px] font-bold bg-emerald-500/20 text-emerald-300 border border-emerald-500/30">
+                <Wifi className="w-3.5 h-3.5 text-emerald-400 animate-pulse" />
+                Supabase Conectado (Nuvem)
               </span>
             ) : (
               <span className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-[11px] font-bold bg-amber-500/20 text-amber-300 border border-amber-500/30">
                 <Database className="w-3.5 h-3.5 text-amber-400" />
-                Modo Offline / Local (Verifique Vercel)
+                Modo Offline / Local
               </span>
             )}
           </div>

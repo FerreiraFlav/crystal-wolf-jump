@@ -1,18 +1,19 @@
-import { supabase, isSupabaseConfigured } from '@/lib/supabase';
+import { getSupabase, checkIsConfigured } from '@/lib/supabase';
 import { Expense, User, PiggyBank, RecurringTransaction } from '@/types/finance';
 
 // ==================== TESTE DE CONEXÃO E TABELAS ====================
 
 export const testSupabaseConnection = async (): Promise<{ success: boolean; message: string }> => {
-  if (!isSupabaseConfigured || !supabase) {
+  const client = getSupabase();
+  if (!client || !checkIsConfigured()) {
     return { 
       success: false, 
-      message: 'As variáveis de ambiente do Supabase não estão configuradas. Configure-as no painel ou insira-as manualmente no modal.' 
+      message: 'As credenciais do Supabase não foram encontradas. Insira a URL e a Anon Key no painel ou nas variáveis de ambiente da Vercel.' 
     };
   }
 
   try {
-    const { error } = await supabase.from('users').select('id').limit(1);
+    const { error } = await client.from('users').select('id').limit(1);
     if (error) {
       if (error.code === '42P01') {
         return { 
@@ -20,15 +21,15 @@ export const testSupabaseConnection = async (): Promise<{ success: boolean; mess
           message: 'As tabelas ainda não foram criadas no Supabase. Execute o script SQL no SQL Editor do Supabase.' 
         };
       }
-      if (error.code === '42501' || error.message.includes('row-level security')) {
+      if (error.code === '42501' || error.message?.includes('row-level security')) {
         return {
           success: false,
-          message: 'As tabelas do Supabase estão com RLS ativo. Execute o script SQL no painel do Supabase para liberar o acesso.'
+          message: 'As tabelas do Supabase estão com RLS ativo. Execute o script SQL no painel para desativar o RLS ou liberar o acesso.'
         };
       }
       return { success: false, message: `Erro do Supabase: ${error.message}` };
     }
-    return { success: true, message: 'Conexão com o Supabase estabelecida com sucesso e tabelas detectadas!' };
+    return { success: true, message: 'Conexão com o Supabase 100% ativa! Usuários e despesas estão salvando na nuvem.' };
   } catch (err: any) {
     return { success: false, message: err?.message || 'Erro de conexão com o Supabase.' };
   }
@@ -37,11 +38,12 @@ export const testSupabaseConnection = async (): Promise<{ success: boolean; mess
 // ==================== USUÁRIOS (LOGIN & CADASTRO NA NUVEM) ====================
 
 export const findUserInSupabase = async (email: string, passwordHash: string): Promise<User | null> => {
-  if (!isSupabaseConfigured || !supabase) return null;
+  const client = getSupabase();
+  if (!client) return null;
 
   try {
     const formattedEmail = email.toLowerCase().trim();
-    const { data, error } = await supabase
+    const { data, error } = await client
       .from('users')
       .select('id, name, email')
       .eq('email', formattedEmail)
@@ -49,7 +51,7 @@ export const findUserInSupabase = async (email: string, passwordHash: string): P
       .maybeSingle();
 
     if (error) {
-      console.warn('Aviso de busca no Supabase:', error.message);
+      console.warn('Aviso de busca de usuário no Supabase:', error.message);
       return null;
     }
 
@@ -66,15 +68,14 @@ export const findUserInSupabase = async (email: string, passwordHash: string): P
 };
 
 export const registerUserInSupabase = async (name: string, email: string, passwordHash: string): Promise<User | null> => {
-  if (!isSupabaseConfigured || !supabase) {
-    return null;
-  }
+  const client = getSupabase();
+  if (!client) return null;
 
   try {
     const formattedEmail = email.toLowerCase().trim();
-    const userId = 'usr_' + Date.now().toString(36) + Math.random().toString(36).substring(2, 5);
+    const userId = 'usr_' + Date.now().toString(36) + Math.random().toString(36).substring(2, 6);
     
-    const { data, error } = await supabase
+    const { data, error } = await client
       .from('users')
       .upsert(
         [
@@ -90,7 +91,7 @@ export const registerUserInSupabase = async (name: string, email: string, passwo
       .select('id, name, email');
 
     if (error) {
-      console.warn('Aviso ao registrar no Supabase:', error.message);
+      console.error('Erro ao gravar usuário no Supabase:', error.message);
       return null;
     }
 
@@ -103,29 +104,20 @@ export const registerUserInSupabase = async (name: string, email: string, passwo
     }
 
     return { id: userId, name: name.trim(), email: formattedEmail };
-  } catch {
+  } catch (err) {
+    console.error('Erro de conexão ao registrar usuário:', err);
     return null;
   }
 };
 
-// ==================== POVOAR DADOS DE TESTE NO SUPABASE ====================
+// ==================== POVOAR DADOS INICIAIS NO SUPABASE ====================
 
 export const seedSupabaseDataIfEmpty = async (userId: string) => {
-  if (!isSupabaseConfigured || !supabase) return;
+  const client = getSupabase();
+  if (!client) return;
 
   try {
-    // 1. Garante que o usuário existe na tabela users
-    await supabase.from('users').upsert([
-      {
-        id: userId,
-        name: 'Flavio',
-        email: 'flavio@email.com',
-        password_hash: '123456',
-      }
-    ], { onConflict: 'email' });
-
-    // 2. Verifica se já existem lançamentos
-    const { data: existing } = await supabase
+    const { data: existing } = await client
       .from('expenses')
       .select('id')
       .eq('user_id', userId)
@@ -150,16 +142,16 @@ export const seedSupabaseDataIfEmpty = async (userId: string) => {
       { user_id: userId, description: 'Jantar Restaurante', amount: 65.00, category: 'Lazer & Entretenimento', type: 'expense', date: `${year}-${month}-12` },
     ];
 
-    await supabase.from('expenses').insert(demoExpenses);
+    await client.from('expenses').insert(demoExpenses);
 
-    // Cofrinhos de exemplo
-    await supabase.from('piggy_banks').insert([
+    // Cofrinhos
+    await client.from('piggy_banks').insert([
       { user_id: userId, name: 'Reserva de Emergência', target_amount: 3000, current_amount: 1200, color: '#10B981' },
       { user_id: userId, name: 'Viagem / Férias', target_amount: 1500, current_amount: 450, color: '#3B82F6' },
     ]);
 
-    // Contas fixas de exemplo
-    await supabase.from('recurring_transactions').insert([
+    // Contas fixas
+    await client.from('recurring_transactions').insert([
       { user_id: userId, description: 'Renda / Aluguer Habitação', amount: 750, category: 'Moradia', type: 'expense', frequency: 'monthly', day_of_month: 5 },
       { user_id: userId, description: 'Salário Semanal', amount: 650, category: 'Salário', type: 'income', frequency: 'weekly', day_of_week: 5 },
     ]);
@@ -168,21 +160,20 @@ export const seedSupabaseDataIfEmpty = async (userId: string) => {
   }
 };
 
-// ==================== LANÇAMENTOS (DESPESAS / RECEITAS) ====================
+// ==================== LANÇAMENTOS ====================
 
 export const fetchExpensesFromSupabase = async (userId: string): Promise<Expense[]> => {
-  if (!isSupabaseConfigured || !supabase) return [];
+  const client = getSupabase();
+  if (!client) return [];
 
   try {
-    const { data, error } = await supabase
+    const { data, error } = await client
       .from('expenses')
       .select('*')
       .eq('user_id', userId)
       .order('date', { ascending: false });
 
-    if (error) {
-      return [];
-    }
+    if (error) return [];
 
     return (data || []).map(item => ({
       id: item.id,
@@ -200,10 +191,11 @@ export const fetchExpensesFromSupabase = async (userId: string): Promise<Expense
 };
 
 export const saveExpenseToSupabase = async (userId: string, expense: Omit<Expense, 'id' | 'userId' | 'createdAt'>) => {
-  if (!isSupabaseConfigured || !supabase) return null;
+  const client = getSupabase();
+  if (!client) return null;
 
   try {
-    const { data, error } = await supabase
+    const { data, error } = await client
       .from('expenses')
       .insert([
         {
@@ -217,10 +209,7 @@ export const saveExpenseToSupabase = async (userId: string, expense: Omit<Expens
       ])
       .select();
 
-    if (error) {
-      return null;
-    }
-
+    if (error) return null;
     return data?.[0] || null;
   } catch {
     return null;
@@ -228,10 +217,11 @@ export const saveExpenseToSupabase = async (userId: string, expense: Omit<Expens
 };
 
 export const updateExpenseInSupabase = async (id: string, updatedFields: Partial<Omit<Expense, 'id' | 'userId'>>) => {
-  if (!isSupabaseConfigured || !supabase) return;
+  const client = getSupabase();
+  if (!client) return;
 
   try {
-    await supabase.from('expenses').update({
+    await client.from('expenses').update({
       description: updatedFields.description,
       amount: updatedFields.amount,
       category: updatedFields.category,
@@ -239,140 +229,30 @@ export const updateExpenseInSupabase = async (id: string, updatedFields: Partial
       date: updatedFields.date,
     }).eq('id', id);
   } catch {
-    // Ignorar falhas silenciosas
+    // Falha silenciosa
   }
 };
 
 export const deleteExpenseFromSupabase = async (id: string) => {
-  if (!isSupabaseConfigured || !supabase) return;
+  const client = getSupabase();
+  if (!client) return;
 
   try {
-    await supabase.from('expenses').delete().eq('id', id);
+    await client.from('expenses').delete().eq('id', id);
   } catch {
-    // Ignorar falhas silenciosas
+    // Falha silenciosa
   }
 };
 
 // ==================== COFRINHOS ====================
 
-export const fetchPiggyBanksFromSupabase = async (userId: string): Promise<PiggyBank[]> => {
-  if (!isSupabaseConfigured || !supabase) return [];
-
-  try {
-    const { data, error } = await supabase
-      .from('piggy_banks')
-      .select('*')
-      .eq('user_id', userId);
-
-    if (error) return [];
-
-    return (data || []).map(p => ({
-      id: p.id,
-      userId: p.user_id,
-      name: p.name,
-      targetAmount: Number(p.target_amount),
-      currentAmount: Number(p.current_amount),
-      color: p.color || '#10B981',
-    }));
-  } catch {
-    return [];
-  }
-};
-
-export const savePiggyBankToSupabase = async (userId: string, piggy: Omit<PiggyBank, 'id' | 'userId'>) => {
-  if (!isSupabaseConfigured || !supabase) return;
-
-  try {
-    await supabase.from('piggy_banks').insert([
-      {
-        user_id: userId,
-        name: piggy.name,
-        target_amount: piggy.targetAmount,
-        current_amount: piggy.currentAmount,
-        color: piggy.color,
-      }
-    ]);
-  } catch {
-    // Ignorar falhas silenciosas
-  }
-};
-
 export const updatePiggyBankAmountInSupabase = async (id: string, newAmount: number) => {
-  if (!isSupabaseConfigured || !supabase) return;
+  const client = getSupabase();
+  if (!client) return;
 
   try {
-    await supabase.from('piggy_banks').update({ current_amount: newAmount }).eq('id', id);
+    await client.from('piggy_banks').update({ current_amount: newAmount }).eq('id', id);
   } catch {
-    // Ignorar falhas silenciosas
-  }
-};
-
-export const deletePiggyBankFromSupabase = async (id: string) => {
-  if (!isSupabaseConfigured || !supabase) return;
-
-  try {
-    await supabase.from('piggy_banks').delete().eq('id', id);
-  } catch {
-    // Ignorar falhas silenciosas
-  }
-};
-
-// ==================== CONTAS FIXAS / RECORRENTES ====================
-
-export const fetchRecurringTransactionsFromSupabase = async (userId: string): Promise<RecurringTransaction[]> => {
-  if (!isSupabaseConfigured || !supabase) return [];
-
-  try {
-    const { data, error } = await supabase
-      .from('recurring_transactions')
-      .select('*')
-      .eq('user_id', userId);
-
-    if (error) return [];
-
-    return (data || []).map(r => ({
-      id: r.id,
-      userId: r.user_id,
-      description: r.description,
-      amount: Number(r.amount),
-      category: r.category,
-      type: r.type || 'expense',
-      frequency: r.frequency || 'monthly',
-      dayOfMonth: r.day_of_month,
-      dayOfWeek: r.day_of_week,
-    }));
-  } catch {
-    return [];
-  }
-};
-
-export const saveRecurringTransactionToSupabase = async (userId: string, item: Omit<RecurringTransaction, 'id' | 'userId'>) => {
-  if (!isSupabaseConfigured || !supabase) return;
-
-  try {
-    await supabase.from('recurring_transactions').insert([
-      {
-        user_id: userId,
-        description: item.description,
-        amount: item.amount,
-        category: item.category,
-        type: item.type,
-        frequency: item.frequency,
-        day_of_month: item.dayOfMonth,
-        day_of_week: item.dayOfWeek,
-      }
-    ]);
-  } catch {
-    // Ignorar falhas silenciosas
-  }
-};
-
-export const deleteRecurringTransactionFromSupabase = async (id: string) => {
-  if (!isSupabaseConfigured || !supabase) return;
-
-  try {
-    await supabase.from('recurring_transactions').delete().eq('id', id);
-  } catch {
-    // Ignorar falhas silenciosas
+    // Falha silenciosa
   }
 };

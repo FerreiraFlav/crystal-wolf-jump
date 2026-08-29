@@ -33,13 +33,13 @@ export const getStoredSupabaseConfig = () => {
     const customUrl = typeof window !== 'undefined' ? localStorage.getItem('custom_supabase_url') || '' : '';
     const customKey = typeof window !== 'undefined' ? localStorage.getItem('custom_supabase_key') || '' : '';
     return {
-      url: customUrl || getEnvUrl(),
-      anonKey: customKey || getEnvKey(),
+      url: (customUrl || getEnvUrl()).trim(),
+      anonKey: (customKey || getEnvKey()).trim(),
     };
   } catch {
     return {
-      url: getEnvUrl(),
-      anonKey: getEnvKey(),
+      url: getEnvUrl().trim(),
+      anonKey: getEnvKey().trim(),
     };
   }
 };
@@ -59,30 +59,47 @@ export const saveCustomSupabaseConfig = (url: string, anonKey: string) => {
   }
 };
 
-const currentConfig = getStoredSupabaseConfig();
+export const checkIsConfigured = (): boolean => {
+  const cfg = getStoredSupabaseConfig();
+  return Boolean(
+    cfg.url &&
+    cfg.anonKey &&
+    typeof cfg.url === 'string' &&
+    cfg.url.startsWith('http') &&
+    !cfg.url.includes('placeholder')
+  );
+};
 
-export const isSupabaseConfigured: boolean = Boolean(
-  currentConfig.url &&
-  currentConfig.anonKey &&
-  typeof currentConfig.url === 'string' &&
-  currentConfig.url.startsWith('http') &&
-  !currentConfig.url.includes('placeholder')
-);
+export const isSupabaseConfigured: boolean = checkIsConfigured();
 
-let supabaseClient: SupabaseClient | null = null;
+let cachedClient: SupabaseClient | null = null;
+let lastUsedUrl = '';
+let lastUsedKey = '';
 
-if (isSupabaseConfigured && currentConfig.url && currentConfig.anonKey) {
+export const getSupabase = (): SupabaseClient | null => {
+  const config = getStoredSupabaseConfig();
+  if (!config.url || !config.anonKey || !config.url.startsWith('http')) {
+    return null;
+  }
+
+  if (cachedClient && lastUsedUrl === config.url && lastUsedKey === config.anonKey) {
+    return cachedClient;
+  }
+
   try {
-    supabaseClient = createClient(currentConfig.url, currentConfig.anonKey, {
+    cachedClient = createClient(config.url, config.anonKey, {
       auth: {
         persistSession: false,
         autoRefreshToken: false,
       },
     });
+    lastUsedUrl = config.url;
+    lastUsedKey = config.anonKey;
+    return cachedClient;
   } catch (e) {
-    console.warn('Supabase não pôde ser inicializado no momento do build:', e);
-    supabaseClient = null;
+    console.warn('Erro ao criar cliente Supabase:', e);
+    return null;
   }
-}
+};
 
-export const supabase = supabaseClient;
+export const supabase = getSupabase();
