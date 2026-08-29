@@ -204,12 +204,12 @@ const Index = () => {
             }}
           />
 
-          <div className="flex flex-wrap items-center space-x-2 w-full md:w-auto justify-end gap-1.5">
+          <div className="grid w-full grid-cols-1 gap-2 min-[420px]:grid-cols-2 md:flex md:w-auto md:flex-wrap md:justify-end md:gap-1.5">
             <Button
               variant="outline"
               size="sm"
               onClick={() => setIsRecurringModalOpen(true)}
-              className="rounded-xl border-teal-200 bg-teal-50/50 text-teal-800 hover:bg-teal-100 text-xs font-bold flex items-center gap-1.5"
+              className="w-full justify-center rounded-xl border-teal-200 bg-teal-50/50 text-teal-800 hover:bg-teal-100 text-xs font-bold md:w-auto flex items-center gap-1.5"
             >
               <Repeat className="w-4 h-4 text-teal-600" />
               {t('recurringBills')}
@@ -219,7 +219,7 @@ const Index = () => {
               variant="outline"
               size="sm"
               onClick={() => setIsCofrinhoModalOpen(true)}
-              className="rounded-xl border-emerald-200 bg-emerald-50/50 text-emerald-800 hover:bg-emerald-100 text-xs font-bold flex items-center gap-1.5"
+              className="w-full justify-center rounded-xl border-emerald-200 bg-emerald-50/50 text-emerald-800 hover:bg-emerald-100 text-xs font-bold md:w-auto flex items-center gap-1.5"
             >
               <PiggyIcon className="w-4 h-4 text-emerald-600" />
               {t('piggyBanks')}
@@ -229,7 +229,7 @@ const Index = () => {
               variant="outline"
               size="sm"
               onClick={() => setIsBudgetModalOpen(true)}
-              className="rounded-xl border-slate-200 text-slate-700 hover:bg-slate-50 text-xs font-semibold flex items-center gap-1.5"
+              className="w-full justify-center rounded-xl border-slate-200 text-slate-700 hover:bg-slate-50 text-xs font-semibold md:w-auto flex items-center gap-1.5"
             >
               <Target className="w-4 h-4 text-emerald-600" />
               {t('categoryGoals')}
@@ -239,7 +239,7 @@ const Index = () => {
               variant="outline"
               size="sm"
               onClick={() => setIsExportModalOpen(true)}
-              className="rounded-xl border-slate-200 text-slate-700 hover:bg-slate-50 text-xs font-semibold flex items-center gap-1.5"
+              className="w-full justify-center rounded-xl border-slate-200 text-slate-700 hover:bg-slate-50 text-xs font-semibold md:w-auto flex items-center gap-1.5"
             >
               <Download className="w-4 h-4 text-blue-600" />
               {t('exportImport')}
