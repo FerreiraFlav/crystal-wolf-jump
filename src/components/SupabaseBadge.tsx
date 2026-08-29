@@ -47,56 +47,6 @@ CREATE TABLE IF NOT EXISTS piggy_banks (
   target_amount NUMERIC(10, 2) NOT NULL,
   current_amount NUMERIC(10, 2) NOT NULL DEFAULT 0,
   color TEXT DEFAULT '#10B981',
-  created_at TIMESTAMP WITH TIME ZONE DEFAULT NOW<dyad-write path="src/components/SupabaseBadge.tsx" description="Finalizando o componente SupabaseBadge com verificação dinâmica e interface para configurar credenciais">
-import React, { useState } from 'react';
-import { checkIsConfigured, getStoredSupabaseConfig, saveCustomSupabaseConfig } from '@/lib/supabase';
-import { testSupabaseConnection } from '@/services/supabaseStorage';
-import { Database, Wifi, Info, CheckCircle2, Copy, Check, Terminal, AlertTriangle, RefreshCw, Key, Link as LinkIcon } from 'lucide-react';
-import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription } from '@/components/ui/dialog';
-import { Input } from '@/components/ui/input';
-import { Label } from '@/components/ui/label';
-import { Button } from '@/components/ui/button';
-import { showSuccess, showError } from '@/utils/toast';
-
-export const SupabaseBadge: React.FC = () => {
-  const [isOpen, setIsOpen] = useState(false);
-  const [copied, setCopied] = useState(false);
-  const [isTesting, setIsTesting] = useState(false);
-  const [testResult, setTestResult] = useState<{ success: boolean; message: string } | null>(null);
-
-  const isConfigured = checkIsConfigured();
-  const initialConfig = getStoredSupabaseConfig();
-  const [supabaseUrl, setSupabaseUrl] = useState(initialConfig.url || '');
-  const [supabaseKey, setSupabaseKey] = useState(initialConfig.anonKey || '');
-
-  const sqlScript = `-- SCRIPT DE TABELAS DO SUPABASE (Execute no SQL Editor)
-
-CREATE TABLE IF NOT EXISTS users (
-  id TEXT PRIMARY KEY,
-  name TEXT NOT NULL,
-  email TEXT UNIQUE NOT NULL,
-  password_hash TEXT NOT NULL,
-  created_at TIMESTAMP WITH TIME ZONE DEFAULT NOW()
-);
-
-CREATE TABLE IF NOT EXISTS expenses (
-  id UUID DEFAULT gen_random_uuid() PRIMARY KEY,
-  user_id TEXT NOT NULL,
-  description TEXT NOT NULL,
-  amount NUMERIC(10, 2) NOT NULL,
-  category TEXT NOT NULL,
-  type TEXT NOT NULL DEFAULT 'expense',
-  date DATE NOT NULL,
-  created_at TIMESTAMP WITH TIME ZONE DEFAULT NOW()
-);
-
-CREATE TABLE IF NOT EXISTS piggy_banks (
-  id UUID DEFAULT gen_random_uuid() PRIMARY KEY,
-  user_id TEXT NOT NULL,
-  name TEXT NOT NULL,
-  target_amount NUMERIC(10, 2) NOT NULL,
-  current_amount NUMERIC(10, 2) NOT NULL DEFAULT 0,
-  color TEXT DEFAULT '#10B981',
   created_at TIMESTAMP WITH TIME ZONE DEFAULT NOW()
 );
 
