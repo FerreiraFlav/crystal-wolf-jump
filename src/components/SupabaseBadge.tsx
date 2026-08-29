@@ -50,6 +50,182 @@ CREATE TABLE IF NOT EXISTS piggy_banks (
   created_at TIMESTAMP WITH TIME ZONE DEFAULT NOW()
 );
 
+CREATE<dyad-write path="src/components/SupabaseBadge.tsx" description="Finalizando a escrita completa e corrigida de SupabaseBadge.tsx">
+import React, { useState } from 'react';
+import { checkIsConfigured, getStoredSupabaseConfig, saveCustomSupabaseConfig } from '@/lib/supabase';
+import { testSupabaseConnection } from '@/services/supabaseStorage';
+import { Database, Wifi, Info, CheckCircle2, Copy, Check, Terminal, AlertTriangle, RefreshCw, Key, Link as LinkIcon } from 'lucide-react';
+import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription } from '@/components/ui/dialog';
+import { Input } from '@/components/ui/input';
+import { Label } from '@/components/ui/label';
+import { Button } from '@/components/ui/button';
+import { showSuccess, showError } from '@/utils/toast';
+
+export const SupabaseBadge: React.FC = () => {
+  const [isOpen, setIsOpen] = useState(false);
+  const [copied, setCopied] = useState(false);
+  const [isTesting, setIsTesting] = useState(false);
+  const [testResult, setTestResult] = useState<{ success: boolean; message: string } | null>(null);
+
+  const isConfigured = checkIsConfigured();
+  const initialConfig = getStoredSupabaseConfig();
+  const [supabaseUrl, setSupabaseUrl] = useState(initialConfig.url || '');
+  const [supabaseKey, setSupabaseKey] = useState(initialConfig.anonKey || '');
+
+  const sqlScript = `-- SCRIPT DE TABELAS DO SUPABASE (Execute no SQL Editor)
+
+CREATE TABLE IF NOT EXISTS users (
+  id TEXT PRIMARY KEY,
+  name TEXT NOT NULL,
+  email TEXT UNIQUE NOT NULL,
+  password_hash TEXT NOT NULL,
+  created_at TIMESTAMP WITH TIME ZONE DEFAULT NOW()
+);
+
+CREATE TABLE IF NOT EXISTS expenses (
+  id UUID DEFAULT gen_random_uuid() PRIMARY KEY,
+  user_id TEXT NOT NULL,
+  description TEXT NOT NULL,
+  amount NUMERIC(10, 2) NOT NULL,
+  category TEXT NOT NULL,
+  type TEXT NOT NULL DEFAULT 'expense',
+  date DATE NOT NULL,
+  created_at TIMESTAMP WITH TIME ZONE DEFAULT NOW()
+);
+
+CREATE TABLE IF NOT EXISTS piggy_banks (
+  id UUID DEFAULT gen_random_uuid() PRIMARY KEY,
+  user_id TEXT NOT NULL,
+  name TEXT NOT NULL,
+  target_amount NUMERIC(10, 2) NOT NULL,
+  current_amount NUMERIC(10, 2) NOT NULL DEFAULT 0,
+  color TEXT DEFAULT '#10B981',
+  created_at TIMESTAMP WITH TIME ZONE DEFAULT NOW()
+);
+
+CREATE TABLE IF NOT EXISTS recurring_transactions (
+  id UUID DEFAULT gen_random_uuid() PRIMARY KEY,
+  user_id TEXT NOT NULL,
+  description TEXT NOT NULL,
+  amount NUMERIC(10, 2) NOT NULL,
+  category TEXT NOT NULL,
+  type TEXT NOT NULL DEFAULT 'expense',
+  frequency TEXT NOT NULL DEFAULT 'monthly',
+  day_of_month INT,
+  day_of_week INT,
+  created_at TIMESTAMP WITH TIME ZONE DEFAULT NOW()
+);
+
+-- DESATIVAR RLS PARA ACESSO COMPLETO
+ALTER TABLE users DISABLE ROW LEVEL SECURITY;
+ALTER TABLE expenses DISABLE ROW LEVEL SECURITY;
+ALTER TABLE piggy_banks DISABLE ROW LEVEL SECURITY;
+ALTER TABLE recurring_transactions DISABLE ROW LEVEL SECURITY;`;
+
+  const handleCopySql = () => {
+    navigator.clipboard.writeText(sqlScript);
+    setCopied(true);
+    showSuccess('Script SQL copiado!');
+    setTimeout(() => setCopied(false), 2000);
+  };
+
+  const handleSaveKeys = () => {
+    saveCustomSupabaseConfig(supabaseUrl, supabaseKey);
+    showSuccess('Credenciais salvas! Atualizando a página para conectar...');
+    setTimeout(() => {
+      window.location.reload();
+    }, 1000);
+  };
+
+  const handleTestConnection = async () => {
+    setIsTesting(true);
+    const result = await testSupabaseConnection();
+    setTestResult(result);
+    setIsTesting(false);
+    if (result.success) {
+      showSuccess(result.message);
+    } else {
+      showError(result.message);
+    }
+  };
+
+  return (
+    <>
+      <button
+        type="button"
+        onClick={() => {
+          setIsOpen(true);
+          handleTestConnection();
+        }}
+        className={`flex items-center space-x-1.5 text-xs px-3 py-1 rounded-full font-semibold shadow-xs cursor-pointer transition-all ${
+          isConfigured 
+            ? 'bg-emerald-50 text-emerald-800 border border-emerald-200/80 hover:bg-emerald-100' 
+            : 'bg-amber-50 text-amber-800 border border-amber-200/80 hover:bg-amber-100'
+        }`}
+        title="Clique para testar o status e configurar chaves do banco"
+      >
+        {isConfigured ? (
+          <>
+            <Wifi className="w-3.5 h-3.5 text-emerald-600 animate-pulse" />
+            <span>Sincronizado (Nuvem)</span>
+          </>
+        ) : (
+          <>
+            <Database className="w-3.5 h-3.5 text-amber-600" />
+            <span>Modo Local (Off-line)</span>
+            <Info className="w-3 h<dyad-write path="src/components/SupabaseBadge.tsx" description="Finalizando o arquivo SupabaseBadge.tsx completamente corrigido">
+import React, { useState } from 'react';
+import { checkIsConfigured, getStoredSupabaseConfig, saveCustomSupabaseConfig } from '@/lib/supabase';
+import { testSupabaseConnection } from '@/services/supabaseStorage';
+import { Database, Wifi, Info, CheckCircle2, Copy, Check, Terminal, AlertTriangle, RefreshCw, Key, Link as LinkIcon } from 'lucide-react';
+import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription } from '@/components/ui/dialog';
+import { Input } from '@/components/ui/input';
+import { Label } from '@/components/ui/label';
+import { Button } from '@/components/ui/button';
+import { showSuccess, showError } from '@/utils/toast';
+
+export const SupabaseBadge: React.FC = () => {
+  const [isOpen, setIsOpen] = useState(false);
+  const [copied, setCopied] = useState(false);
+  const [isTesting, setIsTesting] = useState(false);
+  const [testResult, setTestResult] = useState<{ success: boolean; message: string } | null>(null);
+
+  const isConfigured = checkIsConfigured();
+  const initialConfig = getStoredSupabaseConfig();
+  const [supabaseUrl, setSupabaseUrl] = useState(initialConfig.url || '');
+  const [supabaseKey, setSupabaseKey] = useState(initialConfig.anonKey || '');
+
+  const sqlScript = `-- SCRIPT DE TABELAS DO SUPABASE (Execute no SQL Editor)
+
+CREATE TABLE IF NOT EXISTS users (
+  id TEXT PRIMARY KEY,
+  name TEXT NOT NULL,
+  email TEXT UNIQUE NOT NULL,
+  password_hash TEXT NOT NULL,
+  created_at TIMESTAMP WITH TIME ZONE DEFAULT NOW()
+);
+
+CREATE TABLE IF NOT EXISTS expenses (
+  id UUID DEFAULT gen_random_uuid() PRIMARY KEY,
+  user_id TEXT NOT NULL,
+  description TEXT NOT NULL,
+  amount NUMERIC(10, 2) NOT NULL,
+  category TEXT NOT NULL,
+  type TEXT NOT NULL DEFAULT 'expense',
+  date DATE NOT NULL,
+  created_at TIMESTAMP WITH TIME ZONE DEFAULT NOW()
+);
+
+CREATE TABLE IF NOT EXISTS piggy_banks (
+  id UUID DEFAULT gen_random_uuid() PRIMARY KEY,
+  user_id TEXT NOT NULL,
+  name TEXT NOT NULL,
+  target_amount NUMERIC(10, 2) NOT NULL,
+  current_amount NUMERIC(10, 2) NOT NULL DEFAULT 0,
+  color TEXT DEFAULT '#10B981',
+  created_at TIMESTAMP WITH TIME ZONE DEFAULT NOW()
+);
+
 CREATE TABLE IF NOT EXISTS recurring_transactions (
   id UUID DEFAULT gen_random_uuid() PRIMARY KEY,
   user_id TEXT NOT NULL,
@@ -175,7 +351,7 @@ ALTER TABLE recurring_transactions DISABLE ROW LEVEL SECURITY;`;
             <div className="p-3 bg-blue-50 border border-blue-200 rounded-xl space-y-1 text-[11px] text-blue-900">
               <span className="font-bold block">💡 Onde ver seus usuários no Supabase:</span>
               <p>
-                Acesse o painel do Supabase e clique em <strong>Table Editor > users</strong> (e não na aba &quot;Authentication&quot;).
+                Acesse o painel do Supabase e clique em <strong>Table Editor &rarr; users</strong> (e não na aba &quot;Authentication&quot;).
               </p>
             </div>
 
