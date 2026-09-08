@@ -119,7 +119,9 @@ const translations: Record<Language, Record<string, string>> = {
     wednesday: "Quarta-feira",
     thursday: "Quinta-feira",
     friday: "Sexta-feira",
-    saturday: "Sábado"
+    saturday: "Sábado",
+    themeLight: "Claro",
+    themeDark: "Escuro"
   },
   en: {
     appTitle: "Smart Budget Planner",
@@ -211,7 +213,9 @@ const translations: Record<Language, Record<string, string>> = {
     wednesday: "Wednesday",
     thursday: "Thursday",
     friday: "Friday",
-    saturday: "Saturday"
+    saturday: "Saturday",
+    themeLight: "Light",
+    themeDark: "Dark"
   },
   es: {
     appTitle: "Mi Presupuesto Inteligente",
@@ -303,7 +307,9 @@ const translations: Record<Language, Record<string, string>> = {
     wednesday: "Miércoles",
     thursday: "Jueves",
     friday: "Viernes",
-    saturday: "Sábado"
+    saturday: "Sábado",
+    themeLight: "Claro",
+    themeDark: "Oscuro"
   }
 };
 

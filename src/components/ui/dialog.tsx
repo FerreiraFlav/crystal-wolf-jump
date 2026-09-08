@@ -51,12 +51,12 @@ const DialogContent = React.forwardRef<
       {closePosition !== 'none' && (
         <DialogPrimitive.Close
           className={cn(
-            "absolute top-5 z-50 flex items-center justify-center p-1 text-black transition-all hover:scale-110 active:scale-95 focus:outline-none disabled:pointer-events-none cursor-pointer",
+            "absolute top-5 z-50 flex items-center justify-center p-1 text-black dark:text-white transition-all hover:scale-110 active:scale-95 focus:outline-none disabled:pointer-events-none cursor-pointer",
             closePosition === 'left' ? "left-4" : "right-4",
             closeClassName
           )}
         >
-          <X className="h-5 w-5 stroke-[2.5] text-black drop-shadow-[0_0_1.5px_#ffffff]" />
+          <X className="h-5 w-5 stroke-[2.5] text-black dark:text-white drop-shadow-[0_0_1.5px_#ffffff] dark:drop-shadow-[0_0_1.5px_#000000]" />
           <span className="sr-only">Close</span>
         </DialogPrimitive.Close>
       )}

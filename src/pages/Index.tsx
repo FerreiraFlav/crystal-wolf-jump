@@ -188,13 +188,13 @@ const Index = () => {
   });
 
   return (
-    <div className="min-h-screen bg-slate-100/70 text-slate-800 flex flex-col font-sans">
+    <div className="min-h-screen bg-slate-100/70 text-slate-800 dark:bg-slate-950 dark:text-slate-100 flex flex-col font-sans transition-colors">
       <Navbar user={currentUser} onLogout={handleLogout} />
 
       <main className="flex-1 max-w-7xl w-full mx-auto px-4 sm:px-6 lg:px-8 py-6 space-y-6">
         
         {/* Barra Superior de Ferramentas */}
-        <div className="flex flex-col md:flex-row items-center justify-between gap-4 bg-white border border-slate-200/80 p-4 rounded-2xl shadow-sm">
+        <div className="flex flex-col md:flex-row items-center justify-between gap-4 bg-white dark:bg-slate-900 border border-slate-200/80 dark:border-slate-800 p-4 rounded-2xl shadow-sm transition-colors">
           <MonthPicker
             selectedYear={selectedYear}
             selectedMonth={selectedMonth}
