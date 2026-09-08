@@ -105,4 +105,20 @@
     min-width: 0;
     overflow-x: hidden;
   }
+
+  /* Remove default black focus outline on recharts and SVG elements on mobile */
+  .recharts-surface,
+  .recharts-wrapper,
+  .recharts-pie,
+  .recharts-sector,
+  .recharts-layer,
+  .recharts-responsive-container,
+  svg,
+  svg:focus,
+  svg *:focus {
+    outline: none !important;
+    border: none !important;
+    box-shadow: none !important;
+    -webkit-tap-highlight-color: transparent !important;
+  }
 }

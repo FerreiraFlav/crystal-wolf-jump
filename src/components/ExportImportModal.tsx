@@ -319,10 +319,10 @@ export const ExportImportModal: React.FC<ExportImportModalProps> = ({
               <Download className="w-6 h-6" />
             </div>
             <div>
-              <DialogTitle className="text-xl font-bold text-white">
+              <DialogTitle className="text-xl sm:text-2xl font-bold text-white">
                 Exportar e Importar Dados
               </DialogTitle>
-              <DialogDescription className="text-slate-400 text-xs mt-0.5">
+              <DialogDescription className="text-slate-400 text-xs sm:text-sm mt-1">
                 Gere relatórios visuais em PDF, planilhas CSV ou faça backup em JSON.
               </DialogDescription>
             </div>
@@ -333,16 +333,16 @@ export const ExportImportModal: React.FC<ExportImportModalProps> = ({
           <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
             {/* Coluna 1: Opções de Exportação */}
             <div className="space-y-4">
-              <h4 className="text-xs font-bold text-slate-700 uppercase tracking-wider">
+              <h4 className="text-xs sm:text-sm font-bold text-slate-700 uppercase tracking-wider">
                 1. Exportar Relatório / Backup
               </h4>
 
               {/* Destaque Principal: Botão PDF Executivo */}
               <Button
                 onClick={handleExportPDF}
-                className="w-full rounded-xl bg-gradient-to-r from-emerald-600 to-teal-600 hover:from-emerald-700 hover:to-teal-700 text-white font-extrabold text-xs py-5 flex items-center justify-center gap-2 shadow-md shadow-emerald-600/20"
+                className="w-full rounded-xl bg-gradient-to-r from-emerald-600 to-teal-600 hover:from-emerald-700 hover:to-teal-700 text-white font-extrabold text-xs sm:text-base py-5 flex items-center justify-center gap-2 shadow-md shadow-emerald-600/20"
               >
-                <FileCheck className="w-4 h-4" />
+                <FileCheck className="w-4 h-4 sm:w-5 sm:h-5" />
                 <span>Gerar Relatório PDF</span>
               </Button>
 
@@ -350,7 +350,7 @@ export const ExportImportModal: React.FC<ExportImportModalProps> = ({
                 <Button
                   variant="outline"
                   onClick={handleExportCSV}
-                  className="rounded-xl border-slate-200 text-slate-700 hover:bg-slate-50 flex items-center justify-center gap-2 text-xs py-3.5"
+                  className="rounded-xl border-slate-200 text-slate-700 hover:bg-slate-50 flex items-center justify-center gap-2 text-xs sm:text-sm py-4"
                 >
                   <FileText className="w-4 h-4 text-emerald-600" />
                   Planilha CSV
@@ -359,7 +359,7 @@ export const ExportImportModal: React.FC<ExportImportModalProps> = ({
                 <Button
                   variant="outline"
                   onClick={handleExportJSON}
-                  className="rounded-xl border-slate-200 text-slate-700 hover:bg-slate-50 flex items-center justify-center gap-2 text-xs py-3.5"
+                  className="rounded-xl border-slate-200 text-slate-700 hover:bg-slate-50 flex items-center justify-center gap-2 text-xs sm:text-sm py-4"
                 >
                   <Download className="w-4 h-4 text-blue-600" />
                   Backup JSON
@@ -367,28 +367,28 @@ export const ExportImportModal: React.FC<ExportImportModalProps> = ({
               </div>
 
               {/* Guia de Ajuda */}
-              <div className="p-3 bg-slate-50 border border-slate-200 rounded-xl space-y-1 text-[11px] text-slate-600 mt-4">
-                <div className="flex items-center gap-1 font-bold text-slate-800">
-                  <HelpCircle className="w-3.5 h-3.5 text-emerald-600" />
+              <div className="p-3.5 bg-slate-50 border border-slate-200 rounded-xl space-y-1 text-[11px] sm:text-xs text-slate-600 mt-4">
+                <div className="flex items-center gap-1.5 font-bold text-slate-800 text-xs sm:text-sm">
+                  <HelpCircle className="w-4 h-4 text-emerald-600" />
                   Dica para salvar o PDF:
                 </div>
-                <p>Ao clicar no botão verde de PDF, a janela de impressão abrirá. Selecione a opção <strong>{"\"Salvar como PDF\""}</strong> no seu navegador para salvar o arquivo no computador.</p>
+                <p className="leading-relaxed">Ao clicar no botão verde de PDF, a janela de impressão abrirá. Selecione a opção <strong>{"\"Salvar como PDF\""}</strong> no seu navegador para salvar o arquivo no computador.</p>
               </div>
             </div>
 
             {/* Coluna 2: Opções de Importação */}
             <div className="space-y-4 md:border-l md:border-slate-100 md:pl-6">
               <div className="flex items-center justify-between">
-                <h4 className="text-xs font-bold text-slate-700 uppercase tracking-wider">
+                <h4 className="text-xs sm:text-sm font-bold text-slate-700 uppercase tracking-wider">
                   2. Importar Lançamentos (JSON)
                 </h4>
 
                 <button
                   type="button"
                   onClick={handleDownloadTemplate}
-                  className="text-[11px] font-bold text-blue-600 hover:text-blue-800 flex items-center gap-1 underline"
+                  className="text-[11px] sm:text-xs font-bold text-blue-600 hover:text-blue-800 flex items-center gap-1 underline"
                 >
-                  <FileCode className="w-3.5 h-3.5" />
+                  <FileCode className="w-3.5 h-3.5 sm:w-4 sm:h-4" />
                   Baixar Modelo
                 </button>
               </div>
@@ -404,13 +404,13 @@ export const ExportImportModal: React.FC<ExportImportModalProps> = ({
               <Button
                 variant="outline"
                 onClick={() => fileInputRef.current?.click()}
-                className="w-full rounded-xl border-dashed border-2 border-emerald-300 bg-emerald-50/50 hover:bg-emerald-100/70 text-emerald-800 font-bold text-xs py-4 flex items-center justify-center gap-2"
+                className="w-full rounded-xl border-dashed border-2 border-emerald-300 bg-emerald-50/50 hover:bg-emerald-100/70 text-emerald-800 font-bold text-xs sm:text-sm py-4 flex items-center justify-center gap-2"
               >
                 <Upload className="w-4 h-4 text-emerald-600" />
                 <span>Escolher Arquivo .JSON</span>
               </Button>
 
-              <div className="text-center text-[10px] text-slate-400 font-semibold uppercase">
+              <div className="text-center text-[10px] sm:text-xs text-slate-400 font-semibold uppercase">
                 — Ou cole o conteúdo abaixo —
               </div>
 
@@ -419,13 +419,13 @@ export const ExportImportModal: React.FC<ExportImportModalProps> = ({
                 placeholder='[ { "description": "Lidl", "amount": 22.11, "category": "Alimentação", "type": "expense", "date": "2026-08-07" } ]'
                 value={jsonInput}
                 onChange={e => setJsonInput(e.target.value)}
-                className="w-full p-3 bg-slate-50 border border-slate-200 rounded-xl text-[11px] font-mono outline-none focus:border-emerald-500 focus:ring-1 focus:ring-emerald-500"
+                className="w-full p-3.5 bg-slate-50 border border-slate-200 rounded-xl text-xs sm:text-sm font-mono outline-none focus:border-emerald-500 focus:ring-1 focus:ring-emerald-500"
               />
 
               <Button
                 onClick={handleImportText}
                 disabled={!jsonInput.trim()}
-                className="w-full bg-slate-900 hover:bg-slate-800 text-white font-semibold rounded-xl text-xs py-2.5 flex items-center justify-center gap-2"
+                className="w-full bg-slate-900 hover:bg-slate-800 text-white font-semibold rounded-xl text-xs sm:text-sm py-3 flex items-center justify-center gap-2"
               >
                 <Upload className="w-4 h-4" />
                 Importar Texto Colado

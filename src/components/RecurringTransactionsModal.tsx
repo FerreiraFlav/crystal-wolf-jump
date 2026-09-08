@@ -141,10 +141,10 @@ export const RecurringTransactionsModal: React.FC<RecurringTransactionsModalProp
               <Repeat className="w-6 h-6" />
             </div>
             <div>
-              <DialogTitle className="text-xl font-bold text-white">
+              <DialogTitle className="text-xl sm:text-2xl font-bold text-white">
                 {t('recurringBills')}
               </DialogTitle>
-              <DialogDescription className="text-slate-300 text-xs mt-0.5">
+              <DialogDescription className="text-slate-300 text-xs sm:text-sm mt-1">
                 {t('recurringDesc')}
               </DialogDescription>
             </div>
@@ -153,12 +153,12 @@ export const RecurringTransactionsModal: React.FC<RecurringTransactionsModalProp
 
         <div className="flex-1 min-h-0 p-4 sm:p-6 space-y-4 sm:space-y-6 overflow-y-auto">
           {/* Botão de Ação Rápida: Lançar no mês ativo */}
-          <div className="p-4 bg-emerald-50 border border-emerald-200 rounded-2xl flex flex-col sm:flex-row items-center justify-between gap-3">
+          <div className="p-4 sm:p-5 bg-emerald-50 border border-emerald-200 rounded-2xl flex flex-col sm:flex-row items-center justify-between gap-3">
             <div>
-              <span className="text-xs font-bold text-emerald-900 block">
+              <span className="text-xs sm:text-base font-bold text-emerald-900 block">
                 Mês Ativo: <span className="capitalize">{monthLabel}</span>
               </span>
-              <p className="text-[11px] text-emerald-700 mt-0.5">
+              <p className="text-[11px] sm:text-sm text-emerald-700 mt-1">
                 Gere automaticamente as entradas e saídas recorrentes sem digitar novamente.
               </p>
             </div>
@@ -166,7 +166,7 @@ export const RecurringTransactionsModal: React.FC<RecurringTransactionsModalProp
             <Button
               onClick={handleApplyToCurrentMonth}
               disabled={recurringList.length === 0}
-              className="w-full sm:w-auto bg-emerald-600 hover:bg-emerald-700 text-white font-extrabold text-xs rounded-xl shadow-md px-5 py-2.5 flex items-center justify-center gap-2 shrink-0"
+              className="w-full sm:w-auto bg-emerald-600 hover:bg-emerald-700 text-white font-extrabold text-xs sm:text-sm rounded-xl shadow-md px-6 py-3 flex items-center justify-center gap-2 shrink-0"
             >
               <Zap className="w-4 h-4 fill-white" />
               {t('postCurrentMonth')}
@@ -177,7 +177,7 @@ export const RecurringTransactionsModal: React.FC<RecurringTransactionsModalProp
           {!isAdding ? (
             <Button
               onClick={() => setIsAdding(true)}
-              className="w-full bg-slate-50 hover:bg-slate-100 border border-slate-200 text-slate-800 font-bold py-2.5 rounded-xl text-xs flex items-center justify-center gap-2 transition-colors"
+              className="w-full bg-slate-50 hover:bg-slate-100 border border-slate-200 text-slate-800 font-bold py-3 rounded-xl text-xs sm:text-sm flex items-center justify-center gap-2 transition-colors"
             >
               <Plus className="w-4 h-4 text-emerald-600" />
               {t('addRecurring')}
@@ -313,13 +313,13 @@ export const RecurringTransactionsModal: React.FC<RecurringTransactionsModalProp
           )}
 
           {/* Lista de Contas Fixas Cadastradas */}
-          <div className="space-y-2">
-            <h4 className="text-xs font-bold text-slate-500 uppercase tracking-wider">
+          <div className="space-y-2.5">
+            <h4 className="text-xs sm:text-sm font-bold text-slate-500 uppercase tracking-wider">
               Contas Fixas Cadastradas ({recurringList.length})
             </h4>
 
             {recurringList.length === 0 ? (
-              <div className="text-center py-6 text-slate-400 text-xs">
+              <div className="text-center py-8 text-slate-400 text-xs sm:text-sm">
                 {t('noRecurring')}
               </div>
             ) : (
@@ -330,7 +330,7 @@ export const RecurringTransactionsModal: React.FC<RecurringTransactionsModalProp
 
                   let freqLabel = '';
                   if (freq === 'monthly') {
-                    freqLabel = `Mensal • Dia ${item.dayOfMonth || 1}`;
+                     freqLabel = `Mensal • Dia ${item.dayOfMonth || 1}`;
                   } else if (freq === 'weekly') {
                     freqLabel = `Toda Semana • ${getDayOfWeekName(item.dayOfWeek)}`;
                   } else {
@@ -340,33 +340,33 @@ export const RecurringTransactionsModal: React.FC<RecurringTransactionsModalProp
                   return (
                     <div
                       key={item.id}
-                      className="p-3 hover:bg-slate-50 transition-colors flex items-center justify-between gap-3"
+                      className="p-3.5 sm:p-4 hover:bg-slate-50 transition-colors flex items-center justify-between gap-3"
                     >
-                      <div className="flex items-center space-x-3">
-                        <div className={`p-2 rounded-xl border ${
+                      <div className="flex items-center space-x-3 sm:space-x-3.5">
+                        <div className={`p-2.5 rounded-xl border ${
                           isIncome ? 'bg-emerald-50 border-emerald-200 text-emerald-700' : 'bg-red-50 border-red-200 text-red-700'
                         }`}>
-                          {isIncome ? <ArrowUpCircle className="w-4 h-4" /> : <ArrowDownCircle className="w-4 h-4" />}
+                          {isIncome ? <ArrowUpCircle className="w-4 h-4 sm:w-5 sm:h-5" /> : <ArrowDownCircle className="w-4 h-4 sm:w-5 sm:h-5" />}
                         </div>
                         <div>
-                          <h5 className="font-bold text-xs text-slate-800">{item.description}</h5>
-                          <span className="text-[10px] text-slate-500 font-medium">
+                          <h5 className="font-bold text-xs sm:text-base text-slate-800">{item.description}</h5>
+                          <span className="text-[10px] sm:text-xs text-slate-500 font-medium">
                             {item.category} • <strong className="text-slate-700">{freqLabel}</strong>
                           </span>
                         </div>
                       </div>
 
-                      <div className="flex items-center space-x-3">
-                        <span className={`font-bold text-xs ${isIncome ? 'text-emerald-600' : 'text-slate-900'}`}>
+                      <div className="flex items-center space-x-3 sm:space-x-4">
+                        <span className={`font-bold text-xs sm:text-base ${isIncome ? 'text-emerald-600' : 'text-slate-900'}`}>
                           {formatCurrency(item.amount)}
                         </span>
                         <Button
                           variant="ghost"
                           size="icon"
                           onClick={() => handleDelete(item.id, item.description)}
-                          className="h-7 w-7 text-slate-400 hover:text-red-600 hover:bg-red-50 rounded-lg"
+                          className="h-8 w-8 text-slate-400 hover:text-red-600 hover:bg-red-50 rounded-lg"
                         >
-                          <Trash2 className="w-3.5 h-3.5" />
+                          <Trash2 className="w-4 h-4" />
                         </Button>
                       </div>
                     </div>

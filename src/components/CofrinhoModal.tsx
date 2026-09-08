@@ -129,20 +129,20 @@ export const CofrinhoModal: React.FC<CofrinhoModalProps> = ({
               <PiggyIcon className="w-5 h-5 sm:w-6 sm:h-6" />
             </div>
             <div className="min-w-0">
-              <DialogTitle className="text-base sm:text-xl font-bold text-white truncate">
+              <DialogTitle className="text-base sm:text-2xl font-bold text-white truncate">
                 {t('piggyBanks')}
               </DialogTitle>
-              <DialogDescription className="text-slate-300 text-[10px] sm:text-xs mt-0.5 truncate sm:line-clamp-2">
+              <DialogDescription className="text-slate-300 text-[10px] sm:text-sm mt-0.5 truncate sm:line-clamp-2">
                 {t('piggyBankDesc')}
               </DialogDescription>
             </div>
           </div>
 
           <div className="text-right shrink-0 bg-white/10 sm:bg-transparent px-2.5 py-1 sm:p-0 rounded-xl mr-8 sm:mr-9">
-            <span className="text-[9px] sm:text-[10px] text-emerald-300 font-semibold uppercase tracking-wider block">
+            <span className="text-[9px] sm:text-xs text-emerald-300 font-semibold uppercase tracking-wider block">
               {t('totalInPiggyBanks')}
             </span>
-            <span className="text-base sm:text-xl font-black text-white whitespace-nowrap">
+            <span className="text-base sm:text-2xl font-black text-white whitespace-nowrap">
               {formatCurrency(totalSavedAll)}
             </span>
           </div>
@@ -153,7 +153,7 @@ export const CofrinhoModal: React.FC<CofrinhoModalProps> = ({
           {!isCreating ? (
             <Button
               onClick={() => setIsCreating(true)}
-              className="w-full bg-emerald-50 hover:bg-emerald-100 border border-emerald-200 text-emerald-800 font-bold py-2.5 rounded-xl text-xs flex items-center justify-center gap-2 transition-colors"
+              className="w-full bg-emerald-50 hover:bg-emerald-100 border border-emerald-200 text-emerald-800 font-bold py-3 rounded-xl text-xs sm:text-sm flex items-center justify-center gap-2 transition-colors"
             >
               <Plus className="w-4 h-4 text-emerald-600" />
               {t('newPiggyBank')}
@@ -229,7 +229,7 @@ export const CofrinhoModal: React.FC<CofrinhoModalProps> = ({
                           <PiggyIcon className="w-4 h-4 sm:w-5 sm:h-5" />
                         </div>
                         <div className="min-w-0 flex-1">
-                          <h4 className="font-bold text-xs sm:text-sm text-slate-800 truncate">{piggy.name}</h4>
+                          <h4 className="font-bold text-xs sm:text-base text-slate-800 truncate">{piggy.name}</h4>
                           <span className="text-[11px] sm:text-xs text-slate-500 font-medium block truncate">
                             {t('targetAmount')}: {formatCurrency(piggy.targetAmount)}
                           </span>
@@ -246,9 +246,9 @@ export const CofrinhoModal: React.FC<CofrinhoModalProps> = ({
                             setActionType('deposit');
                             setActionAmount('');
                           }}
-                          className="h-8 text-xs text-emerald-700 border-emerald-200 hover:bg-emerald-50 font-semibold rounded-lg flex items-center gap-1"
+                          className="h-9 text-xs sm:text-sm text-emerald-700 border-emerald-200 hover:bg-emerald-50 font-semibold rounded-lg flex items-center gap-1.5 px-3"
                         >
-                          <ArrowDownLeft className="w-3.5 h-3.5 text-emerald-600" />
+                          <ArrowDownLeft className="w-4 h-4 text-emerald-600" />
                           {t('deposit')}
                         </Button>
 
@@ -260,9 +260,9 @@ export const CofrinhoModal: React.FC<CofrinhoModalProps> = ({
                             setActionType('withdraw');
                             setActionAmount('');
                           }}
-                          className="h-8 text-xs text-blue-700 border-blue-200 hover:bg-blue-50 font-semibold rounded-lg flex items-center gap-1"
+                          className="h-9 text-xs sm:text-sm text-blue-700 border-blue-200 hover:bg-blue-50 font-semibold rounded-lg flex items-center gap-1.5 px-3"
                         >
-                          <ArrowUpRight className="w-3.5 h-3.5 text-blue-600" />
+                          <ArrowUpRight className="w-4 h-4 text-blue-600" />
                           {t('withdraw')}
                         </Button>
 
@@ -270,10 +270,10 @@ export const CofrinhoModal: React.FC<CofrinhoModalProps> = ({
                           size="icon"
                           variant="ghost"
                           onClick={() => handleDelete(piggy.id, piggy.name)}
-                          className="h-8 w-8 text-slate-400 hover:text-red-600 hover:bg-red-50 rounded-lg"
+                          className="h-9 w-9 text-slate-400 hover:text-red-600 hover:bg-red-50 rounded-lg"
                           title="Excluir"
                         >
-                          <Trash2 className="w-3.5 h-3.5" />
+                          <Trash2 className="w-4 h-4" />
                         </Button>
                       </div>
 
@@ -321,13 +321,13 @@ export const CofrinhoModal: React.FC<CofrinhoModalProps> = ({
                     </div>
 
                     {/* Barra de Progresso */}
-                    <div className="space-y-1">
-                      <div className="flex justify-between items-center text-xs">
+                    <div className="space-y-1.5">
+                      <div className="flex justify-between items-center text-xs sm:text-sm">
                         <span className="text-slate-600 font-medium">
-                          {t('savedAmount')}: <strong className="text-slate-900">{formatCurrency(piggy.currentAmount)}</strong>
+                          {t('savedAmount')}: <strong className="text-slate-900 font-bold">{formatCurrency(piggy.currentAmount)}</strong>
                         </span>
                         <span className="font-bold text-emerald-700 flex items-center gap-1">
-                          {percent >= 100 && <CheckCircle2 className="w-3.5 h-3.5 text-emerald-600" />}
+                          {percent >= 100 && <CheckCircle2 className="w-4 h-4 text-emerald-600" />}
                           {percent}%
                         </span>
                       </div>

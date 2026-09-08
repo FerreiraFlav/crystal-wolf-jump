@@ -82,9 +82,9 @@ export const ExpensePieChart: React.FC<ExpensePieChartProps> = ({ expenses, budg
           </div>
         ) : (
           <div className="space-y-4">
-            <div className="h-64 sm:h-72 w-full">
-              <ResponsiveContainer width="100%" height="100%">
-                <PieChart>
+            <div className="h-64 sm:h-72 w-full outline-none focus:outline-none select-none [&_*]:outline-none [&_*]:focus:outline-none">
+              <ResponsiveContainer width="100%" height="100%" className="outline-none focus:outline-none">
+                <PieChart className="outline-none focus:outline-none">
                   <Pie
                     data={chartData}
                     cx="50%"
@@ -93,9 +93,10 @@ export const ExpensePieChart: React.FC<ExpensePieChartProps> = ({ expenses, budg
                     outerRadius={95}
                     paddingAngle={3}
                     dataKey="value"
+                    className="outline-none focus:outline-none cursor-pointer"
                   >
                     {chartData.map((entry, index) => (
-                      <Cell key={`cell-${index}`} fill={entry.color} stroke="#ffffff" strokeWidth={2.5} />
+                      <Cell key={`cell-${index}`} fill={entry.color} stroke="#ffffff" strokeWidth={2.5} className="outline-none focus:outline-none" />
                     ))}
                   </Pie>
                   <Tooltip content={<CustomTooltip />} />

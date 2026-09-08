@@ -64,10 +64,10 @@ export const BudgetManagerModal: React.FC<BudgetManagerModalProps> = ({
               <Target className="w-5 h-5 sm:w-6 sm:h-6" />
             </div>
             <div className="min-w-0">
-              <DialogTitle className="text-lg sm:text-xl font-bold text-white truncate">
+              <DialogTitle className="text-lg sm:text-2xl font-bold text-white truncate">
                 {t('setBudgetLimits')} ({currencySymbol})
               </DialogTitle>
-              <DialogDescription className="text-slate-200 text-[11px] sm:text-xs mt-0.5 line-clamp-2">
+              <DialogDescription className="text-slate-200 text-[11px] sm:text-sm mt-0.5 line-clamp-2">
                 {t('setBudgetDesc')}
               </DialogDescription>
             </div>
@@ -83,44 +83,44 @@ export const BudgetManagerModal: React.FC<BudgetManagerModalProps> = ({
             const isExceeded = limit > 0 && spent > limit;
 
             return (
-              <div key={cat.name} className="p-3 bg-slate-50 border border-slate-200/80 rounded-xl space-y-2">
+              <div key={cat.name} className="p-3.5 sm:p-4 bg-slate-50 border border-slate-200/80 rounded-xl space-y-2.5">
                 <div className="flex items-center justify-between gap-3">
-                  <div className="flex items-center space-x-2">
-                    <span className="w-3 h-3 rounded-full" style={{ backgroundColor: cat.color }} />
-                    <span className="text-xs font-bold text-slate-800">{cat.name}</span>
+                  <div className="flex items-center space-x-2 sm:space-x-2.5">
+                    <span className="w-3.5 h-3.5 rounded-full" style={{ backgroundColor: cat.color }} />
+                    <span className="text-xs sm:text-base font-bold text-slate-800">{cat.name}</span>
                   </div>
 
-                  <div className="flex items-center space-x-1 w-32">
-                    <span className="text-xs text-slate-500 font-semibold">{currencySymbol}</span>
+                  <div className="flex items-center space-x-1.5 w-32 sm:w-36">
+                    <span className="text-xs sm:text-sm text-slate-500 font-semibold">{currencySymbol}</span>
                     <Input
                       type="number"
                       step="10"
                       value={localBudgets[cat.name] || ''}
                       onChange={e => handleChange(cat.name, e.target.value)}
-                      className="h-8 text-xs font-bold rounded-lg border-slate-300 bg-white"
+                      className="h-8 sm:h-9 text-xs sm:text-sm font-bold rounded-lg border-slate-300 bg-white"
                       placeholder="0"
                     />
                   </div>
                 </div>
 
                 {limit > 0 && (
-                  <div className="space-y-1 pt-1">
-                    <div className="flex items-center justify-between text-[11px]">
+                  <div className="space-y-1.5 pt-1">
+                    <div className="flex items-center justify-between text-[11px] sm:text-xs">
                       <span className="text-slate-500">
                         {t('spent')}: <strong>{formatCurrency(spent)}</strong> de {formatCurrency(limit)}
                       </span>
                       {isExceeded ? (
                         <span className="text-red-600 font-bold flex items-center gap-1">
-                          <AlertTriangle className="w-3 h-3" /> {t('exceededBy')} {formatCurrency(spent - limit)}
+                          <AlertTriangle className="w-3.5 h-3.5" /> {t('exceededBy')} {formatCurrency(spent - limit)}
                         </span>
                       ) : (
                         <span className="text-emerald-600 font-semibold flex items-center gap-1">
-                          <CheckCircle className="w-3 h-3" /> {percent}% {t('ofLimit')}
+                          <CheckCircle className="w-3.5 h-3.5" /> {percent}% {t('ofLimit')}
                         </span>
                       )}
                     </div>
 
-                    <div className="w-full bg-slate-200 h-2 rounded-full overflow-hidden">
+                    <div className="w-full bg-slate-200 h-2.5 rounded-full overflow-hidden">
                       <div
                         className={`h-full transition-all ${isExceeded ? 'bg-red-500' : percent > 80 ? 'bg-amber-500' : 'bg-emerald-500'}`}
                         style={{ width: `${Math.min(100, percent)}%` }}
@@ -135,12 +135,12 @@ export const BudgetManagerModal: React.FC<BudgetManagerModalProps> = ({
         </div>
 
         <div className="bg-slate-50 p-4 border-t border-slate-200 flex justify-end space-x-3">
-          <Button variant="outline" onClick={onClose} className="rounded-xl text-xs">
+          <Button variant="outline" onClick={onClose} className="rounded-xl text-xs sm:text-sm h-9 sm:h-10 px-4">
             {t('cancel')}
           </Button>
           <Button
             onClick={handleSave}
-            className="bg-emerald-600 hover:bg-emerald-700 text-white font-semibold rounded-xl text-xs flex items-center gap-1.5"
+            className="bg-emerald-600 hover:bg-emerald-700 text-white font-semibold rounded-xl text-xs sm:text-sm h-9 sm:h-10 px-5 flex items-center gap-1.5"
           >
             <Save className="w-4 h-4" />
             {t('saveLimits')}

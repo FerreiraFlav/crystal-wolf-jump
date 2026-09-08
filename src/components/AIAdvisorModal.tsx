@@ -27,10 +27,10 @@ export const AIAdvisorModal: React.FC<AIAdvisorModalProps> = ({ isOpen, onClose,
             </div>
             <div>
               <div className="flex items-center gap-2">
-                <DialogTitle className="text-xl font-bold text-white">
+                <DialogTitle className="text-xl sm:text-2xl font-bold text-white">
                   {t('advisorOpinion')}
                 </DialogTitle>
-                <span className="text-[10px] font-bold tracking-widest uppercase bg-emerald-500/30 text-emerald-300 border border-emerald-400/30 px-2 py-0.5 rounded-full">
+                <span className="text-[10px] sm:text-xs font-bold tracking-widest uppercase bg-emerald-500/30 text-emerald-300 border border-emerald-400/30 px-2.5 py-0.5 rounded-full">
                   {t('aiAssist')}
                 </span>
               </div>
@@ -41,71 +41,71 @@ export const AIAdvisorModal: React.FC<AIAdvisorModalProps> = ({ isOpen, onClose,
         {/* Corpo do Modal */}
         <div className="flex-1 min-h-0 p-4 sm:p-6 space-y-6 overflow-y-auto">
           {/* Pontuação da Saúde Financeira & Taxa de Poupança */}
-          <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
-            <div className="bg-emerald-50 border border-emerald-200/80 p-4 rounded-xl flex items-center justify-between">
+          <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
+            <div className="bg-emerald-50 border border-emerald-200/80 p-4 sm:p-5 rounded-2xl flex items-center justify-between">
               <div>
-                <span className="text-[11px] font-bold text-emerald-800 uppercase tracking-wider block">
+                <span className="text-[11px] sm:text-xs font-bold text-emerald-800 uppercase tracking-wider block">
                   {t('healthScore')}
                 </span>
-                <span className="text-2xl font-black text-emerald-900 mt-0.5 block">
-                  {advice.healthScore} <span className="text-xs font-normal text-emerald-700">/ 100</span>
+                <span className="text-2xl sm:text-3xl font-black text-emerald-900 mt-0.5 block">
+                  {advice.healthScore} <span className="text-xs sm:text-sm font-normal text-emerald-700">/ 100</span>
                 </span>
               </div>
-              <div className="w-10 h-10 rounded-full bg-emerald-500 text-white flex items-center justify-center font-bold text-base shadow-sm">
+              <div className="w-11 h-11 rounded-full bg-emerald-500 text-white flex items-center justify-center font-bold text-lg shadow-sm">
                 {advice.healthScore > 75 ? 'A+' : advice.healthScore > 50 ? 'B' : 'C'}
               </div>
             </div>
 
-            <div className="bg-blue-50 border border-blue-200/80 p-4 rounded-xl flex items-center justify-between">
+            <div className="bg-blue-50 border border-blue-200/80 p-4 sm:p-5 rounded-2xl flex items-center justify-between">
               <div>
-                <span className="text-[11px] font-bold text-blue-800 uppercase tracking-wider block">
+                <span className="text-[11px] sm:text-xs font-bold text-blue-800 uppercase tracking-wider block">
                   {t('savingsRate')}
                 </span>
-                <span className="text-2xl font-black text-blue-900 mt-0.5 block">
+                <span className="text-2xl sm:text-3xl font-black text-blue-900 mt-0.5 block">
                   {advice.savingsRate.toFixed(1)}%
                 </span>
               </div>
-              <div className="p-2 bg-blue-200 text-blue-800 rounded-xl">
-                <PiggyBank className="w-5 h-5" />
+              <div className="p-2.5 bg-blue-200 text-blue-800 rounded-xl">
+                <PiggyBank className="w-6 h-6" />
               </div>
             </div>
 
-            <div className="bg-teal-50 border border-teal-200/80 p-4 rounded-xl flex items-center justify-between">
+            <div className="bg-teal-50 border border-teal-200/80 p-4 sm:p-5 rounded-2xl flex items-center justify-between">
               <div>
-                <span className="text-[11px] font-bold text-teal-800 uppercase tracking-wider block">
+                <span className="text-[11px] sm:text-xs font-bold text-teal-800 uppercase tracking-wider block">
                   {t('estimatedSavings')}
                 </span>
-                <span className="text-lg font-black text-teal-900 mt-0.5 block">
+                <span className="text-lg sm:text-2xl font-black text-teal-900 mt-0.5 block">
                   {formatCurrency(advice.savingsPotential)}
                 </span>
               </div>
-              <div className="p-2 bg-teal-200 text-teal-800 rounded-xl">
-                <TrendingDown className="w-5 h-5" />
+              <div className="p-2.5 bg-teal-200 text-teal-800 rounded-xl">
+                <TrendingDown className="w-6 h-6" />
               </div>
             </div>
           </div>
 
           {/* Diagnóstico Geral */}
-          <div className="space-y-2">
-            <h4 className="text-sm font-bold text-slate-800 flex items-center gap-2">
-              <ShieldCheck className="w-4 h-4 text-emerald-600" />
+          <div className="space-y-2.5">
+            <h4 className="text-sm sm:text-base font-bold text-slate-800 flex items-center gap-2">
+              <ShieldCheck className="w-5 h-5 text-emerald-600" />
               {t('advisorOpinion')}
             </h4>
-            <div className="p-4 bg-slate-50 border border-slate-200 rounded-xl text-xs sm:text-sm text-slate-700 leading-relaxed">
+            <div className="p-4 sm:p-5 bg-slate-50 border border-slate-200 rounded-2xl text-xs sm:text-base text-slate-700 leading-relaxed">
               {advice.diagnosis}
             </div>
           </div>
 
           {/* Dicas Práticas */}
           <div className="space-y-3">
-            <h4 className="text-sm font-bold text-slate-800 flex items-center gap-2">
-              <Lightbulb className="w-4 h-4 text-amber-500" />
+            <h4 className="text-sm sm:text-base font-bold text-slate-800 flex items-center gap-2">
+              <Lightbulb className="w-5 h-5 text-amber-500" />
               {t('optimizationTips')}
             </h4>
-            <div className="space-y-2">
+            <div className="space-y-2.5">
               {advice.recommendations.map((rec, i) => (
-                <div key={i} className="p-3 bg-amber-50/60 border border-amber-200/70 rounded-xl text-xs sm:text-sm text-slate-800 flex items-start gap-2.5">
-                  <span className="text-amber-600 font-bold text-xs shrink-0 mt-0.5">•</span>
+                <div key={i} className="p-3.5 sm:p-4 bg-amber-50/60 border border-amber-200/70 rounded-xl text-xs sm:text-base text-slate-800 flex items-start gap-3">
+                  <span className="text-amber-600 font-bold text-sm shrink-0 mt-0.5">•</span>
                   <span>{rec}</span>
                 </div>
               ))}
@@ -114,14 +114,14 @@ export const AIAdvisorModal: React.FC<AIAdvisorModalProps> = ({ isOpen, onClose,
 
           {/* Plano de Ação */}
           <div className="space-y-3">
-            <h4 className="text-sm font-bold text-slate-800 flex items-center gap-2">
-              <Target className="w-4 h-4 text-emerald-600" />
+            <h4 className="text-sm sm:text-base font-bold text-slate-800 flex items-center gap-2">
+              <Target className="w-5 h-5 text-emerald-600" />
               {t('actionPlan')}
             </h4>
-            <div className="space-y-2">
+            <div className="space-y-2.5">
               {advice.actionPlan.map((action, i) => (
-                <div key={i} className="p-3 bg-emerald-50/50 border border-emerald-200/60 rounded-xl text-xs sm:text-sm text-slate-800 flex items-center gap-3">
-                  <CheckCircle2 className="w-4 h-4 text-emerald-600 shrink-0" />
+                <div key={i} className="p-3.5 sm:p-4 bg-emerald-50/50 border border-emerald-200/60 rounded-xl text-xs sm:text-base text-slate-800 flex items-center gap-3">
+                  <CheckCircle2 className="w-5 h-5 text-emerald-600 shrink-0" />
                   <span>{action}</span>
                 </div>
               ))}
@@ -132,7 +132,7 @@ export const AIAdvisorModal: React.FC<AIAdvisorModalProps> = ({ isOpen, onClose,
         <div className="bg-slate-50 p-4 border-t border-slate-200 flex justify-end shrink-0">
           <Button
             onClick={onClose}
-            className="bg-slate-900 hover:bg-slate-800 text-white font-medium rounded-xl text-xs px-5"
+            className="bg-slate-900 hover:bg-slate-800 text-white font-medium rounded-xl text-xs sm:text-sm px-6 py-2.5"
           >
             {t('closeAnalysis')}
           </Button>
