@@ -65,15 +65,16 @@ const safeSessionStorage = {
 
 export const EXPENSE_CATEGORIES: { name: CategoryType; color: string; icon: string }[] = [
   { name: 'Alimentação', color: '#10B981', icon: 'Utensils' },
-  { name: 'Moradia', color: '#3B82F6', icon: 'Home' },
+  { name: 'Moradia', color: '#2563EB', icon: 'Home' },
   { name: 'Transporte', color: '#F59E0B', icon: 'Car' },
   { name: 'Lazer & Entretenimento', color: '#EC4899', icon: 'Tv' },
   { name: 'Saúde', color: '#EF4444', icon: 'HeartPulse' },
   { name: 'Educação', color: '#8B5CF6', icon: 'GraduationCap' },
-  { name: 'Compras', color: '#6366F1', icon: 'ShoppingBag' },
-  { name: 'Contas & Serviços Irlanda', color: '#14B8A6', icon: 'Receipt' },
-  { name: 'Contas & Serviços Brasil', color: '#059669', icon: 'Receipt' },
-  { name: 'Outros', color: '#6B7280', icon: 'MoreHorizontal' },
+  { name: 'Compras', color: '#06B6D4', icon: 'ShoppingBag' },
+  { name: 'Contas & Serviços Irlanda', color: '#0284C7', icon: 'Receipt' },
+  { name: 'Contas & Serviços Brasil', color: '#6366F1', icon: 'Receipt' },
+  { name: 'Contas & Serviços', color: '#EAB308', icon: 'Receipt' },
+  { name: 'Outros', color: '#64748B', icon: 'MoreHorizontal' },
 ];
 
 export const INCOME_CATEGORIES: { name: CategoryType; color: string; icon: string }[] = [

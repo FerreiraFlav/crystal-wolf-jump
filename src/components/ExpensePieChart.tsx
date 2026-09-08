@@ -95,7 +95,7 @@ export const ExpensePieChart: React.FC<ExpensePieChartProps> = ({ expenses, budg
                     dataKey="value"
                   >
                     {chartData.map((entry, index) => (
-                      <Cell key={`cell-${index}`} fill={entry.color} stroke="none" />
+                      <Cell key={`cell-${index}`} fill={entry.color} stroke="#ffffff" strokeWidth={2.5} />
                     ))}
                   </Pie>
                   <Tooltip content={<CustomTooltip />} />
