@@ -2,7 +2,6 @@ import React, { useState } from 'react';
 import { User } from '@/types/finance';
 import { Button } from '@/components/ui/button';
 import { Wallet, LogOut, Sparkles, Globe, Coins } from 'lucide-react';
-import { SupabaseBadge } from './SupabaseBadge';
 import { UserProfileModal } from './UserProfileModal';
 import { useLanguage, Language, CurrencyCode, POPULAR_CURRENCIES } from '@/context/LanguageContext';
 
@@ -45,9 +44,6 @@ export const Navbar: React.FC<NavbarProps> = ({ user, onLogout }) => {
 
           {/* Status do Supabase, Seletor de Moeda, Idioma & Usuário Clicável */}
           <div className="flex min-w-0 flex-1 items-center justify-end space-x-1.5 sm:space-x-3">
-            <div className="hidden lg:block">
-              <SupabaseBadge />
-            </div>
 
             {/* Seletor de Moeda Popular (Até 5 moedas) */}
             <div className="relative hidden sm:flex items-center bg-slate-100 p-1 rounded-xl border border-slate-200/80">

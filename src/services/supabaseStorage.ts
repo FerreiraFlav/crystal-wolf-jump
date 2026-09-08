@@ -72,8 +72,16 @@ export const registerUserInSupabase = async (name: string, email: string, passwo
     throw new Error(error?.message || 'Não foi possível criar a conta.');
   }
 
+  // Se a sessão não vier de imediato no signUp, tenta iniciar a sessão com a senha cadastrada
   if (!data.session) {
-    throw new Error('Conta criada. Confirme o e-mail enviado pelo Supabase antes de entrar.');
+    try {
+      await client.auth.signInWithPassword({
+        email: formattedEmail,
+        password,
+      });
+    } catch {
+      // Prossegue mesmo se falhar a tentativa imediata
+    }
   }
 
   return { id: data.user.id, name: name.trim(), email: formattedEmail };
