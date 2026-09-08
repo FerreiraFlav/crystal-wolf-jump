@@ -142,12 +142,12 @@ export const ExpenseList: React.FC<ExpenseListProps> = ({
           </CardTitle>
 
           {/* Busca e Filtros */}
-          <div className="flex flex-wrap items-center gap-2 w-full sm:w-auto">
+          <div className="grid grid-cols-2 sm:flex sm:flex-wrap items-center gap-2 w-full sm:w-auto">
             {/* Tipo */}
             <select
               value={selectedType}
               onChange={e => setSelectedType(e.target.value)}
-              className="h-8 pl-2 pr-6 bg-slate-100 text-slate-700 font-medium text-xs rounded-lg border border-slate-200 outline-none"
+              className="w-full sm:w-auto h-8 pl-2 pr-6 bg-slate-100 text-slate-700 font-medium text-xs rounded-lg border border-slate-200 outline-none cursor-pointer"
             >
               <option value="all">{t('allTypes')}</option>
               <option value="expense">{t('expense')}</option>
@@ -158,7 +158,7 @@ export const ExpenseList: React.FC<ExpenseListProps> = ({
             <select
               value={selectedCategory}
               onChange={e => setSelectedCategory(e.target.value)}
-              className="h-8 pl-2 pr-6 bg-slate-100 text-slate-700 font-medium text-xs rounded-lg border border-slate-200 outline-none"
+              className="w-full sm:w-auto h-8 pl-2 pr-6 bg-slate-100 text-slate-700 font-medium text-xs rounded-lg border border-slate-200 outline-none cursor-pointer truncate"
             >
               <option value="all">{t('allCategories')}</option>
               {ALL_CATEGORIES.map(c => (
@@ -167,13 +167,13 @@ export const ExpenseList: React.FC<ExpenseListProps> = ({
             </select>
 
             {/* Busca por texto */}
-            <div className="relative flex-1 sm:w-40">
+            <div className="relative col-span-2 sm:col-span-1 sm:w-40">
               <Search className="w-3.5 h-3.5 absolute left-2.5 top-2.5 text-slate-400" />
               <Input
                 placeholder={t('searchPlaceholder')}
                 value={search}
                 onChange={e => setSearch(e.target.value)}
-                className="pl-8 h-8 text-xs rounded-lg border-slate-200"
+                className="pl-8 h-8 text-xs rounded-lg border-slate-200 w-full"
               />
             </div>
           </div>
@@ -193,63 +193,69 @@ export const ExpenseList: React.FC<ExpenseListProps> = ({
                 return (
                   <div
                     key={expense.id}
-                    className="p-3.5 sm:p-4 hover:bg-slate-50/80 transition-colors flex items-center justify-between gap-3"
+                    className="p-3 sm:p-4 hover:bg-slate-50/80 transition-colors flex items-center justify-between gap-2 sm:gap-4"
                   >
-                    <div className="flex items-center space-x-3 min-w-0">
-                      <div className={`p-2.5 rounded-xl border shrink-0 ${
+                    {/* Lado Esquerdo: Ícone + Descrição + Categoria + Data */}
+                    <div className="flex items-center space-x-2.5 sm:space-x-3 min-w-0 flex-1">
+                      <div className={`p-2 sm:p-2.5 rounded-xl border shrink-0 ${
                         isIncome ? 'bg-emerald-50 border-emerald-200/60' : 'bg-slate-100 border-slate-200/60'
                       }`}>
                         {getCategoryIcon(expense.category)}
                       </div>
-                      <div className="min-w-0">
-                        <div className="flex items-center gap-2">
-                          <h4 className="font-semibold text-sm text-slate-800 truncate">
+                      <div className="min-w-0 flex-1">
+                        <div className="flex items-center gap-1.5 min-w-0">
+                          <h4 className="font-semibold text-xs sm:text-sm text-slate-800 truncate">
                             {expense.description}
                           </h4>
-                          <span className={`text-[10px] font-extrabold uppercase px-1.5 py-0.5 rounded ${
+                          <span className={`text-[9px] sm:text-[10px] font-extrabold uppercase px-1.5 py-0.5 rounded shrink-0 ${
                             isIncome ? 'bg-emerald-100 text-emerald-800' : 'bg-red-100 text-red-800'
                           }`}>
                             {isIncome ? t('income') : t('expense')}
                           </span>
                         </div>
-                        <div className="flex items-center space-x-2 text-xs text-slate-500 mt-0.5">
-                          <span className="font-medium px-2 py-0.5 rounded-md bg-slate-100 text-slate-600 text-[11px]">
+                        <div className="flex items-center gap-1 sm:gap-1.5 text-[11px] text-slate-500 mt-0.5 min-w-0">
+                          <span className="font-medium px-1.5 py-0.5 rounded bg-slate-100 text-slate-600 text-[10px] sm:text-[11px] truncate max-w-[100px] sm:max-w-none">
                             {expense.category}
                           </span>
-                          <span>•</span>
-                          <span>{formatDate(expense.date)}</span>
+                          <span className="text-slate-300 shrink-0">•</span>
+                          <span className="text-slate-400 shrink-0 text-[10px] sm:text-xs">
+                            {formatDate(expense.date)}
+                          </span>
                         </div>
                       </div>
                     </div>
 
-                    <div className="flex items-center space-x-2 sm:space-x-3 shrink-0">
-                      <div className="text-right">
-                        <span className={`font-bold text-sm sm:text-base ${isIncome ? 'text-emerald-600' : 'text-slate-900'}`}>
+                    {/* Lado Direito: Valor + Botões de Ação */}
+                    <div className="flex items-center gap-1 sm:gap-2 shrink-0">
+                      <div className="text-right shrink-0 mr-0.5 sm:mr-1">
+                        <span className={`font-bold text-xs sm:text-base whitespace-nowrap ${isIncome ? 'text-emerald-600' : 'text-slate-900'}`}>
                           {isIncome ? '+ ' : '- '}{formatCurrency(expense.amount)}
                         </span>
                       </div>
 
-                      {/* Botão de Editar */}
-                      <Button
-                        variant="ghost"
-                        size="icon"
-                        onClick={() => handleOpenEdit(expense)}
-                        className="text-slate-400 hover:text-emerald-600 hover:bg-emerald-50 rounded-lg h-8 w-8"
-                        title={t('editTransaction')}
-                      >
-                        <Pencil className="w-4 h-4" />
-                      </Button>
+                      <div className="flex items-center shrink-0">
+                        {/* Botão de Editar */}
+                        <Button
+                          variant="ghost"
+                          size="icon"
+                          onClick={() => handleOpenEdit(expense)}
+                          className="text-slate-400 hover:text-emerald-600 hover:bg-emerald-50 rounded-lg h-7 w-7 sm:h-8 sm:w-8"
+                          title={t('editTransaction')}
+                        >
+                          <Pencil className="w-3.5 h-3.5 sm:w-4 sm:h-4" />
+                        </Button>
 
-                      {/* Botão de Excluir */}
-                      <Button
-                        variant="ghost"
-                        size="icon"
-                        onClick={() => onDeleteExpense(expense.id)}
-                        className="text-slate-400 hover:text-red-600 hover:bg-red-50 rounded-lg h-8 w-8"
-                        title="Excluir"
-                      >
-                        <Trash2 className="w-4 h-4" />
-                      </Button>
+                        {/* Botão de Excluir */}
+                        <Button
+                          variant="ghost"
+                          size="icon"
+                          onClick={() => onDeleteExpense(expense.id)}
+                          className="text-slate-400 hover:text-red-600 hover:bg-red-50 rounded-lg h-7 w-7 sm:h-8 sm:w-8"
+                          title="Excluir"
+                        >
+                          <Trash2 className="w-3.5 h-3.5 sm:w-4 sm:h-4" />
+                        </Button>
+                      </div>
                     </div>
                   </div>
                 );
