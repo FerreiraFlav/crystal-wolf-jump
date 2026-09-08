@@ -312,7 +312,7 @@ export const ExportImportModal: React.FC<ExportImportModalProps> = ({
 
   return (
     <Dialog open={isOpen} onOpenChange={onClose}>
-      <DialogContent className="w-[calc(100%-0.5rem)] sm:w-[94vw] max-w-6xl h-[92dvh] sm:h-[86vh] max-h-[96dvh] sm:max-h-[88vh] flex flex-col gap-0 mx-auto bg-white border-slate-200 rounded-2xl p-0 overflow-hidden shadow-2xl">
+      <DialogContent className="w-[calc(100%-0.5rem)] sm:w-[94vw] max-w-6xl h-[92dvh] sm:h-[86vh] max-h-[96dvh] sm:max-h-[88vh] flex flex-col gap-0 mx-auto bg-white dark:bg-slate-900 border-slate-200 dark:border-slate-800 rounded-2xl p-0 overflow-hidden shadow-2xl transition-colors">
         <div className="bg-slate-900 p-6 pr-14 text-white shrink-0">
           <div className="flex items-center space-x-3">
             <div className="p-2.5 rounded-xl bg-emerald-500/20 text-emerald-400 shrink-0">

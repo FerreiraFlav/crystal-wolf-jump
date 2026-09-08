@@ -121,7 +121,7 @@ export const CofrinhoModal: React.FC<CofrinhoModalProps> = ({
 
   return (
     <Dialog open={isOpen} onOpenChange={onClose}>
-      <DialogContent className="w-[calc(100%-0.5rem)] sm:w-[94vw] max-w-6xl h-[92dvh] sm:h-[86vh] max-h-[96dvh] sm:max-h-[88vh] flex flex-col gap-0 mx-auto bg-white border-slate-200 rounded-2xl p-0 overflow-hidden shadow-2xl">
+      <DialogContent className="w-[calc(100%-0.5rem)] sm:w-[94vw] max-w-6xl h-[92dvh] sm:h-[86vh] max-h-[96dvh] sm:max-h-[88vh] flex flex-col gap-0 mx-auto bg-white dark:bg-slate-900 border-slate-200 dark:border-slate-800 rounded-2xl p-0 overflow-hidden shadow-2xl transition-colors">
         {/* Cabeçalho */}
         <div className="bg-gradient-to-r from-emerald-900 via-teal-900 to-slate-900 p-3 sm:p-5 text-white flex items-center justify-between gap-2 shrink-0">
           <div className="flex items-center space-x-2 sm:space-x-3 min-w-0 flex-1">

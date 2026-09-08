@@ -22,7 +22,7 @@ export const UserProfileModal: React.FC<UserProfileModalProps> = ({
 
   return (
     <Dialog open={isOpen} onOpenChange={onClose}>
-      <DialogContent className="max-w-md bg-white border-slate-200 rounded-2xl p-0 overflow-hidden shadow-2xl">
+      <DialogContent className="max-w-md bg-white dark:bg-slate-900 border-slate-200 dark:border-slate-800 rounded-2xl p-0 overflow-hidden shadow-2xl transition-colors">
         <div className="bg-slate-900 p-6 text-white text-center relative">
           <div className="w-16 h-16 rounded-full bg-emerald-500 text-white font-extrabold text-2xl flex items-center justify-center mx-auto mb-3 shadow-lg shadow-emerald-950/50">
             {user.name.charAt(0).toUpperCase()}

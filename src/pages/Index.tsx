@@ -209,9 +209,9 @@ const Index = () => {
               variant="outline"
               size="sm"
               onClick={() => setIsRecurringModalOpen(true)}
-              className="w-full justify-center rounded-xl border-teal-200 bg-teal-50/50 text-teal-800 hover:bg-teal-100 text-xs font-bold md:w-auto flex items-center gap-1.5"
+              className="w-full justify-center rounded-xl border-teal-200 dark:border-teal-800/60 bg-teal-50/50 dark:bg-teal-950/40 text-teal-800 dark:text-teal-300 hover:bg-teal-100 dark:hover:bg-teal-900/50 text-xs font-bold md:w-auto flex items-center gap-1.5 transition-colors"
             >
-              <Repeat className="w-4 h-4 text-teal-600" />
+              <Repeat className="w-4 h-4 text-teal-600 dark:text-teal-400" />
               {t('recurringBills')}
             </Button>
 
@@ -219,9 +219,9 @@ const Index = () => {
               variant="outline"
               size="sm"
               onClick={() => setIsCofrinhoModalOpen(true)}
-              className="w-full justify-center rounded-xl border-emerald-200 bg-emerald-50/50 text-emerald-800 hover:bg-emerald-100 text-xs font-bold md:w-auto flex items-center gap-1.5"
+              className="w-full justify-center rounded-xl border-emerald-200 dark:border-emerald-800/60 bg-emerald-50/50 dark:bg-emerald-950/40 text-emerald-800 dark:text-emerald-300 hover:bg-emerald-100 dark:hover:bg-emerald-900/50 text-xs font-bold md:w-auto flex items-center gap-1.5 transition-colors"
             >
-              <PiggyIcon className="w-4 h-4 text-emerald-600" />
+              <PiggyIcon className="w-4 h-4 text-emerald-600 dark:text-emerald-400" />
               {t('piggyBanks')}
             </Button>
 
@@ -229,9 +229,9 @@ const Index = () => {
               variant="outline"
               size="sm"
               onClick={() => setIsBudgetModalOpen(true)}
-              className="w-full justify-center rounded-xl border-slate-200 text-slate-700 hover:bg-slate-50 text-xs font-semibold md:w-auto flex items-center gap-1.5"
+              className="w-full justify-center rounded-xl border-slate-200 dark:border-slate-700 bg-transparent dark:bg-slate-800/60 text-slate-700 dark:text-slate-200 hover:bg-slate-50 dark:hover:bg-slate-800 text-xs font-semibold md:w-auto flex items-center gap-1.5 transition-colors"
             >
-              <Target className="w-4 h-4 text-emerald-600" />
+              <Target className="w-4 h-4 text-emerald-600 dark:text-emerald-400" />
               {t('categoryGoals')}
             </Button>
 
@@ -239,9 +239,9 @@ const Index = () => {
               variant="outline"
               size="sm"
               onClick={() => setIsExportModalOpen(true)}
-              className="w-full justify-center rounded-xl border-slate-200 text-slate-700 hover:bg-slate-50 text-xs font-semibold md:w-auto flex items-center gap-1.5"
+              className="w-full justify-center rounded-xl border-slate-200 dark:border-slate-700 bg-transparent dark:bg-slate-800/60 text-slate-700 dark:text-slate-200 hover:bg-slate-50 dark:hover:bg-slate-800 text-xs font-semibold md:w-auto flex items-center gap-1.5 transition-colors"
             >
-              <Download className="w-4 h-4 text-blue-600" />
+              <Download className="w-4 h-4 text-blue-600 dark:text-blue-400" />
               {t('exportImport')}
             </Button>
           </div>

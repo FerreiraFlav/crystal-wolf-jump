@@ -19,10 +19,10 @@ export const PiggyBankWidget: React.FC<PiggyBankWidgetProps> = ({
   const totalSaved = piggyBanks.reduce((acc, p) => acc + p.currentAmount, 0);
 
   return (
-    <Card className="bg-white border-slate-200/80 shadow-sm rounded-2xl overflow-hidden">
-      <CardHeader className="bg-slate-50/70 border-b border-slate-100 pb-3 flex flex-row items-center justify-between">
-        <CardTitle className="text-base font-bold text-slate-800 flex items-center gap-2">
-          <div className="p-1.5 bg-emerald-100 text-emerald-700 rounded-lg">
+    <Card className="bg-white dark:bg-slate-900 border-slate-200/80 dark:border-slate-800 shadow-sm rounded-2xl overflow-hidden transition-colors">
+      <CardHeader className="bg-slate-50/70 dark:bg-slate-800/40 border-b border-slate-100 dark:border-slate-800 pb-3 flex flex-row items-center justify-between transition-colors">
+        <CardTitle className="text-base font-bold text-slate-800 dark:text-slate-100 flex items-center gap-2">
+          <div className="p-1.5 bg-emerald-100 dark:bg-emerald-950/60 text-emerald-700 dark:text-emerald-400 rounded-lg">
             <PiggyIcon className="w-4 h-4" />
           </div>
           <span>{t('piggyBanks')}</span>
@@ -32,7 +32,7 @@ export const PiggyBankWidget: React.FC<PiggyBankWidgetProps> = ({
           variant="ghost"
           size="sm"
           onClick={onOpenModal}
-          className="text-xs text-emerald-700 hover:text-emerald-800 hover:bg-emerald-50 font-bold h-8 rounded-lg flex items-center gap-1"
+          className="text-xs text-emerald-700 dark:text-emerald-400 hover:text-emerald-800 dark:hover:text-emerald-300 hover:bg-emerald-50 dark:hover:bg-emerald-950/50 font-bold h-8 rounded-lg flex items-center gap-1 transition-colors"
         >
           <span>Gerenciar</span>
           <ChevronRight className="w-3.5 h-3.5" />
@@ -41,12 +41,12 @@ export const PiggyBankWidget: React.FC<PiggyBankWidgetProps> = ({
 
       <CardContent className="p-4 space-y-3">
         {/* Resumo Total Guardado */}
-        <div className="flex items-center justify-between bg-emerald-50/70 border border-emerald-200/60 p-3 rounded-xl">
+        <div className="flex items-center justify-between bg-emerald-50/70 dark:bg-emerald-950/40 border border-emerald-200/60 dark:border-emerald-800/50 p-3 rounded-xl">
           <div>
-            <span className="text-[11px] font-bold text-emerald-800 uppercase tracking-wider block">
+            <span className="text-[11px] font-bold text-emerald-800 dark:text-emerald-300 uppercase tracking-wider block">
               {t('totalInPiggyBanks')}
             </span>
-            <span className="text-xl font-black text-emerald-950 mt-0.5 block">
+            <span className="text-xl font-black text-emerald-950 dark:text-emerald-400 mt-0.5 block">
               {formatCurrency(totalSaved)}
             </span>
           </div>
@@ -62,7 +62,7 @@ export const PiggyBankWidget: React.FC<PiggyBankWidgetProps> = ({
 
         {/* Lista de Cofrinhos (Mini Cards) */}
         {piggyBanks.length === 0 ? (
-          <div className="text-center py-4 text-slate-400 text-xs">
+          <div className="text-center py-4 text-slate-400 dark:text-slate-500 text-xs">
             Nenhum cofrinho criado ainda. Clique em "Gerenciar" para criar sua primeira meta.
           </div>
         ) : (
@@ -76,29 +76,29 @@ export const PiggyBankWidget: React.FC<PiggyBankWidgetProps> = ({
                 <div
                   key={piggy.id}
                   onClick={onOpenModal}
-                  className="p-3 bg-slate-50 hover:bg-slate-100/80 border border-slate-200/80 rounded-xl transition-all cursor-pointer space-y-2 group"
+                  className="p-3 bg-slate-50 dark:bg-slate-800/50 hover:bg-slate-100/80 dark:hover:bg-slate-800 border border-slate-200/80 dark:border-slate-700/60 rounded-xl transition-all cursor-pointer space-y-2 group"
                 >
                   <div className="flex items-center justify-between">
-                    <span className="font-bold text-xs text-slate-800 group-hover:text-emerald-700 transition-colors truncate max-w-[130px]">
+                    <span className="font-bold text-xs text-slate-800 dark:text-slate-100 group-hover:text-emerald-700 dark:group-hover:text-emerald-400 transition-colors truncate max-w-[130px]">
                       {piggy.name}
                     </span>
-                    <span className="text-[11px] font-extrabold text-emerald-700 bg-emerald-100/80 px-2 py-0.5 rounded-md flex items-center gap-1">
-                      {percent >= 100 && <CheckCircle2 className="w-3 h-3 text-emerald-600" />}
+                    <span className="text-[11px] font-extrabold text-emerald-700 dark:text-emerald-300 bg-emerald-100/80 dark:bg-emerald-950/80 border border-transparent dark:border-emerald-800/50 px-2 py-0.5 rounded-md flex items-center gap-1">
+                      {percent >= 100 && <CheckCircle2 className="w-3 h-3 text-emerald-600 dark:text-emerald-400" />}
                       {percent}%
                     </span>
                   </div>
 
                   <div className="space-y-1">
                     <div className="flex justify-between items-center text-[11px]">
-                      <span className="text-slate-500 font-medium">
+                      <span className="text-slate-500 dark:text-slate-400 font-medium">
                         {formatCurrency(piggy.currentAmount)}
                       </span>
-                      <span className="text-slate-400">
+                      <span className="text-slate-400 dark:text-slate-500">
                         Meta: {formatCurrency(piggy.targetAmount)}
                       </span>
                     </div>
 
-                    <div className="w-full bg-slate-200 h-2 rounded-full overflow-hidden">
+                    <div className="w-full bg-slate-200 dark:bg-slate-700 h-2 rounded-full overflow-hidden">
                       <div
                         className="bg-emerald-500 h-full transition-all duration-500"
                         style={{ width: `${percent}%` }}

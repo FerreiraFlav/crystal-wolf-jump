@@ -29,18 +29,18 @@ export const SummaryCards: React.FC<SummaryCardsProps> = ({ expenses, piggyBanks
   return (
     <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
       {/* Total Receitas */}
-      <Card className="bg-white border border-slate-200/80 rounded-2xl shadow-sm hover:border-emerald-200 transition-all">
+      <Card className="bg-white dark:bg-slate-900 border border-slate-200/80 dark:border-slate-800 rounded-2xl shadow-sm hover:border-emerald-200 dark:hover:border-emerald-500/40 transition-all">
         <CardContent className="p-5">
           <div className="flex items-center justify-between">
-            <span className="text-xs font-semibold text-slate-500 uppercase tracking-wider">
+            <span className="text-xs font-semibold text-slate-500 dark:text-slate-400 uppercase tracking-wider">
               {t('entries')}
             </span>
-            <div className="p-2 bg-emerald-50 text-emerald-600 rounded-xl">
+            <div className="p-2 bg-emerald-50 dark:bg-emerald-950/60 text-emerald-600 dark:text-emerald-400 rounded-xl">
               <ArrowUpCircle className="w-5 h-5" />
             </div>
           </div>
           <div className="mt-3">
-            <span className="text-2xl font-extrabold text-slate-900 tracking-tight">
+            <span className="text-2xl font-extrabold text-slate-900 dark:text-white tracking-tight">
               {formatCurrency(totalIncome)}
             </span>
           </div>
@@ -48,18 +48,18 @@ export const SummaryCards: React.FC<SummaryCardsProps> = ({ expenses, piggyBanks
       </Card>
 
       {/* Total Despesas */}
-      <Card className="bg-white border border-slate-200/80 rounded-2xl shadow-sm hover:border-red-200 transition-all">
+      <Card className="bg-white dark:bg-slate-900 border border-slate-200/80 dark:border-slate-800 rounded-2xl shadow-sm hover:border-red-200 dark:hover:border-red-500/40 transition-all">
         <CardContent className="p-5">
           <div className="flex items-center justify-between">
-            <span className="text-xs font-semibold text-slate-500 uppercase tracking-wider">
+            <span className="text-xs font-semibold text-slate-500 dark:text-slate-400 uppercase tracking-wider">
               {t('exits')}
             </span>
-            <div className="p-2 bg-red-50 text-red-600 rounded-xl">
+            <div className="p-2 bg-red-50 dark:bg-red-950/60 text-red-600 dark:text-red-400 rounded-xl">
               <ArrowDownCircle className="w-5 h-5" />
             </div>
           </div>
           <div className="mt-3">
-            <span className="text-2xl font-extrabold text-slate-900 tracking-tight">
+            <span className="text-2xl font-extrabold text-slate-900 dark:text-white tracking-tight">
               {formatCurrency(totalSpent)}
             </span>
           </div>
@@ -68,14 +68,16 @@ export const SummaryCards: React.FC<SummaryCardsProps> = ({ expenses, piggyBanks
 
       {/* Saldo Líquido Disponível */}
       <Card className={`rounded-2xl shadow-sm border ${
-        netBalance >= 0 ? 'bg-gradient-to-br from-emerald-600 to-teal-700 text-white border-none' : 'bg-red-50 border-red-200 text-red-900'
+        netBalance >= 0
+          ? 'bg-gradient-to-br from-emerald-600 to-teal-700 dark:from-emerald-700 dark:to-teal-900 text-white border-none shadow-lg shadow-emerald-950/20'
+          : 'bg-red-50 dark:bg-red-950/40 border-red-200 dark:border-red-800/60 text-red-900 dark:text-red-200'
       }`}>
         <CardContent className="p-5">
           <div className="flex items-center justify-between">
-            <span className={`text-xs font-semibold uppercase tracking-wider ${netBalance >= 0 ? 'text-emerald-100' : 'text-red-700'}`}>
+            <span className={`text-xs font-semibold uppercase tracking-wider ${netBalance >= 0 ? 'text-emerald-100' : 'text-red-700 dark:text-red-300'}`}>
               {t('netBalance')}
             </span>
-            <div className={`p-2 rounded-xl ${netBalance >= 0 ? 'bg-white/10 text-white' : 'bg-red-200 text-red-800'}`}>
+            <div className={`p-2 rounded-xl ${netBalance >= 0 ? 'bg-white/10 text-white' : 'bg-red-200 dark:bg-red-900/60 text-red-800 dark:text-red-200'}`}>
               <Wallet className="w-5 h-5" />
             </div>
           </div>
@@ -84,7 +86,7 @@ export const SummaryCards: React.FC<SummaryCardsProps> = ({ expenses, piggyBanks
               {formatCurrency(netBalance)}
             </span>
             {totalSavedInPiggy > 0 && (
-              <span className={`block text-[11px] font-medium mt-1 ${netBalance >= 0 ? 'text-emerald-100' : 'text-red-700'}`}>
+              <span className={`block text-[11px] font-medium mt-1 ${netBalance >= 0 ? 'text-emerald-100' : 'text-red-700 dark:text-red-300'}`}>
                 ({formatCurrency(totalSavedInPiggy)} guardados nos cofrinhos)
               </span>
             )}
@@ -93,21 +95,21 @@ export const SummaryCards: React.FC<SummaryCardsProps> = ({ expenses, piggyBanks
       </Card>
 
       {/* Taxa de Poupança */}
-      <Card className="bg-white border border-slate-200/80 rounded-2xl shadow-sm">
+      <Card className="bg-white dark:bg-slate-900 border border-slate-200/80 dark:border-slate-800 rounded-2xl shadow-sm transition-all">
         <CardContent className="p-5">
           <div className="flex items-center justify-between">
-            <span className="text-xs font-semibold text-slate-500 uppercase tracking-wider">
+            <span className="text-xs font-semibold text-slate-500 dark:text-slate-400 uppercase tracking-wider">
               {t('savingsRate')}
             </span>
-            <div className="p-2 bg-blue-50 text-blue-600 rounded-xl">
+            <div className="p-2 bg-blue-50 dark:bg-blue-950/60 text-blue-600 dark:text-blue-400 rounded-xl">
               <PiggyIcon className="w-5 h-5" />
             </div>
           </div>
           <div className="mt-3 flex items-baseline justify-between">
-            <span className={`text-2xl font-extrabold ${savingsRate >= 15 ? 'text-emerald-600' : savingsRate >= 0 ? 'text-amber-600' : 'text-red-600'}`}>
+            <span className={`text-2xl font-extrabold ${savingsRate >= 15 ? 'text-emerald-600 dark:text-emerald-400' : savingsRate >= 0 ? 'text-amber-600 dark:text-amber-400' : 'text-red-600 dark:text-red-400'}`}>
               {savingsRate.toFixed(1)}%
             </span>
-            <span className="text-xs text-slate-400 font-medium">{t('incomeRetained')}</span>
+            <span className="text-xs text-slate-400 dark:text-slate-500 font-medium">{t('incomeRetained')}</span>
           </div>
         </CardContent>
       </Card>

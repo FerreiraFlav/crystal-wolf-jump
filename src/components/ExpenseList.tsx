@@ -132,10 +132,10 @@ export const ExpenseList: React.FC<ExpenseListProps> = ({
 
   return (
     <>
-      <Card className="bg-white border-slate-200/80 shadow-sm rounded-2xl overflow-hidden">
-        <CardHeader className="bg-slate-50/70 border-b border-slate-100 pb-3.5 flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3">
-          <CardTitle className="text-base font-bold text-slate-800 flex items-center gap-2">
-            <div className="p-1.5 bg-emerald-100 text-emerald-700 rounded-lg">
+      <Card className="bg-white dark:bg-slate-900 border-slate-200/80 dark:border-slate-800 shadow-sm rounded-2xl overflow-hidden transition-colors">
+        <CardHeader className="bg-slate-50/70 dark:bg-slate-800/40 border-b border-slate-100 dark:border-slate-800 pb-3.5 flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3 transition-colors">
+          <CardTitle className="text-base font-bold text-slate-800 dark:text-slate-100 flex items-center gap-2">
+            <div className="p-1.5 bg-emerald-100 dark:bg-emerald-950/60 text-emerald-700 dark:text-emerald-400 rounded-lg">
               <Receipt className="w-4 h-4" />
             </div>
             {t('history')}
@@ -147,22 +147,22 @@ export const ExpenseList: React.FC<ExpenseListProps> = ({
             <select
               value={selectedType}
               onChange={e => setSelectedType(e.target.value)}
-              className="w-full sm:w-auto h-8 pl-2 pr-6 bg-slate-100 text-slate-700 font-medium text-xs rounded-lg border border-slate-200 outline-none cursor-pointer"
+              className="w-full sm:w-auto h-8 pl-2 pr-6 bg-slate-100 dark:bg-slate-800 text-slate-700 dark:text-slate-200 font-medium text-xs rounded-lg border border-slate-200 dark:border-slate-700 outline-none cursor-pointer"
             >
-              <option value="all">{t('allTypes')}</option>
-              <option value="expense">{t('expense')}</option>
-              <option value="income">{t('income')}</option>
+              <option value="all" className="bg-white dark:bg-slate-800 text-slate-800 dark:text-slate-100">{t('allTypes')}</option>
+              <option value="expense" className="bg-white dark:bg-slate-800 text-slate-800 dark:text-slate-100">{t('expense')}</option>
+              <option value="income" className="bg-white dark:bg-slate-800 text-slate-800 dark:text-slate-100">{t('income')}</option>
             </select>
 
             {/* Categorias */}
             <select
               value={selectedCategory}
               onChange={e => setSelectedCategory(e.target.value)}
-              className="w-full sm:w-auto h-8 pl-2 pr-6 bg-slate-100 text-slate-700 font-medium text-xs rounded-lg border border-slate-200 outline-none cursor-pointer truncate"
+              className="w-full sm:w-auto h-8 pl-2 pr-6 bg-slate-100 dark:bg-slate-800 text-slate-700 dark:text-slate-200 font-medium text-xs rounded-lg border border-slate-200 dark:border-slate-700 outline-none cursor-pointer truncate"
             >
-              <option value="all">{t('allCategories')}</option>
+              <option value="all" className="bg-white dark:bg-slate-800 text-slate-800 dark:text-slate-100">{t('allCategories')}</option>
               {ALL_CATEGORIES.map(c => (
-                <option key={c.name} value={c.name}>{c.name}</option>
+                <option key={c.name} value={c.name} className="bg-white dark:bg-slate-800 text-slate-800 dark:text-slate-100">{c.name}</option>
               ))}
             </select>
 
@@ -173,7 +173,7 @@ export const ExpenseList: React.FC<ExpenseListProps> = ({
                 placeholder={t('searchPlaceholder')}
                 value={search}
                 onChange={e => setSearch(e.target.value)}
-                className="pl-8 h-8 text-xs rounded-lg border-slate-200 w-full"
+                className="pl-8 h-8 text-xs rounded-lg border-slate-200 dark:border-slate-700 dark:bg-slate-800 dark:text-white dark:placeholder-slate-500 w-full"
               />
             </div>
           </div>
@@ -181,44 +181,44 @@ export const ExpenseList: React.FC<ExpenseListProps> = ({
 
         <CardContent className="p-0">
           {filteredExpenses.length === 0 ? (
-            <div className="text-center py-10 px-4 text-slate-400">
-              <Receipt className="w-8 h-8 mx-auto mb-2 text-slate-300" />
-              <p className="text-sm font-medium text-slate-600">{t('noTransactions')}</p>
+            <div className="text-center py-10 px-4 text-slate-400 dark:text-slate-500">
+              <Receipt className="w-8 h-8 mx-auto mb-2 text-slate-300 dark:text-slate-600" />
+              <p className="text-sm font-medium text-slate-600 dark:text-slate-400">{t('noTransactions')}</p>
             </div>
           ) : (
-            <div className="divide-y divide-slate-100">
+            <div className="divide-y divide-slate-100 dark:divide-slate-800">
               {filteredExpenses.map(expense => {
                 const isIncome = expense.type === 'income';
 
                 return (
                   <div
                     key={expense.id}
-                    className="p-3 sm:p-4 hover:bg-slate-50/80 transition-colors flex items-center justify-between gap-2 sm:gap-4"
+                    className="p-3 sm:p-4 hover:bg-slate-50/80 dark:hover:bg-slate-800/50 transition-colors flex items-center justify-between gap-2 sm:gap-4"
                   >
                     {/* Lado Esquerdo: Ícone + Descrição + Categoria + Data */}
                     <div className="flex items-center space-x-2.5 sm:space-x-3 min-w-0 flex-1">
                       <div className={`p-2 sm:p-2.5 rounded-xl border shrink-0 ${
-                        isIncome ? 'bg-emerald-50 border-emerald-200/60' : 'bg-slate-100 border-slate-200/60'
+                        isIncome ? 'bg-emerald-50 dark:bg-emerald-950/60 border-emerald-200/60 dark:border-emerald-800/50' : 'bg-slate-100 dark:bg-slate-800 border-slate-200/60 dark:border-slate-700/60'
                       }`}>
                         {getCategoryIcon(expense.category)}
                       </div>
                       <div className="min-w-0 flex-1">
                         <div className="flex items-center gap-1.5 min-w-0">
-                          <h4 className="font-semibold text-xs sm:text-sm text-slate-800 truncate">
+                          <h4 className="font-semibold text-xs sm:text-sm text-slate-800 dark:text-slate-100 truncate">
                             {expense.description}
                           </h4>
                           <span className={`text-[9px] sm:text-[10px] font-extrabold uppercase px-1.5 py-0.5 rounded shrink-0 ${
-                            isIncome ? 'bg-emerald-100 text-emerald-800' : 'bg-red-100 text-red-800'
+                            isIncome ? 'bg-emerald-100 dark:bg-emerald-950 text-emerald-800 dark:text-emerald-300' : 'bg-red-100 dark:bg-red-950 text-red-800 dark:text-red-300'
                           }`}>
                             {isIncome ? t('income') : t('expense')}
                           </span>
                         </div>
-                        <div className="flex items-center gap-1 sm:gap-1.5 text-[11px] text-slate-500 mt-0.5 min-w-0">
-                          <span className="font-medium px-1.5 py-0.5 rounded bg-slate-100 text-slate-600 text-[10px] sm:text-[11px] truncate max-w-[100px] sm:max-w-none">
+                        <div className="flex items-center gap-1 sm:gap-1.5 text-[11px] text-slate-500 dark:text-slate-400 mt-0.5 min-w-0">
+                          <span className="font-medium px-1.5 py-0.5 rounded bg-slate-100 dark:bg-slate-800 text-slate-600 dark:text-slate-300 text-[10px] sm:text-[11px] truncate max-w-[100px] sm:max-w-none">
                             {expense.category}
                           </span>
-                          <span className="text-slate-300 shrink-0">•</span>
-                          <span className="text-slate-400 shrink-0 text-[10px] sm:text-xs">
+                          <span className="text-slate-300 dark:text-slate-600 shrink-0">•</span>
+                          <span className="text-slate-400 dark:text-slate-500 shrink-0 text-[10px] sm:text-xs">
                             {formatDate(expense.date)}
                           </span>
                         </div>
@@ -228,7 +228,7 @@ export const ExpenseList: React.FC<ExpenseListProps> = ({
                     {/* Lado Direito: Valor + Botões de Ação */}
                     <div className="flex items-center gap-1 sm:gap-2 shrink-0">
                       <div className="text-right shrink-0 mr-0.5 sm:mr-1">
-                        <span className={`font-bold text-xs sm:text-base whitespace-nowrap ${isIncome ? 'text-emerald-600' : 'text-slate-900'}`}>
+                        <span className={`font-bold text-xs sm:text-base whitespace-nowrap ${isIncome ? 'text-emerald-600 dark:text-emerald-400' : 'text-slate-900 dark:text-slate-100'}`}>
                           {isIncome ? '+ ' : '- '}{formatCurrency(expense.amount)}
                         </span>
                       </div>
@@ -239,7 +239,7 @@ export const ExpenseList: React.FC<ExpenseListProps> = ({
                           variant="ghost"
                           size="icon"
                           onClick={() => handleOpenEdit(expense)}
-                          className="text-slate-400 hover:text-emerald-600 hover:bg-emerald-50 rounded-lg h-7 w-7 sm:h-8 sm:w-8"
+                          className="text-slate-400 hover:text-emerald-600 dark:hover:text-emerald-400 hover:bg-emerald-50 dark:hover:bg-emerald-950/50 rounded-lg h-7 w-7 sm:h-8 sm:w-8 transition-colors"
                           title={t('editTransaction')}
                         >
                           <Pencil className="w-3.5 h-3.5 sm:w-4 sm:h-4" />
@@ -250,7 +250,7 @@ export const ExpenseList: React.FC<ExpenseListProps> = ({
                           variant="ghost"
                           size="icon"
                           onClick={() => onDeleteExpense(expense.id)}
-                          className="text-slate-400 hover:text-red-600 hover:bg-red-50 rounded-lg h-7 w-7 sm:h-8 sm:w-8"
+                          className="text-slate-400 hover:text-red-600 dark:hover:text-red-400 hover:bg-red-50 dark:hover:bg-red-950/50 rounded-lg h-7 w-7 sm:h-8 sm:w-8 transition-colors"
                           title="Excluir"
                         >
                           <Trash2 className="w-3.5 h-3.5 sm:w-4 sm:h-4" />
@@ -267,12 +267,12 @@ export const ExpenseList: React.FC<ExpenseListProps> = ({
 
       {/* Modal para Edição Completa do Lançamento */}
       <Dialog open={Boolean(editingExpense)} onOpenChange={() => setEditingExpense(null)}>
-        <DialogContent className="max-w-md bg-white border-slate-200 rounded-2xl p-6 shadow-xl">
-          <DialogTitle className="text-base font-bold text-slate-800 flex items-center gap-2">
-            <Pencil className="w-4 h-4 text-emerald-600" />
+        <DialogContent className="max-w-md bg-white dark:bg-slate-900 border-slate-200 dark:border-slate-800 rounded-2xl p-6 shadow-xl transition-colors">
+          <DialogTitle className="text-base font-bold text-slate-800 dark:text-slate-100 flex items-center gap-2">
+            <Pencil className="w-4 h-4 text-emerald-600 dark:text-emerald-400" />
             {t('editTransaction')}
           </DialogTitle>
-          <DialogDescription className="text-xs text-slate-500">
+          <DialogDescription className="text-xs text-slate-500 dark:text-slate-400">
             Modifique os dados do seu lançamento financeiro.
           </DialogDescription>
 
