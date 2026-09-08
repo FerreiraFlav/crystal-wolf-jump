@@ -121,7 +121,7 @@ export const CofrinhoModal: React.FC<CofrinhoModalProps> = ({
 
   return (
     <Dialog open={isOpen} onOpenChange={onClose}>
-      <DialogContent className="w-[calc(100%-0.5rem)] sm:w-full max-w-4xl h-[92dvh] sm:h-auto max-h-[96dvh] sm:max-h-[88vh] flex flex-col gap-0 mx-auto bg-white border-slate-200 rounded-2xl p-0 overflow-hidden shadow-2xl">
+      <DialogContent className="w-[calc(100%-0.5rem)] sm:w-[94vw] max-w-6xl h-[92dvh] sm:h-[86vh] max-h-[96dvh] sm:max-h-[88vh] flex flex-col gap-0 mx-auto bg-white border-slate-200 rounded-2xl p-0 overflow-hidden shadow-2xl">
         {/* Cabeçalho */}
         <div className="bg-gradient-to-r from-emerald-900 via-teal-900 to-slate-900 p-3 sm:p-5 text-white flex items-center justify-between gap-2 shrink-0">
           <div className="flex items-center space-x-2 sm:space-x-3 min-w-0 flex-1">
@@ -207,7 +207,7 @@ export const CofrinhoModal: React.FC<CofrinhoModalProps> = ({
           )}
 
           {/* Lista de Cofrinhos */}
-          <div className="space-y-4">
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
             {piggyBanks.length === 0 ? (
               <div className="text-center py-8 text-slate-400">
                 <PiggyIcon className="w-10 h-10 mx-auto mb-2 text-slate-300" />
