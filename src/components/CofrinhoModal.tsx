@@ -121,34 +121,34 @@ export const CofrinhoModal: React.FC<CofrinhoModalProps> = ({
 
   return (
     <Dialog open={isOpen} onOpenChange={onClose}>
-      <DialogContent className="max-w-2xl bg-white border-slate-200 rounded-2xl p-0 overflow-hidden shadow-2xl">
+      <DialogContent className="w-[calc(100%-1.5rem)] max-w-2xl mx-auto bg-white border-slate-200 rounded-2xl p-0 overflow-hidden shadow-2xl">
         {/* Cabeçalho */}
-        <div className="bg-gradient-to-r from-emerald-900 via-teal-900 to-slate-900 p-6 text-white flex items-center justify-between">
-          <div className="flex items-center space-x-3">
-            <div className="p-2.5 rounded-xl bg-emerald-500/20 border border-emerald-400/30 text-emerald-300">
-              <PiggyIcon className="w-6 h-6" />
+        <div className="bg-gradient-to-r from-emerald-900 via-teal-900 to-slate-900 p-4 sm:p-6 text-white flex flex-col sm:flex-row sm:items-center justify-between gap-3">
+          <div className="flex items-center space-x-2.5 sm:space-x-3 min-w-0 flex-1">
+            <div className="p-2 sm:p-2.5 rounded-xl bg-emerald-500/20 border border-emerald-400/30 text-emerald-300 shrink-0">
+              <PiggyIcon className="w-5 h-5 sm:w-6 sm:h-6" />
             </div>
-            <div>
-              <DialogTitle className="text-xl font-bold text-white">
+            <div className="min-w-0">
+              <DialogTitle className="text-lg sm:text-xl font-bold text-white truncate">
                 {t('piggyBanks')}
               </DialogTitle>
-              <DialogDescription className="text-slate-300 text-xs mt-0.5">
+              <DialogDescription className="text-slate-300 text-[11px] sm:text-xs mt-0.5 line-clamp-2">
                 {t('piggyBankDesc')}
               </DialogDescription>
             </div>
           </div>
 
-          <div className="text-right">
+          <div className="text-left sm:text-right shrink-0 bg-white/10 sm:bg-transparent p-2 sm:p-0 rounded-xl">
             <span className="text-[10px] text-emerald-300 font-semibold uppercase tracking-wider block">
               {t('totalInPiggyBanks')}
             </span>
-            <span className="text-xl font-black text-white">
+            <span className="text-lg sm:text-xl font-black text-white">
               {formatCurrency(totalSavedAll)}
             </span>
           </div>
         </div>
 
-        <div className="p-6 space-y-6 max-h-[70vh] overflow-y-auto">
+        <div className="p-3.5 sm:p-6 space-y-4 sm:space-y-6 max-h-[75vh] sm:max-h-[70vh] overflow-y-auto overflow-x-hidden">
           {/* Botão para abrir formulário de criação */}
           {!isCreating ? (
             <Button
@@ -222,21 +222,22 @@ export const CofrinhoModal: React.FC<CofrinhoModalProps> = ({
                 const isActionOpen = activeActionId === piggy.id;
 
                 return (
-                  <div key={piggy.id} className="p-4 bg-white border border-slate-200/90 rounded-2xl shadow-xs space-y-3">
-                    <div className="flex items-center justify-between">
-                      <div className="flex items-center space-x-3">
-                        <div className="p-2.5 rounded-xl bg-emerald-50 text-emerald-600 border border-emerald-200/60">
-                          <PiggyIcon className="w-5 h-5" />
+                  <div key={piggy.id} className="p-3.5 sm:p-4 bg-white border border-slate-200/90 rounded-2xl shadow-xs space-y-3">
+                    <div className="flex items-start sm:items-center justify-between gap-2">
+                      <div className="flex items-center space-x-2.5 sm:space-x-3 min-w-0 flex-1">
+                        <div className="p-2 sm:p-2.5 rounded-xl bg-emerald-50 text-emerald-600 border border-emerald-200/60 shrink-0">
+                          <PiggyIcon className="w-4 h-4 sm:w-5 sm:h-5" />
                         </div>
-                        <div>
-                          <h4 className="font-bold text-sm text-slate-800">{piggy.name}</h4>
-                          <span className="text-xs text-slate-500 font-medium">
+                        <div className="min-w-0 flex-1">
+                          <h4 className="font-bold text-xs sm:text-sm text-slate-800 truncate">{piggy.name}</h4>
+                          <span className="text-[11px] sm:text-xs text-slate-500 font-medium block truncate">
                             {t('targetAmount')}: {formatCurrency(piggy.targetAmount)}
                           </span>
                         </div>
                       </div>
 
-                      <div className="flex items-center space-x-2">
+                      {/* Botões de Ação no Desktop */}
+                      <div className="hidden sm:flex items-center space-x-2 shrink-0">
                         <Button
                           size="sm"
                           variant="outline"
@@ -270,10 +271,53 @@ export const CofrinhoModal: React.FC<CofrinhoModalProps> = ({
                           variant="ghost"
                           onClick={() => handleDelete(piggy.id, piggy.name)}
                           className="h-8 w-8 text-slate-400 hover:text-red-600 hover:bg-red-50 rounded-lg"
+                          title="Excluir"
                         >
                           <Trash2 className="w-3.5 h-3.5" />
                         </Button>
                       </div>
+
+                      {/* Botão de Excluir no Mobile */}
+                      <Button
+                        size="icon"
+                        variant="ghost"
+                        onClick={() => handleDelete(piggy.id, piggy.name)}
+                        className="sm:hidden h-8 w-8 text-slate-400 hover:text-red-600 hover:bg-red-50 rounded-lg shrink-0"
+                        title="Excluir"
+                      >
+                        <Trash2 className="w-3.5 h-3.5" />
+                      </Button>
+                    </div>
+
+                    {/* Botões Guardar e Resgatar no Mobile (lado a lado, 100% da largura) */}
+                    <div className="grid grid-cols-2 gap-2 sm:hidden pt-0.5">
+                      <Button
+                        size="sm"
+                        variant="outline"
+                        onClick={() => {
+                          setActiveActionId(piggy.id);
+                          setActionType('deposit');
+                          setActionAmount('');
+                        }}
+                        className="w-full h-8 text-xs text-emerald-700 border-emerald-200 hover:bg-emerald-50 font-semibold rounded-lg flex items-center justify-center gap-1"
+                      >
+                        <ArrowDownLeft className="w-3.5 h-3.5 text-emerald-600" />
+                        {t('deposit')}
+                      </Button>
+
+                      <Button
+                        size="sm"
+                        variant="outline"
+                        onClick={() => {
+                          setActiveActionId(piggy.id);
+                          setActionType('withdraw');
+                          setActionAmount('');
+                        }}
+                        className="w-full h-8 text-xs text-blue-700 border-blue-200 hover:bg-blue-50 font-semibold rounded-lg flex items-center justify-center gap-1"
+                      >
+                        <ArrowUpRight className="w-3.5 h-3.5 text-blue-600" />
+                        {t('withdraw')}
+                      </Button>
                     </div>
 
                     {/* Barra de Progresso */}
