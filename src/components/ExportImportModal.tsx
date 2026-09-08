@@ -97,8 +97,12 @@ export const ExportImportModal: React.FC<ExportImportModalProps> = ({
 
           .footer { margin-top: 40px; padding-top: 15px; border-t: 1px solid #e2e8f0; text-align: center; font-size: 10px; color: #94a3b8; }
 
+          @page {
+            size: auto;
+            margin: 0mm;
+          }
           @media print {
-            body { padding: 20px; }
+            body { padding: 15mm 20mm !important; }
             button { display: none; }
           }
         </style>
@@ -338,7 +342,7 @@ export const ExportImportModal: React.FC<ExportImportModalProps> = ({
               className="w-full rounded-xl bg-gradient-to-r from-emerald-600 to-teal-600 hover:from-emerald-700 hover:to-teal-700 text-white font-extrabold text-xs py-5 flex items-center justify-center gap-2 shadow-md shadow-emerald-600/20"
             >
               <FileCheck className="w-4 h-4" />
-              <span>Gerar Relatório PDF Profissional</span>
+              <span>Gerar Relatório PDF</span>
             </Button>
 
             <div className="grid grid-cols-2 gap-3 pt-1">
