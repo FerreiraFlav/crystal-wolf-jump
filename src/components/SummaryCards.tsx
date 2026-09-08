@@ -87,7 +87,7 @@ export const SummaryCards: React.FC<SummaryCardsProps> = ({ expenses, piggyBanks
             </span>
             {totalSavedInPiggy > 0 && (
               <span className={`block text-[11px] font-medium mt-1 ${netBalance >= 0 ? 'text-emerald-100' : 'text-red-700 dark:text-red-300'}`}>
-                ({formatCurrency(totalSavedInPiggy)} guardados nos cofrinhos)
+                ({formatCurrency(totalSavedInPiggy)} {t('savedInPiggies')})
               </span>
             )}
           </div>

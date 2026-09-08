@@ -65,7 +65,7 @@ export const Navbar: React.FC<NavbarProps> = ({ user, onLogout }) => {
                 value={theme}
                 onChange={(e) => setTheme(e.target.value as 'light' | 'dark')}
                 className="bg-transparent text-xs font-bold text-slate-700 dark:text-slate-200 outline-none cursor-pointer pr-1 py-0.5"
-                title="Escolha o tema: Claro ou Escuro"
+                title={theme === 'dark' ? t('themeLight') : t('themeDark')}
               >
                 <option value="light" className="bg-white dark:bg-slate-800 text-slate-800 dark:text-slate-200">
                   {t('themeLight')}
@@ -83,7 +83,6 @@ export const Navbar: React.FC<NavbarProps> = ({ user, onLogout }) => {
                 value={currency}
                 onChange={(e) => setCurrency(e.target.value as CurrencyCode)}
                 className="bg-transparent text-xs font-bold text-slate-700 dark:text-slate-200 outline-none cursor-pointer pr-1 py-0.5"
-                title="Selecione a moeda do sistema"
               >
                 {POPULAR_CURRENCIES.map(c => (
                   <option key={c.code} value={c.code} className="bg-white dark:bg-slate-800 text-slate-800 dark:text-slate-200">
@@ -114,8 +113,8 @@ export const Navbar: React.FC<NavbarProps> = ({ user, onLogout }) => {
               type="button"
               onClick={() => setTheme(theme === 'dark' ? 'light' : 'dark')}
               className="flex sm:hidden shrink-0 items-center justify-center w-8 h-8 rounded-full bg-slate-100 dark:bg-slate-800 hover:bg-slate-200 dark:hover:bg-slate-700 border border-slate-200/80 dark:border-slate-700 transition-colors text-slate-700 dark:text-slate-200 cursor-pointer shadow-sm"
-              title={theme === 'dark' ? `${t('themeLight')} (Mudar para claro)` : `${t('themeDark')} (Mudar para escuro)`}
-              aria-label="Alternar tema claro ou escuro"
+              title={theme === 'dark' ? t('themeLight') : t('themeDark')}
+              aria-label="Theme toggle"
             >
               {theme === 'dark' ? (
                 <Moon className="w-4 h-4 text-indigo-400" />
@@ -128,7 +127,7 @@ export const Navbar: React.FC<NavbarProps> = ({ user, onLogout }) => {
             <button
               onClick={() => setIsProfileModalOpen(true)}
               className="flex shrink-0 items-center space-x-2 text-sm text-slate-700 dark:text-slate-200 bg-slate-50 dark:bg-slate-800 hover:bg-emerald-50 dark:hover:bg-slate-700 hover:border-emerald-200 dark:hover:border-slate-600 border border-slate-200/80 dark:border-slate-700 px-2 py-1.5 sm:px-3 rounded-full transition-all cursor-pointer group"
-              title="Clique para ver seu perfil"
+              title={t('myProfile')}
             >
               <div className="w-5 h-5 rounded-full bg-emerald-100 dark:bg-emerald-900/50 group-hover:bg-emerald-600 group-hover:text-white text-emerald-700 dark:text-emerald-300 flex items-center justify-center font-bold text-[10px] transition-colors">
                 {user.name.charAt(0).toUpperCase()}

@@ -1,6 +1,7 @@
 import React from 'react';
 import { Button } from '@/components/ui/button';
 import { ChevronLeft, ChevronRight, Calendar as CalendarIcon } from 'lucide-react';
+import { useLanguage, Language } from '@/context/LanguageContext';
 
 interface MonthPickerProps {
   selectedYear: number;
@@ -13,10 +14,17 @@ export const MonthPicker: React.FC<MonthPickerProps> = ({
   selectedMonth,
   onChangeMonth,
 }) => {
-  const monthNames = [
-    'Janeiro', 'Fevereiro', 'Março', 'Abril', 'Maio', 'Junho',
-    'Julho', 'Agosto', 'Setembro', 'Outubro', 'Novembro', 'Dezembro'
-  ];
+  const { language, t } = useLanguage();
+
+  const localeMap: Record<Language, string> = {
+    pt: 'pt-BR',
+    en: 'en-US',
+    es: 'es-ES'
+  };
+
+  const monthName = new Date(selectedYear, selectedMonth, 1).toLocaleDateString(localeMap[language] || 'pt-BR', {
+    month: 'long'
+  });
 
   const handlePrev = () => {
     if (selectedMonth === 0) {
@@ -51,7 +59,7 @@ export const MonthPicker: React.FC<MonthPickerProps> = ({
         size="icon"
         onClick={handlePrev}
         className="h-8 w-8 text-slate-600 dark:text-slate-400 hover:bg-slate-100 dark:hover:bg-slate-800 rounded-xl transition-colors"
-        title="Mês Anterior"
+        title={t('prevMonth')}
       >
         <ChevronLeft className="w-4 h-4" />
       </Button>
@@ -59,7 +67,7 @@ export const MonthPicker: React.FC<MonthPickerProps> = ({
       <div className="flex items-center space-x-2 px-2">
         <CalendarIcon className="w-4 h-4 text-emerald-600 dark:text-emerald-400 shrink-0" />
         <span className="font-bold text-slate-800 dark:text-slate-100 text-sm capitalize">
-          {monthNames[selectedMonth]} {selectedYear}
+          {monthName} {selectedYear}
         </span>
       </div>
 
@@ -68,7 +76,7 @@ export const MonthPicker: React.FC<MonthPickerProps> = ({
         size="icon"
         onClick={handleNext}
         className="h-8 w-8 text-slate-600 dark:text-slate-400 hover:bg-slate-100 dark:hover:bg-slate-800 rounded-xl transition-colors"
-        title="Próximo Mês"
+        title={t('nextMonth')}
       >
         <ChevronRight className="w-4 h-4" />
       </Button>
@@ -80,7 +88,7 @@ export const MonthPicker: React.FC<MonthPickerProps> = ({
           onClick={handleResetCurrent}
           className="text-xs bg-emerald-50 dark:bg-emerald-950/60 text-emerald-700 dark:text-emerald-400 hover:bg-emerald-100 dark:hover:bg-emerald-900/60 border border-emerald-200/60 dark:border-emerald-800/60 font-semibold px-2.5 h-7 rounded-lg transition-colors"
         >
-          Hoje
+          {t('today')}
         </Button>
       )}
     </div>

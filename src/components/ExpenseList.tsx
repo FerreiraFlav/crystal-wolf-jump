@@ -40,7 +40,7 @@ export const ExpenseList: React.FC<ExpenseListProps> = ({
   onDeleteExpense,
   onEditExpense 
 }) => {
-  const { formatCurrency, t } = useLanguage();
+  const { formatCurrency, currencySymbol, t, getCategoryLabel } = useLanguage();
   const [search, setSearch] = useState('');
   const [selectedCategory, setSelectedCategory] = useState<string>('all');
   const [selectedType, setSelectedType] = useState<string>('all');
@@ -106,13 +106,13 @@ export const ExpenseList: React.FC<ExpenseListProps> = ({
     if (!editingExpense) return;
 
     if (!editDesc.trim()) {
-      showError('Por favor, insira uma descrição.');
+      showError(t('fillDescription'));
       return;
     }
 
     const numericAmount = parseFloat(editAmount.replace(',', '.'));
     if (isNaN(numericAmount) || numericAmount <= 0) {
-      showError('Por favor, insira um valor válido maior que zero.');
+      showError(t('fillValidAmount'));
       return;
     }
 
@@ -124,7 +124,7 @@ export const ExpenseList: React.FC<ExpenseListProps> = ({
       date: editDate,
     });
 
-    showSuccess('Lançamento atualizado com sucesso!');
+    showSuccess(t('transactionUpdated'));
     setEditingExpense(null);
   };
 
@@ -162,7 +162,7 @@ export const ExpenseList: React.FC<ExpenseListProps> = ({
             >
               <option value="all" className="bg-white dark:bg-slate-800 text-slate-800 dark:text-slate-100">{t('allCategories')}</option>
               {ALL_CATEGORIES.map(c => (
-                <option key={c.name} value={c.name} className="bg-white dark:bg-slate-800 text-slate-800 dark:text-slate-100">{c.name}</option>
+                <option key={c.name} value={c.name} className="bg-white dark:bg-slate-800 text-slate-800 dark:text-slate-100">{getCategoryLabel(c.name)}</option>
               ))}
             </select>
 
@@ -215,7 +215,7 @@ export const ExpenseList: React.FC<ExpenseListProps> = ({
                         </div>
                         <div className="flex items-center gap-1 sm:gap-1.5 text-[11px] text-slate-500 dark:text-slate-400 mt-0.5 min-w-0">
                           <span className="font-medium px-1.5 py-0.5 rounded bg-slate-100 dark:bg-slate-800 text-slate-600 dark:text-slate-300 text-[10px] sm:text-[11px] truncate max-w-[100px] sm:max-w-none">
-                            {expense.category}
+                            {getCategoryLabel(expense.category)}
                           </span>
                           <span className="text-slate-300 dark:text-slate-600 shrink-0">•</span>
                           <span className="text-slate-400 dark:text-slate-500 shrink-0 text-[10px] sm:text-xs">
@@ -251,7 +251,7 @@ export const ExpenseList: React.FC<ExpenseListProps> = ({
                           size="icon"
                           onClick={() => onDeleteExpense(expense.id)}
                           className="text-slate-400 hover:text-red-600 dark:hover:text-red-400 hover:bg-red-50 dark:hover:bg-red-950/50 rounded-lg h-7 w-7 sm:h-8 sm:w-8 transition-colors"
-                          title="Excluir"
+                          title={t('delete')}
                         >
                           <Trash2 className="w-3.5 h-3.5 sm:w-4 sm:h-4" />
                         </Button>
@@ -273,12 +273,12 @@ export const ExpenseList: React.FC<ExpenseListProps> = ({
             {t('editTransaction')}
           </DialogTitle>
           <DialogDescription className="text-xs text-slate-500 dark:text-slate-400">
-            Modifique os dados do seu lançamento financeiro.
+            {t('editModalDesc')}
           </DialogDescription>
 
           <div className="space-y-4 pt-3">
             {/* Toggle Despesa / Receita */}
-            <div className="flex p-0.5 bg-slate-100 rounded-xl">
+            <div className="flex p-0.5 bg-slate-100 dark:bg-slate-800 rounded-xl">
               <button
                 type="button"
                 onClick={() => {
@@ -286,7 +286,7 @@ export const ExpenseList: React.FC<ExpenseListProps> = ({
                   setEditCategory('Alimentação');
                 }}
                 className={`flex-1 py-1.5 rounded-lg text-xs font-bold transition-all text-center ${
-                  editType === 'expense' ? 'bg-red-600 text-white shadow-xs' : 'text-slate-600'
+                  editType === 'expense' ? 'bg-red-600 text-white shadow-xs' : 'text-slate-600 dark:text-slate-300'
                 }`}
               >
                 {t('expense')}
@@ -298,7 +298,7 @@ export const ExpenseList: React.FC<ExpenseListProps> = ({
                   setEditCategory('Salário');
                 }}
                 className={`flex-1 py-1.5 rounded-lg text-xs font-bold transition-all text-center ${
-                  editType === 'income' ? 'bg-emerald-600 text-white shadow-xs' : 'text-slate-600'
+                  editType === 'income' ? 'bg-emerald-600 text-white shadow-xs' : 'text-slate-600 dark:text-slate-300'
                 }`}
               >
                 {t('income')}
@@ -307,40 +307,40 @@ export const ExpenseList: React.FC<ExpenseListProps> = ({
 
             {/* Descrição */}
             <div className="space-y-1">
-              <Label className="text-xs font-semibold text-slate-700">{t('description')}</Label>
+              <Label className="text-xs font-semibold text-slate-700 dark:text-slate-200">{t('description')}</Label>
               <Input
                 type="text"
                 value={editDesc}
                 onChange={e => setEditDesc(e.target.value)}
-                className="text-xs rounded-xl border-slate-200"
+                className="text-xs rounded-xl border-slate-200 dark:border-slate-700 dark:bg-slate-800 dark:text-white"
               />
             </div>
 
-            {/* Valor (€) */}
+            {/* Valor */}
             <div className="space-y-1">
-              <Label className="text-xs font-semibold text-slate-700">{t('amount')}</Label>
+              <Label className="text-xs font-semibold text-slate-700 dark:text-slate-200">{t('amount')}</Label>
               <div className="relative">
-                <span className="absolute left-3 top-2.5 text-slate-500 font-bold text-sm">€</span>
+                <span className="absolute left-3 top-2.5 text-slate-500 dark:text-slate-400 font-bold text-sm">{currencySymbol}</span>
                 <Input
                   type="text"
                   value={editAmount}
                   onChange={e => setEditAmount(e.target.value)}
-                  className="pl-8 font-bold text-slate-800 text-base rounded-xl border-slate-200"
+                  className="pl-8 font-bold text-slate-800 dark:text-white text-base rounded-xl border-slate-200 dark:border-slate-700 dark:bg-slate-800"
                 />
               </div>
             </div>
 
             {/* Categoria */}
             <div className="space-y-1">
-              <Label className="text-xs font-semibold text-slate-700">{t('category')}</Label>
+              <Label className="text-xs font-semibold text-slate-700 dark:text-slate-200">{t('category')}</Label>
               <select
                 value={editCategory}
                 onChange={e => setEditCategory(e.target.value as CategoryType)}
-                className="w-full p-2 bg-white border border-slate-200 rounded-xl text-xs font-medium text-slate-700 outline-none"
+                className="w-full p-2 bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-xl text-xs font-medium text-slate-700 dark:text-slate-200 outline-none"
               >
                 {editCategoriesList.map(cat => (
-                  <option key={cat.name} value={cat.name}>
-                    {cat.name}
+                  <option key={cat.name} value={cat.name} className="bg-white dark:bg-slate-800 text-slate-800 dark:text-slate-100">
+                    {getCategoryLabel(cat.name)}
                   </option>
                 ))}
               </select>
@@ -348,12 +348,12 @@ export const ExpenseList: React.FC<ExpenseListProps> = ({
 
             {/* Data */}
             <div className="space-y-1">
-              <Label className="text-xs font-semibold text-slate-700">{t('date')}</Label>
+              <Label className="text-xs font-semibold text-slate-700 dark:text-slate-200">{t('date')}</Label>
               <Input
                 type="date"
                 value={editDate}
                 onChange={e => setEditDate(e.target.value)}
-                className="text-xs rounded-xl border-slate-200"
+                className="text-xs rounded-xl border-slate-200 dark:border-slate-700 dark:bg-slate-800 dark:text-white"
               />
             </div>
 

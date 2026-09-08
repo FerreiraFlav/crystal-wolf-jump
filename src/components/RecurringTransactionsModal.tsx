@@ -33,7 +33,13 @@ export const RecurringTransactionsModal: React.FC<RecurringTransactionsModalProp
   selectedMonth,
   onRefreshData,
 }) => {
-  const { formatCurrency, t } = useLanguage();
+  const { formatCurrency, t, language, getCategoryLabel } = useLanguage();
+
+  const localeMap: Record<string, string> = {
+    pt: 'pt-BR',
+    en: 'en-US',
+    es: 'es-ES'
+  };
 
   const [recurringList, setRecurringList] = useState<RecurringTransaction[]>(() =>
     getRecurringTransactions(userId)
@@ -74,13 +80,13 @@ export const RecurringTransactionsModal: React.FC<RecurringTransactionsModalProp
     e.preventDefault();
 
     if (!desc.trim()) {
-      showError('Informe uma descrição.');
+      showError(t('fillDescription'));
       return;
     }
 
     const numAmount = parseFloat(amount.replace(',', '.'));
     if (isNaN(numAmount) || numAmount <= 0) {
-      showError('Informe um valor válido.');
+      showError(t('fillValidAmount'));
       return;
     }
 
@@ -97,7 +103,7 @@ export const RecurringTransactionsModal: React.FC<RecurringTransactionsModalProp
       dayOfWeek: weekDayNum,
     });
 
-    showSuccess(`Conta fixa "${desc}" cadastrada com sucesso!`);
+    showSuccess(`"${desc}" ${t('transactionSaved')}`);
     setDesc('');
     setAmount('');
     setIsAdding(false);
@@ -106,7 +112,7 @@ export const RecurringTransactionsModal: React.FC<RecurringTransactionsModalProp
 
   const handleDelete = (id: string, description: string) => {
     deleteRecurringTransaction(userId, id);
-    showSuccess(`Item "${description}" removido das contas fixas.`);
+    showSuccess(`"${description}" ${t('transactionDeleted')}`);
     refreshList();
   };
 
@@ -121,7 +127,7 @@ export const RecurringTransactionsModal: React.FC<RecurringTransactionsModalProp
     }
   };
 
-  const monthLabel = new Date(selectedYear, selectedMonth, 1).toLocaleDateString('pt-BR', {
+  const monthLabel = new Date(selectedYear, selectedMonth, 1).toLocaleDateString(localeMap[language] || 'pt-BR', {
     month: 'long',
     year: 'numeric',
   });
@@ -244,7 +250,7 @@ export const RecurringTransactionsModal: React.FC<RecurringTransactionsModalProp
                     className="w-full h-9 px-2 bg-white border border-slate-200 rounded-lg text-xs font-medium text-slate-700 outline-none"
                   >
                     {categories.map(c => (
-                      <option key={c.name} value={c.name}>{c.name}</option>
+                      <option key={c.name} value={c.name}>{getCategoryLabel(c.name)}</option>
                     ))}
                   </select>
                 </div>
@@ -306,7 +312,7 @@ export const RecurringTransactionsModal: React.FC<RecurringTransactionsModalProp
                   type="submit"
                   className="h-8 bg-emerald-600 hover:bg-emerald-700 text-white text-xs rounded-lg font-semibold"
                 >
-                  Salvar
+                  {t('save')}
                 </Button>
               </div>
             </form>
@@ -315,7 +321,7 @@ export const RecurringTransactionsModal: React.FC<RecurringTransactionsModalProp
           {/* Lista de Contas Fixas Cadastradas */}
           <div className="space-y-2.5">
             <h4 className="text-xs sm:text-sm font-bold text-slate-500 uppercase tracking-wider">
-              Contas Fixas Cadastradas ({recurringList.length})
+              {t('registeredRecurring')} ({recurringList.length})
             </h4>
 
             {recurringList.length === 0 ? (
@@ -330,11 +336,11 @@ export const RecurringTransactionsModal: React.FC<RecurringTransactionsModalProp
 
                   let freqLabel = '';
                   if (freq === 'monthly') {
-                     freqLabel = `Mensal • Dia ${item.dayOfMonth || 1}`;
+                     freqLabel = `${t('monthly')} • ${t('day')} ${item.dayOfMonth || 1}`;
                   } else if (freq === 'weekly') {
-                    freqLabel = `Toda Semana • ${getDayOfWeekName(item.dayOfWeek)}`;
+                    freqLabel = `${t('everyWeek')} • ${getDayOfWeekName(item.dayOfWeek)}`;
                   } else {
-                    freqLabel = `A cada 15 dias • ${getDayOfWeekName(item.dayOfWeek)}`;
+                    freqLabel = `${t('everyTwoWeeks')} • ${getDayOfWeekName(item.dayOfWeek)}`;
                   }
 
                   return (
@@ -351,7 +357,7 @@ export const RecurringTransactionsModal: React.FC<RecurringTransactionsModalProp
                         <div>
                           <h5 className="font-bold text-xs sm:text-base text-slate-800">{item.description}</h5>
                           <span className="text-[10px] sm:text-xs text-slate-500 font-medium">
-                            {item.category} • <strong className="text-slate-700">{freqLabel}</strong>
+                            {getCategoryLabel(item.category)} • <strong className="text-slate-700">{freqLabel}</strong>
                           </span>
                         </div>
                       </div>
@@ -365,6 +371,7 @@ export const RecurringTransactionsModal: React.FC<RecurringTransactionsModalProp
                           size="icon"
                           onClick={() => handleDelete(item.id, item.description)}
                           className="h-8 w-8 text-slate-400 hover:text-red-600 hover:bg-red-50 rounded-lg"
+                          title={t('delete')}
                         >
                           <Trash2 className="w-4 h-4" />
                         </Button>

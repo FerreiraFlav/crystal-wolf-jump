@@ -23,7 +23,7 @@ export const BudgetManagerModal: React.FC<BudgetManagerModalProps> = ({
   expenses,
   onSaveBudgets,
 }) => {
-  const { formatCurrency, currencySymbol, t } = useLanguage();
+  const { formatCurrency, currencySymbol, t, getCategoryLabel } = useLanguage();
 
   const [localBudgets, setLocalBudgets] = useState<Record<string, string>>(() => {
     const initial: Record<string, string> = {};
@@ -45,7 +45,7 @@ export const BudgetManagerModal: React.FC<BudgetManagerModalProps> = ({
     }));
 
     onSaveBudgets(updatedBudgets);
-    showSuccess(`Limites em (${currencySymbol}) salvos com sucesso!`);
+    showSuccess(t('budgetsSaved'));
     onClose();
   };
 
@@ -83,21 +83,21 @@ export const BudgetManagerModal: React.FC<BudgetManagerModalProps> = ({
             const isExceeded = limit > 0 && spent > limit;
 
             return (
-              <div key={cat.name} className="p-3.5 sm:p-4 bg-slate-50 border border-slate-200/80 rounded-xl space-y-2.5">
+              <div key={cat.name} className="p-3.5 sm:p-4 bg-slate-50 dark:bg-slate-800/60 border border-slate-200/80 dark:border-slate-700/70 rounded-xl space-y-2.5 transition-colors">
                 <div className="flex items-center justify-between gap-3">
                   <div className="flex items-center space-x-2 sm:space-x-2.5">
                     <span className="w-3.5 h-3.5 rounded-full" style={{ backgroundColor: cat.color }} />
-                    <span className="text-xs sm:text-base font-bold text-slate-800">{cat.name}</span>
+                    <span className="text-xs sm:text-base font-bold text-slate-800 dark:text-slate-100">{getCategoryLabel(cat.name)}</span>
                   </div>
 
                   <div className="flex items-center space-x-1.5 w-32 sm:w-36">
-                    <span className="text-xs sm:text-sm text-slate-500 font-semibold">{currencySymbol}</span>
+                    <span className="text-xs sm:text-sm text-slate-500 dark:text-slate-400 font-semibold">{currencySymbol}</span>
                     <Input
                       type="number"
                       step="10"
                       value={localBudgets[cat.name] || ''}
                       onChange={e => handleChange(cat.name, e.target.value)}
-                      className="h-8 sm:h-9 text-xs sm:text-sm font-bold rounded-lg border-slate-300 bg-white"
+                      className="h-8 sm:h-9 text-xs sm:text-sm font-bold rounded-lg border-slate-300 dark:border-slate-600 bg-white dark:bg-slate-800 dark:text-white"
                       placeholder="0"
                     />
                   </div>
@@ -106,21 +106,21 @@ export const BudgetManagerModal: React.FC<BudgetManagerModalProps> = ({
                 {limit > 0 && (
                   <div className="space-y-1.5 pt-1">
                     <div className="flex items-center justify-between text-[11px] sm:text-xs">
-                      <span className="text-slate-500">
-                        {t('spent')}: <strong>{formatCurrency(spent)}</strong> de {formatCurrency(limit)}
+                      <span className="text-slate-500 dark:text-slate-400">
+                        {t('spent')}: <strong className="text-slate-800 dark:text-slate-200">{formatCurrency(spent)}</strong> {t('of')} {formatCurrency(limit)}
                       </span>
                       {isExceeded ? (
-                        <span className="text-red-600 font-bold flex items-center gap-1">
+                        <span className="text-red-600 dark:text-red-400 font-bold flex items-center gap-1">
                           <AlertTriangle className="w-3.5 h-3.5" /> {t('exceededBy')} {formatCurrency(spent - limit)}
                         </span>
                       ) : (
-                        <span className="text-emerald-600 font-semibold flex items-center gap-1">
+                        <span className="text-emerald-600 dark:text-emerald-400 font-semibold flex items-center gap-1">
                           <CheckCircle className="w-3.5 h-3.5" /> {percent}% {t('ofLimit')}
                         </span>
                       )}
                     </div>
 
-                    <div className="w-full bg-slate-200 h-2.5 rounded-full overflow-hidden">
+                    <div className="w-full bg-slate-200 dark:bg-slate-700 h-2.5 rounded-full overflow-hidden">
                       <div
                         className={`h-full transition-all ${isExceeded ? 'bg-red-500' : percent > 80 ? 'bg-amber-500' : 'bg-emerald-500'}`}
                         style={{ width: `${Math.min(100, percent)}%` }}
@@ -134,7 +134,7 @@ export const BudgetManagerModal: React.FC<BudgetManagerModalProps> = ({
           </div>
         </div>
 
-        <div className="bg-slate-50 p-4 border-t border-slate-200 flex justify-end space-x-3">
+        <div className="bg-slate-50 dark:bg-slate-900 p-4 border-t border-slate-200 dark:border-slate-800 flex justify-end space-x-3 transition-colors">
           <Button variant="outline" onClick={onClose} className="rounded-xl text-xs sm:text-sm h-9 sm:h-10 px-4">
             {t('cancel')}
           </Button>

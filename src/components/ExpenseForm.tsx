@@ -14,7 +14,7 @@ interface ExpenseFormProps {
 }
 
 export const ExpenseForm: React.FC<ExpenseFormProps> = ({ onAddExpense }) => {
-  const { t, currencySymbol } = useLanguage();
+  const { t, currencySymbol, getCategoryLabel } = useLanguage();
   const todayStr = new Date().toISOString().split('T')[0];
 
   const [type, setType] = useState<TransactionType>('expense');
@@ -56,7 +56,7 @@ export const ExpenseForm: React.FC<ExpenseFormProps> = ({ onAddExpense }) => {
     setDescription('');
     setAmount('');
     setDate(todayStr);
-    showSuccess(`${type === 'expense' ? t('expense') : t('income')} salva!`);
+    showSuccess(`${type === 'expense' ? t('expense') : t('income')} - ${t('transactionSaved')}`);
   };
 
   return (
@@ -127,7 +127,7 @@ export const ExpenseForm: React.FC<ExpenseFormProps> = ({ onAddExpense }) => {
               <Input
                 id="description"
                 type="text"
-                placeholder={type === 'expense' ? 'Ex: Supermercado, Renda, Restauração...' : 'Ex: Salário, Freelance...'}
+                placeholder={type === 'expense' ? t('expensePlaceholder') : t('incomePlaceholder')}
                 value={description}
                 onChange={e => setDescription(e.target.value)}
                 className="pl-9 rounded-xl border-slate-200 dark:border-slate-700 dark:bg-slate-800/60 dark:text-white dark:placeholder-slate-500 text-sm focus:border-emerald-500 focus:ring-emerald-500"
@@ -149,7 +149,7 @@ export const ExpenseForm: React.FC<ExpenseFormProps> = ({ onAddExpense }) => {
               >
                 {categories.map(cat => (
                   <option key={cat.name} value={cat.name} className="bg-white dark:bg-slate-800 text-slate-800 dark:text-slate-100">
-                    {cat.name}
+                    {getCategoryLabel(cat.name)}
                   </option>
                 ))}
               </select>

@@ -34,7 +34,7 @@ export const PiggyBankWidget: React.FC<PiggyBankWidgetProps> = ({
           onClick={onOpenModal}
           className="text-xs text-emerald-700 dark:text-emerald-400 hover:text-emerald-800 dark:hover:text-emerald-300 hover:bg-emerald-50 dark:hover:bg-emerald-950/50 font-bold h-8 rounded-lg flex items-center gap-1 transition-colors"
         >
-          <span>Gerenciar</span>
+          <span>{t('manage')}</span>
           <ChevronRight className="w-3.5 h-3.5" />
         </Button>
       </CardHeader>
@@ -63,7 +63,7 @@ export const PiggyBankWidget: React.FC<PiggyBankWidgetProps> = ({
         {/* Lista de Cofrinhos (Mini Cards) */}
         {piggyBanks.length === 0 ? (
           <div className="text-center py-4 text-slate-400 dark:text-slate-500 text-xs">
-            Nenhum cofrinho criado ainda. Clique em "Gerenciar" para criar sua primeira meta.
+            {t('noPiggyBanksYet')}
           </div>
         ) : (
           <div className="grid grid-cols-1 sm:grid-cols-2 gap-3.5 pt-1">
@@ -94,7 +94,7 @@ export const PiggyBankWidget: React.FC<PiggyBankWidgetProps> = ({
                         {formatCurrency(piggy.currentAmount)}
                       </span>
                       <span className="text-slate-400 dark:text-slate-500">
-                        Meta: {formatCurrency(piggy.targetAmount)}
+                        {t('targetAmount')}: {formatCurrency(piggy.targetAmount)}
                       </span>
                     </div>
 

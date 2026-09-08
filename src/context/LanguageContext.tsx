@@ -26,6 +26,7 @@ interface LanguageContextType {
   currencySymbol: string;
   formatCurrency: (amount: number) => string;
   t: (key: string) => string;
+  getCategoryLabel: (category: string) => string;
 }
 
 const translations: Record<Language, Record<string, string>> = {
@@ -120,8 +121,50 @@ const translations: Record<Language, Record<string, string>> = {
     thursday: "Quinta-feira",
     friday: "Sexta-feira",
     saturday: "Sábado",
+    billsIreland: "Contas & Serviços Irlanda",
+    billsBrazil: "Contas & Serviços Brasil",
+    manage: "Gerenciar",
+    noPiggyBanksYet: "Nenhum cofrinho criado ainda. Clique em \"Gerenciar\" para criar sua primeira meta.",
+    expensePlaceholder: "Ex: Supermercado, Renda, Restauração...",
+    incomePlaceholder: "Ex: Salário, Freelance, Investimentos...",
+    limit: "Limite",
+    delete: "Excluir",
+    editModalDesc: "Modifique os dados do seu lançamento financeiro.",
+    fillDescription: "Por favor, insira uma descrição.",
+    fillValidAmount: "Por favor, insira um valor válido maior que zero.",
+    savedInPiggies: "guardados nos cofrinhos",
+    transactionSaved: "Lançamento salvo!",
+    transactionUpdated: "Lançamento atualizado com sucesso!",
+    transactionDeleted: "Lançamento removido.",
+    prevMonth: "Mês Anterior",
+    nextMonth: "Próximo Mês",
     themeLight: "Claro",
-    themeDark: "Escuro"
+    themeDark: "Escuro",
+    of: "de",
+    confirm: "Confirmar",
+    save: "Salvar",
+    availableBalance: "Saldo livre",
+    savedInPiggy: "Guardado no cofrinho",
+    saveAllAvailable: "Guardar todo o saldo disponível",
+    registeredRecurring: "Contas Fixas Cadastradas",
+    everyWeek: "Toda Semana",
+    everyTwoWeeks: "A cada 15 dias",
+    monthly: "Mensal",
+    day: "Dia",
+    budgetsSaved: "Limites salvos com sucesso!",
+    exportImportData: "Exportar e Importar Dados",
+    exportImportDesc: "Gere relatórios visuais em PDF, planilhas CSV ou faça backup em JSON.",
+    exportTitle: "1. Exportar Relatório / Backup",
+    generatePdfReport: "Gerar Relatório PDF",
+    csvSpreadsheet: "Planilha CSV",
+    jsonBackup: "Backup JSON",
+    pdfTipTitle: "Dica para salvar o PDF:",
+    pdfTipDesc: "Ao clicar no botão verde de PDF, a janela de impressão abrirá. Selecione a opção \"Salvar como PDF\" no seu navegador para salvar o arquivo no computador.",
+    importTitle: "2. Importar Lançamentos (JSON)",
+    downloadTemplate: "Baixar Modelo",
+    chooseJsonFile: "Escolher Arquivo .JSON",
+    orPasteBelow: "— Ou cole o conteúdo abaixo —",
+    importPastedText: "Importar Texto Colado"
   },
   en: {
     appTitle: "Smart Budget Planner",
@@ -214,8 +257,50 @@ const translations: Record<Language, Record<string, string>> = {
     thursday: "Thursday",
     friday: "Friday",
     saturday: "Saturday",
+    billsIreland: "Bills & Services Ireland",
+    billsBrazil: "Bills & Services Brazil",
+    manage: "Manage",
+    noPiggyBanksYet: "No piggy banks created yet. Click \"Manage\" to create your first goal.",
+    expensePlaceholder: "e.g. Groceries, Rent, Dining out...",
+    incomePlaceholder: "e.g. Salary, Freelance, Investments...",
+    limit: "Limit",
+    delete: "Delete",
+    editModalDesc: "Edit your transaction details.",
+    fillDescription: "Please enter a description.",
+    fillValidAmount: "Please enter a valid amount greater than zero.",
+    savedInPiggies: "saved in piggy banks",
+    transactionSaved: "Transaction saved!",
+    transactionUpdated: "Transaction updated successfully!",
+    transactionDeleted: "Transaction removed.",
+    prevMonth: "Previous Month",
+    nextMonth: "Next Month",
     themeLight: "Light",
-    themeDark: "Dark"
+    themeDark: "Dark",
+    of: "of",
+    confirm: "Confirm",
+    save: "Save",
+    availableBalance: "Available balance",
+    savedInPiggy: "Saved in piggy bank",
+    saveAllAvailable: "Save entire available balance",
+    registeredRecurring: "Registered Recurring Items",
+    everyWeek: "Every Week",
+    everyTwoWeeks: "Every 2 Weeks",
+    monthly: "Monthly",
+    day: "Day",
+    budgetsSaved: "Limits saved successfully!",
+    exportImportData: "Export and Import Data",
+    exportImportDesc: "Generate visual PDF reports, CSV spreadsheets, or JSON backups.",
+    exportTitle: "1. Export Report / Backup",
+    generatePdfReport: "Generate PDF Report",
+    csvSpreadsheet: "CSV Spreadsheet",
+    jsonBackup: "JSON Backup",
+    pdfTipTitle: "Tip for saving PDF:",
+    pdfTipDesc: "When clicking the green PDF button, the print window will open. Select \"Save as PDF\" in your browser to save the file to your computer.",
+    importTitle: "2. Import Transactions (JSON)",
+    downloadTemplate: "Download Template",
+    chooseJsonFile: "Choose .JSON File",
+    orPasteBelow: "— Or paste the content below —",
+    importPastedText: "Import Pasted Text"
   },
   es: {
     appTitle: "Mi Presupuesto Inteligente",
@@ -308,8 +393,50 @@ const translations: Record<Language, Record<string, string>> = {
     thursday: "Jueves",
     friday: "Viernes",
     saturday: "Sábado",
+    billsIreland: "Cuentas y Servicios Irlanda",
+    billsBrazil: "Cuentas y Servicios Brasil",
+    manage: "Gestionar",
+    noPiggyBanksYet: "No hay alcancías creadas aún. Haga clic en \"Gestionar\" para crear su primera meta.",
+    expensePlaceholder: "Ej: Supermercado, Alquiler, Restaurante...",
+    incomePlaceholder: "Ej: Salario, Freelance, Inversiones...",
+    limit: "Límite",
+    delete: "Eliminar",
+    editModalDesc: "Modifique los detalles de su transacción.",
+    fillDescription: "Por favor, ingrese una descripción.",
+    fillValidAmount: "Por favor, ingrese un monto válido mayor a cero.",
+    savedInPiggies: "guardados en alcancías",
+    transactionSaved: "¡Transacción guardada!",
+    transactionUpdated: "¡Transacción actualizada con éxito!",
+    transactionDeleted: "Transacción eliminada.",
+    prevMonth: "Mes Anterior",
+    nextMonth: "Próximo Mes",
     themeLight: "Claro",
-    themeDark: "Oscuro"
+    themeDark: "Oscuro",
+    of: "de",
+    confirm: "Confirmar",
+    save: "Guardar",
+    availableBalance: "Saldo disponible",
+    savedInPiggy: "Guardado en alcancía",
+    saveAllAvailable: "Guardar todo el saldo disponible",
+    registeredRecurring: "Cuentas Fijas Registradas",
+    everyWeek: "Cada Semana",
+    everyTwoWeeks: "Cada 15 días",
+    monthly: "Mensual",
+    day: "Día",
+    budgetsSaved: "¡Límites guardados con éxito!",
+    exportImportData: "Exportar e Importar Datos",
+    exportImportDesc: "Genere informes visuales en PDF, hojas de cálculo CSV o copias de seguridad en JSON.",
+    exportTitle: "1. Exportar Informe / Copia de Seguridad",
+    generatePdfReport: "Generar Informe PDF",
+    csvSpreadsheet: "Hoja de cálculo CSV",
+    jsonBackup: "Copia JSON",
+    pdfTipTitle: "Consejo para guardar el PDF:",
+    pdfTipDesc: "Al hacer clic en el botón verde de PDF, se abrirá la ventana de impresión. Seleccione la opción \"Guardar como PDF\" en su navegador para guardar el archivo en su computadora.",
+    importTitle: "2. Importar Transacciones (JSON)",
+    downloadTemplate: "Descargar Plantilla",
+    chooseJsonFile: "Elegir Archivo .JSON",
+    orPasteBelow: "— O pegue el contenido a continuación —",
+    importPastedText: "Importar Texto Pegado"
   }
 };
 
@@ -367,6 +494,31 @@ export const LanguageProvider: React.FC<{ children: React.ReactNode }> = ({ chil
     return translations[language]?.[key] || translations['pt']?.[key] || key;
   };
 
+  const categoryKeyMap: Record<string, string> = {
+    'Alimentação': 'food',
+    'Moradia': 'housing',
+    'Transporte': 'transport',
+    'Lazer & Entretenimento': 'leisure',
+    'Saúde': 'health',
+    'Educação': 'education',
+    'Compras': 'shopping',
+    'Contas & Serviços Irlanda': 'billsIreland',
+    'Contas & Serviços Brasil': 'billsBrazil',
+    'Contas & Serviços': 'bills',
+    'Salário': 'salary',
+    'Freelance': 'freelance',
+    'Investimentos': 'investments',
+    'Outros': 'others',
+  };
+
+  const getCategoryLabel = (category: string): string => {
+    const key = categoryKeyMap[category];
+    if (key) {
+      return t(key);
+    }
+    return category;
+  };
+
   return (
     <LanguageContext.Provider value={{ 
       language, 
@@ -375,7 +527,8 @@ export const LanguageProvider: React.FC<{ children: React.ReactNode }> = ({ chil
       setCurrency, 
       currencySymbol: currentCurrencyInfo.symbol, 
       formatCurrency, 
-      t 
+      t,
+      getCategoryLabel
     }}>
       {children}
     </LanguageContext.Provider>

@@ -16,12 +16,13 @@ export const FinancialTrendChart: React.FC<FinancialTrendChartProps> = ({
   selectedYear,
   selectedMonth,
 }) => {
-  const { formatCurrency, currencySymbol, t } = useLanguage();
+  const { formatCurrency, currencySymbol, t, language } = useLanguage();
 
-  const monthNames = [
-    'Jan', 'Fev', 'Mar', 'Abr', 'Mai', 'Jun',
-    'Jul', 'Ago', 'Set', 'Out', 'Nov', 'Dez'
-  ];
+  const localeMap: Record<string, string> = {
+    pt: 'pt-BR',
+    en: 'en-US',
+    es: 'es-ES'
+  };
 
   const monthsData = [];
   for (let i = 5; i >= 0; i--) {
@@ -34,8 +35,11 @@ export const FinancialTrendChart: React.FC<FinancialTrendChartProps> = ({
     const income = monthExpenses.filter(e => e.type === 'income').reduce((acc, c) => acc + c.amount, 0);
     const expense = monthExpenses.filter(e => e.type === 'expense').reduce((acc, c) => acc + c.amount, 0);
 
+    const monthShort = date.toLocaleDateString(localeMap[language] || 'pt-BR', { month: 'short' });
+    const formattedMonth = monthShort.charAt(0).toUpperCase() + monthShort.slice(1).replace('.', '');
+
     monthsData.push({
-      label: `${monthNames[m]} ${y.toString().slice(-2)}`,
+      label: `${formattedMonth} ${y.toString().slice(-2)}`,
       Receitas: income,
       Despesas: expense,
       Net: income - expense,

@@ -13,7 +13,7 @@ interface ExpensePieChartProps {
 }
 
 export const ExpensePieChart: React.FC<ExpensePieChartProps> = ({ expenses, budgets, currentMonthLabel }) => {
-  const { formatCurrency, t } = useLanguage();
+  const { formatCurrency, t, getCategoryLabel } = useLanguage();
   const expenseItems = expenses.filter(e => e.type === 'expense');
 
   const categoryMap: Record<string, number> = {};
@@ -44,14 +44,14 @@ export const ExpensePieChart: React.FC<ExpensePieChartProps> = ({ expenses, budg
       const data = payload[0].payload;
       return (
         <div className="bg-white dark:bg-slate-900 text-slate-800 dark:text-slate-100 p-3 rounded-xl shadow-xl text-xs border border-slate-200/90 dark:border-slate-700/80 space-y-1">
-          <p className="font-bold text-slate-900 dark:text-white">{data.name}</p>
+          <p className="font-bold text-slate-900 dark:text-white">{getCategoryLabel(data.name)}</p>
           <p className="text-emerald-600 dark:text-emerald-400 font-extrabold text-sm">
             {formatCurrency(data.value)}
           </p>
           <p className="text-slate-500 dark:text-slate-400 font-medium">{data.percentage}%</p>
           {data.limit > 0 && (
             <p className="text-amber-700 dark:text-amber-400 font-medium text-[11px] border-t border-slate-100 dark:border-slate-800 pt-1 mt-1">
-              Limite: {formatCurrency(data.limit)}
+              {t('limit')}: {formatCurrency(data.limit)}
             </p>
           )}
         </div>
@@ -112,7 +112,7 @@ export const ExpensePieChart: React.FC<ExpensePieChartProps> = ({ expenses, budg
                 >
                   <div className="flex items-center space-x-2 truncate mr-2">
                     <span className="w-3 h-3 rounded-full shrink-0 shadow-sm" style={{ backgroundColor: item.color }} />
-                    <span className="text-xs font-medium text-slate-700 dark:text-slate-200 truncate">{item.name}</span>
+                    <span className="text-xs font-medium text-slate-700 dark:text-slate-200 truncate">{getCategoryLabel(item.name)}</span>
                   </div>
                   <div className="text-right shrink-0">
                     <span className="text-xs font-bold text-slate-800 dark:text-slate-100">

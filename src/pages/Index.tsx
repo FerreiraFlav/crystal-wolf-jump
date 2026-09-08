@@ -39,7 +39,7 @@ import { showSuccess } from '@/utils/toast';
 import { useLanguage } from '@/context/LanguageContext';
 
 const Index = () => {
-  const { t, currencySymbol } = useLanguage();
+  const { t, currencySymbol, language } = useLanguage();
   const today = new Date();
   const [currentUser, setCurrentUser] = useState<User | null>(null);
   const [expenses, setExpenses] = useState<Expense[]>([]);
@@ -139,7 +139,7 @@ const Index = () => {
     if (currentUser) {
       loadUserData(currentUser.id);
     }
-    showSuccess('Lançamento removido.');
+    showSuccess(t('transactionDeleted'));
   };
 
   const handleSaveBudgets = (updated: CategoryBudget[]) => {
@@ -182,7 +182,13 @@ const Index = () => {
   // Saldo disponível deduz os valores alocados nos cofrinhos
   const availableBalance = totalIncome - totalSpent - totalSavedInPiggy;
 
-  const monthLabel = new Date(selectedYear, selectedMonth, 1).toLocaleDateString('pt-BR', {
+  const localeMap: Record<string, string> = {
+    pt: 'pt-BR',
+    en: 'en-US',
+    es: 'es-ES'
+  };
+
+  const monthLabel = new Date(selectedYear, selectedMonth, 1).toLocaleDateString(localeMap[language] || 'pt-BR', {
     month: 'long',
     year: 'numeric',
   });
