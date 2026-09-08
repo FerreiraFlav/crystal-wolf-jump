@@ -18,11 +18,11 @@ export const AIAdvisorModal: React.FC<AIAdvisorModalProps> = ({ isOpen, onClose,
 
   return (
     <Dialog open={isOpen} onOpenChange={onClose}>
-      <DialogContent className="max-w-2xl bg-white border-slate-200 rounded-2xl p-0 overflow-hidden shadow-2xl">
+      <DialogContent className="w-[calc(100%-0.5rem)] sm:w-full max-w-4xl h-[92dvh] sm:h-auto max-h-[96dvh] sm:max-h-[88vh] flex flex-col gap-0 mx-auto bg-white border-slate-200 rounded-2xl p-0 overflow-hidden shadow-2xl">
         {/* Cabeçalho do Modal */}
-        <div className="bg-gradient-to-r from-emerald-900 via-slate-900 to-teal-950 p-6 pr-14 text-white relative">
+        <div className="bg-gradient-to-r from-emerald-900 via-slate-900 to-teal-950 p-6 pr-14 text-white relative shrink-0">
           <div className="flex items-center space-x-3">
-            <div className="p-2.5 rounded-xl bg-emerald-500/20 border border-emerald-400/30 text-emerald-400">
+            <div className="p-2.5 rounded-xl bg-emerald-500/20 border border-emerald-400/30 text-emerald-400 shrink-0">
               <Sparkles className="w-6 h-6 animate-pulse" />
             </div>
             <div>
@@ -39,7 +39,7 @@ export const AIAdvisorModal: React.FC<AIAdvisorModalProps> = ({ isOpen, onClose,
         </div>
 
         {/* Corpo do Modal */}
-        <div className="p-6 space-y-6 max-h-[75vh] overflow-y-auto">
+        <div className="flex-1 min-h-0 p-4 sm:p-6 space-y-6 overflow-y-auto">
           {/* Pontuação da Saúde Financeira & Taxa de Poupança */}
           <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
             <div className="bg-emerald-50 border border-emerald-200/80 p-4 rounded-xl flex items-center justify-between">

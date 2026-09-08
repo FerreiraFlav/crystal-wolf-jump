@@ -312,10 +312,10 @@ export const ExportImportModal: React.FC<ExportImportModalProps> = ({
 
   return (
     <Dialog open={isOpen} onOpenChange={onClose}>
-      <DialogContent className="max-w-md bg-white border-slate-200 rounded-2xl p-0 overflow-hidden shadow-2xl">
-        <div className="bg-slate-900 p-6 pr-14 text-white">
+      <DialogContent className="w-[calc(100%-0.5rem)] sm:w-full max-w-4xl h-[92dvh] sm:h-auto max-h-[96dvh] sm:max-h-[88vh] flex flex-col gap-0 mx-auto bg-white border-slate-200 rounded-2xl p-0 overflow-hidden shadow-2xl">
+        <div className="bg-slate-900 p-6 pr-14 text-white shrink-0">
           <div className="flex items-center space-x-3">
-            <div className="p-2.5 rounded-xl bg-emerald-500/20 text-emerald-400">
+            <div className="p-2.5 rounded-xl bg-emerald-500/20 text-emerald-400 shrink-0">
               <Download className="w-6 h-6" />
             </div>
             <div>
@@ -329,108 +329,108 @@ export const ExportImportModal: React.FC<ExportImportModalProps> = ({
           </div>
         </div>
 
-        <div className="p-6 space-y-6 max-h-[75vh] overflow-y-auto">
-          {/* Opções de Exportação */}
-          <div className="space-y-3">
-            <h4 className="text-xs font-bold text-slate-700 uppercase tracking-wider">
-              1. Exportar Relatório / Backup
-            </h4>
-
-            {/* Destaque Principal: Botão PDF Executivo */}
-            <Button
-              onClick={handleExportPDF}
-              className="w-full rounded-xl bg-gradient-to-r from-emerald-600 to-teal-600 hover:from-emerald-700 hover:to-teal-700 text-white font-extrabold text-xs py-5 flex items-center justify-center gap-2 shadow-md shadow-emerald-600/20"
-            >
-              <FileCheck className="w-4 h-4" />
-              <span>Gerar Relatório PDF</span>
-            </Button>
-
-            <div className="grid grid-cols-2 gap-3 pt-1">
-              <Button
-                variant="outline"
-                onClick={handleExportCSV}
-                className="rounded-xl border-slate-200 text-slate-700 hover:bg-slate-50 flex items-center justify-center gap-2 text-xs py-3.5"
-              >
-                <FileText className="w-4 h-4 text-emerald-600" />
-                Planilha CSV
-              </Button>
-
-              <Button
-                variant="outline"
-                onClick={handleExportJSON}
-                className="rounded-xl border-slate-200 text-slate-700 hover:bg-slate-50 flex items-center justify-center gap-2 text-xs py-3.5"
-              >
-                <Download className="w-4 h-4 text-blue-600" />
-                Backup JSON
-              </Button>
-            </div>
-          </div>
-
-          <div className="border-t border-slate-100" />
-
-          {/* Opções de Importação */}
-          <div className="space-y-3">
-            <div className="flex items-center justify-between">
+        <div className="flex-1 min-h-0 p-4 sm:p-6 overflow-y-auto">
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+            {/* Coluna 1: Opções de Exportação */}
+            <div className="space-y-4">
               <h4 className="text-xs font-bold text-slate-700 uppercase tracking-wider">
-                2. Importar Lançamentos (JSON)
+                1. Exportar Relatório / Backup
               </h4>
 
-              <button
-                type="button"
-                onClick={handleDownloadTemplate}
-                className="text-[11px] font-bold text-blue-600 hover:text-blue-800 flex items-center gap-1 underline"
+              {/* Destaque Principal: Botão PDF Executivo */}
+              <Button
+                onClick={handleExportPDF}
+                className="w-full rounded-xl bg-gradient-to-r from-emerald-600 to-teal-600 hover:from-emerald-700 hover:to-teal-700 text-white font-extrabold text-xs py-5 flex items-center justify-center gap-2 shadow-md shadow-emerald-600/20"
               >
-                <FileCode className="w-3.5 h-3.5" />
-                Baixar Arquivo Modelo
-              </button>
+                <FileCheck className="w-4 h-4" />
+                <span>Gerar Relatório PDF</span>
+              </Button>
+
+              <div className="grid grid-cols-2 gap-3 pt-1">
+                <Button
+                  variant="outline"
+                  onClick={handleExportCSV}
+                  className="rounded-xl border-slate-200 text-slate-700 hover:bg-slate-50 flex items-center justify-center gap-2 text-xs py-3.5"
+                >
+                  <FileText className="w-4 h-4 text-emerald-600" />
+                  Planilha CSV
+                </Button>
+
+                <Button
+                  variant="outline"
+                  onClick={handleExportJSON}
+                  className="rounded-xl border-slate-200 text-slate-700 hover:bg-slate-50 flex items-center justify-center gap-2 text-xs py-3.5"
+                >
+                  <Download className="w-4 h-4 text-blue-600" />
+                  Backup JSON
+                </Button>
+              </div>
+
+              {/* Guia de Ajuda */}
+              <div className="p-3 bg-slate-50 border border-slate-200 rounded-xl space-y-1 text-[11px] text-slate-600 mt-4">
+                <div className="flex items-center gap-1 font-bold text-slate-800">
+                  <HelpCircle className="w-3.5 h-3.5 text-emerald-600" />
+                  Dica para salvar o PDF:
+                </div>
+                <p>Ao clicar no botão verde de PDF, a janela de impressão abrirá. Selecione a opção <strong>{"\"Salvar como PDF\""}</strong> no seu navegador para salvar o arquivo no computador.</p>
+              </div>
             </div>
 
-            <input
-              type="file"
-              accept=".json"
-              ref={fileInputRef}
-              onChange={handleFileUpload}
-              className="hidden"
-            />
+            {/* Coluna 2: Opções de Importação */}
+            <div className="space-y-4 md:border-l md:border-slate-100 md:pl-6">
+              <div className="flex items-center justify-between">
+                <h4 className="text-xs font-bold text-slate-700 uppercase tracking-wider">
+                  2. Importar Lançamentos (JSON)
+                </h4>
 
-            <Button
-              variant="outline"
-              onClick={() => fileInputRef.current?.click()}
-              className="w-full rounded-xl border-dashed border-2 border-emerald-300 bg-emerald-50/50 hover:bg-emerald-100/70 text-emerald-800 font-bold text-xs py-4 flex items-center justify-center gap-2"
-            >
-              <Upload className="w-4 h-4 text-emerald-600" />
-              <span>Escolher Arquivo .JSON do Computador</span>
-            </Button>
+                <button
+                  type="button"
+                  onClick={handleDownloadTemplate}
+                  className="text-[11px] font-bold text-blue-600 hover:text-blue-800 flex items-center gap-1 underline"
+                >
+                  <FileCode className="w-3.5 h-3.5" />
+                  Baixar Modelo
+                </button>
+              </div>
 
-            <div className="text-center text-[10px] text-slate-400 font-semibold uppercase">
-              — Ou cole o conteúdo abaixo —
+              <input
+                type="file"
+                accept=".json"
+                ref={fileInputRef}
+                onChange={handleFileUpload}
+                className="hidden"
+              />
+
+              <Button
+                variant="outline"
+                onClick={() => fileInputRef.current?.click()}
+                className="w-full rounded-xl border-dashed border-2 border-emerald-300 bg-emerald-50/50 hover:bg-emerald-100/70 text-emerald-800 font-bold text-xs py-4 flex items-center justify-center gap-2"
+              >
+                <Upload className="w-4 h-4 text-emerald-600" />
+                <span>Escolher Arquivo .JSON</span>
+              </Button>
+
+              <div className="text-center text-[10px] text-slate-400 font-semibold uppercase">
+                — Ou cole o conteúdo abaixo —
+              </div>
+
+              <textarea
+                rows={3}
+                placeholder='[ { "description": "Lidl", "amount": 22.11, "category": "Alimentação", "type": "expense", "date": "2026-08-07" } ]'
+                value={jsonInput}
+                onChange={e => setJsonInput(e.target.value)}
+                className="w-full p-3 bg-slate-50 border border-slate-200 rounded-xl text-[11px] font-mono outline-none focus:border-emerald-500 focus:ring-1 focus:ring-emerald-500"
+              />
+
+              <Button
+                onClick={handleImportText}
+                disabled={!jsonInput.trim()}
+                className="w-full bg-slate-900 hover:bg-slate-800 text-white font-semibold rounded-xl text-xs py-2.5 flex items-center justify-center gap-2"
+              >
+                <Upload className="w-4 h-4" />
+                Importar Texto Colado
+              </Button>
             </div>
-
-            <textarea
-              rows={2}
-              placeholder='[ { "description": "Lidl", "amount": 22.11, "category": "Alimentação", "type": "expense", "date": "2026-08-07" } ]'
-              value={jsonInput}
-              onChange={e => setJsonInput(e.target.value)}
-              className="w-full p-3 bg-slate-50 border border-slate-200 rounded-xl text-[11px] font-mono outline-none focus:border-emerald-500 focus:ring-1 focus:ring-emerald-500"
-            />
-
-            <Button
-              onClick={handleImportText}
-              disabled={!jsonInput.trim()}
-              className="w-full bg-slate-900 hover:bg-slate-800 text-white font-semibold rounded-xl text-xs py-2.5 flex items-center justify-center gap-2"
-            >
-              <Upload className="w-4 h-4" />
-              Importar Texto Colado
-            </Button>
-          </div>
-
-          {/* Guia de Ajuda */}
-          <div className="p-3 bg-slate-50 border border-slate-200 rounded-xl space-y-1 text-[11px] text-slate-600">
-            <div className="flex items-center gap-1 font-bold text-slate-800">
-              <HelpCircle className="w-3.5 h-3.5 text-emerald-600" />
-              Dica para salvar o PDF:
-            </div>
-            <p>Ao clicar no botão verde de PDF, a janela de impressão abrirá. Selecione a opção <strong>{"\"Salvar como PDF\""}</strong> no seu navegador para salvar o arquivo no computador.</p>
           </div>
         </div>
       </DialogContent>

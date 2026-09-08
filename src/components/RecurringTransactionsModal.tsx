@@ -133,11 +133,11 @@ export const RecurringTransactionsModal: React.FC<RecurringTransactionsModalProp
 
   return (
     <Dialog open={isOpen} onOpenChange={onClose}>
-      <DialogContent className="max-w-2xl bg-white border-slate-200 rounded-2xl p-0 overflow-hidden shadow-2xl">
+      <DialogContent className="w-[calc(100%-0.5rem)] sm:w-full max-w-4xl h-[92dvh] sm:h-auto max-h-[96dvh] sm:max-h-[88vh] flex flex-col gap-0 mx-auto bg-white border-slate-200 rounded-2xl p-0 overflow-hidden shadow-2xl">
         {/* Cabeçalho */}
-        <div className="bg-gradient-to-r from-teal-900 via-slate-900 to-slate-950 p-6 pr-14 text-white flex items-center justify-between">
+        <div className="bg-gradient-to-r from-teal-900 via-slate-900 to-slate-950 p-6 pr-14 text-white flex items-center justify-between shrink-0">
           <div className="flex items-center space-x-3">
-            <div className="p-2.5 rounded-xl bg-teal-500/20 border border-teal-400/30 text-teal-300">
+            <div className="p-2.5 rounded-xl bg-teal-500/20 border border-teal-400/30 text-teal-300 shrink-0">
               <Repeat className="w-6 h-6" />
             </div>
             <div>
@@ -151,7 +151,7 @@ export const RecurringTransactionsModal: React.FC<RecurringTransactionsModalProp
           </div>
         </div>
 
-        <div className="p-6 space-y-6 max-h-[70vh] overflow-y-auto">
+        <div className="flex-1 min-h-0 p-4 sm:p-6 space-y-4 sm:space-y-6 overflow-y-auto">
           {/* Botão de Ação Rápida: Lançar no mês ativo */}
           <div className="p-4 bg-emerald-50 border border-emerald-200 rounded-2xl flex flex-col sm:flex-row items-center justify-between gap-3">
             <div>
