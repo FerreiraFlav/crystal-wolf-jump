@@ -57,24 +57,24 @@ export const BudgetManagerModal: React.FC<BudgetManagerModalProps> = ({
 
   return (
     <Dialog open={isOpen} onOpenChange={onClose}>
-      <DialogContent className="max-w-xl bg-white border-slate-200 rounded-2xl p-0 overflow-hidden shadow-2xl">
-        <div className="bg-gradient-to-r from-emerald-800 to-teal-900 p-6 text-white">
+      <DialogContent className="w-[calc(100%-1.5rem)] max-w-xl max-h-[85dvh] sm:max-h-[85vh] flex flex-col gap-0 mx-auto bg-white border-slate-200 rounded-2xl p-0 overflow-hidden shadow-2xl">
+        <div className="bg-gradient-to-r from-emerald-800 to-teal-900 p-4 sm:p-6 text-white shrink-0">
           <div className="flex items-center space-x-3">
-            <div className="p-2.5 rounded-xl bg-emerald-500/20 border border-emerald-400/30 text-emerald-300">
-              <Target className="w-6 h-6" />
+            <div className="p-2 sm:p-2.5 rounded-xl bg-emerald-500/20 border border-emerald-400/30 text-emerald-300 shrink-0">
+              <Target className="w-5 h-5 sm:w-6 sm:h-6" />
             </div>
-            <div>
-              <DialogTitle className="text-xl font-bold text-white">
+            <div className="min-w-0">
+              <DialogTitle className="text-lg sm:text-xl font-bold text-white truncate">
                 {t('setBudgetLimits')} ({currencySymbol})
               </DialogTitle>
-              <DialogDescription className="text-slate-200 text-xs mt-0.5">
+              <DialogDescription className="text-slate-200 text-[11px] sm:text-xs mt-0.5 line-clamp-2">
                 {t('setBudgetDesc')}
               </DialogDescription>
             </div>
           </div>
         </div>
 
-        <div className="p-6 space-y-4 max-h-[65vh] overflow-y-auto">
+        <div className="flex-1 min-h-0 p-3.5 sm:p-6 space-y-4 overflow-y-auto overflow-x-hidden">
           {EXPENSE_CATEGORIES.map(cat => {
             const limit = parseFloat(localBudgets[cat.name] || '0') || 0;
             const spent = categorySpentMap[cat.name] || 0;

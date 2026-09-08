@@ -121,9 +121,9 @@ export const CofrinhoModal: React.FC<CofrinhoModalProps> = ({
 
   return (
     <Dialog open={isOpen} onOpenChange={onClose}>
-      <DialogContent className="w-[calc(100%-1.5rem)] max-w-2xl mx-auto bg-white border-slate-200 rounded-2xl p-0 overflow-hidden shadow-2xl">
+      <DialogContent className="w-[calc(100%-1.5rem)] max-w-2xl max-h-[85dvh] sm:max-h-[85vh] flex flex-col gap-0 mx-auto bg-white border-slate-200 rounded-2xl p-0 overflow-hidden shadow-2xl">
         {/* Cabeçalho */}
-        <div className="bg-gradient-to-r from-emerald-900 via-teal-900 to-slate-900 p-4 sm:p-6 text-white flex flex-col sm:flex-row sm:items-center justify-between gap-3">
+        <div className="bg-gradient-to-r from-emerald-900 via-teal-900 to-slate-900 p-4 sm:p-5 text-white flex flex-col sm:flex-row sm:items-center justify-between gap-2.5 shrink-0">
           <div className="flex items-center space-x-2.5 sm:space-x-3 min-w-0 flex-1">
             <div className="p-2 sm:p-2.5 rounded-xl bg-emerald-500/20 border border-emerald-400/30 text-emerald-300 shrink-0">
               <PiggyIcon className="w-5 h-5 sm:w-6 sm:h-6" />
@@ -148,7 +148,7 @@ export const CofrinhoModal: React.FC<CofrinhoModalProps> = ({
           </div>
         </div>
 
-        <div className="p-3.5 sm:p-6 space-y-4 sm:space-y-6 max-h-[75vh] sm:max-h-[70vh] overflow-y-auto overflow-x-hidden">
+        <div className="flex-1 min-h-0 p-3.5 sm:p-6 space-y-4 sm:space-y-6 overflow-y-auto overflow-x-hidden">
           {/* Botão para abrir formulário de criação */}
           {!isCreating ? (
             <Button
