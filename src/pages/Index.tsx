@@ -360,12 +360,6 @@ const Index = () => {
         onRefreshData={() => loadUserData(currentUser.id)}
       />
 
-      {/* Footer */}
-      <footer className="border-t border-slate-200 bg-white py-4 mt-8">
-        <div className="max-w-7xl mx-auto px-4 text-center text-xs text-slate-500">
-          Meu Orçamento Inteligente ({currencySymbol}) • Seus dados financeiros mantidos seguros na nuvem.
-        </div>
-      </footer>
     </div>
   );
 };
