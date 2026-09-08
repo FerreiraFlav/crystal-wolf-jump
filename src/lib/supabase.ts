@@ -91,6 +91,7 @@ export const getSupabase = (): SupabaseClient | null => {
       auth: {
         persistSession: true,
         autoRefreshToken: true,
+        storage: typeof window !== 'undefined' ? window.sessionStorage : undefined,
       },
     });
     lastUsedUrl = config.url;

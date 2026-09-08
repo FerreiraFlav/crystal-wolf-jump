@@ -238,6 +238,11 @@ export const loginUserAsync = async (email: string, passwordHash: string): Promi
 
 export const logoutUser = () => {
   safeSessionStorage.removeItem(CURRENT_USER_KEY);
+  try {
+    getSupabase()?.auth.signOut();
+  } catch {
+    // ignora erro
+  }
 };
 
 export const updateExpenseAmount = (id: string, newAmount: number) => {

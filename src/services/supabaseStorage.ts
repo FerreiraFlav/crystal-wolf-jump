@@ -50,9 +50,25 @@ export const findUserInSupabase = async (email: string, password: string): Promi
     throw new Error(error?.message || 'Não foi possível entrar na conta.');
   }
 
+  let userName = data.user.user_metadata?.name;
+  if (!userName) {
+    try {
+      const { data: profile } = await client
+        .from('profiles')
+        .select('name')
+        .eq('id', data.user.id)
+        .maybeSingle();
+      if (profile?.name) {
+        userName = profile.name;
+      }
+    } catch {
+      // continua com o fallback
+    }
+  }
+
   return {
     id: data.user.id,
-    name: typeof data.user.user_metadata?.name === 'string' ? data.user.user_metadata.name : data.user.email?.split('@')[0] || 'Usuário',
+    name: userName || data.user.email?.split('@')[0] || 'Usuário',
     email: data.user.email || email.toLowerCase().trim(),
   };
 };
