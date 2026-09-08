@@ -313,7 +313,7 @@ export const ExportImportModal: React.FC<ExportImportModalProps> = ({
   return (
     <Dialog open={isOpen} onOpenChange={onClose}>
       <DialogContent className="max-w-md bg-white border-slate-200 rounded-2xl p-0 overflow-hidden shadow-2xl">
-        <div className="bg-slate-900 p-6 text-white">
+        <div className="bg-slate-900 p-6 pr-14 text-white">
           <div className="flex items-center space-x-3">
             <div className="p-2.5 rounded-xl bg-emerald-500/20 text-emerald-400">
               <Download className="w-6 h-6" />

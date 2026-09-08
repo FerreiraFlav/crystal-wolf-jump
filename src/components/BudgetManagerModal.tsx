@@ -58,7 +58,7 @@ export const BudgetManagerModal: React.FC<BudgetManagerModalProps> = ({
   return (
     <Dialog open={isOpen} onOpenChange={onClose}>
       <DialogContent className="w-[calc(100%-0.5rem)] sm:w-full max-w-xl h-[92dvh] sm:h-auto max-h-[96dvh] sm:max-h-[85vh] flex flex-col gap-0 mx-auto bg-white border-slate-200 rounded-2xl p-0 overflow-hidden shadow-2xl">
-        <div className="bg-gradient-to-r from-emerald-800 to-teal-900 p-3.5 sm:p-6 text-white shrink-0">
+        <div className="bg-gradient-to-r from-emerald-800 to-teal-900 p-3.5 sm:p-6 pr-12 sm:pr-14 text-white shrink-0">
           <div className="flex items-center space-x-3">
             <div className="p-2 sm:p-2.5 rounded-xl bg-emerald-500/20 border border-emerald-400/30 text-emerald-300 shrink-0">
               <Target className="w-5 h-5 sm:w-6 sm:h-6" />

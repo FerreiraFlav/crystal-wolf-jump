@@ -20,7 +20,7 @@ export const AIAdvisorModal: React.FC<AIAdvisorModalProps> = ({ isOpen, onClose,
     <Dialog open={isOpen} onOpenChange={onClose}>
       <DialogContent className="max-w-2xl bg-white border-slate-200 rounded-2xl p-0 overflow-hidden shadow-2xl">
         {/* Cabeçalho do Modal */}
-        <div className="bg-gradient-to-r from-emerald-900 via-slate-900 to-teal-950 p-6 text-white relative">
+        <div className="bg-gradient-to-r from-emerald-900 via-slate-900 to-teal-950 p-6 pr-14 text-white relative">
           <div className="flex items-center space-x-3">
             <div className="p-2.5 rounded-xl bg-emerald-500/20 border border-emerald-400/30 text-emerald-400">
               <Sparkles className="w-6 h-6 animate-pulse" />
