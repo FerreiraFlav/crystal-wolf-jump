@@ -108,7 +108,22 @@ export const Navbar: React.FC<NavbarProps> = ({ user, onLogout }) => {
               </select>
             </div>
 
-            {/* Seletor de Moeda - Versão Celular Compacta */}
+            {/* 1. Botão de Tema (Claro / Escuro) - Versão Celular */}
+            <button
+              type="button"
+              onClick={() => setTheme(theme === 'dark' ? 'light' : 'dark')}
+              className="flex sm:hidden shrink-0 items-center justify-center w-8 h-8 rounded-full bg-slate-100 dark:bg-slate-800 hover:bg-slate-200 dark:hover:bg-slate-700 border border-slate-200/80 dark:border-slate-700 transition-colors text-slate-700 dark:text-slate-200 cursor-pointer shadow-sm"
+              title={theme === 'dark' ? t('themeLight') : t('themeDark')}
+              aria-label="Theme toggle"
+            >
+              {theme === 'dark' ? (
+                <Moon className="w-4 h-4 text-indigo-400" />
+              ) : (
+                <Sun className="w-4 h-4 text-amber-500" />
+              )}
+            </button>
+
+            {/* 2. Seletor de Moeda - Versão Celular Compacta */}
             <div
               className="relative flex sm:hidden shrink-0 items-center justify-center h-8 min-w-8 px-2 rounded-full bg-slate-100 dark:bg-slate-800 hover:bg-slate-200 dark:hover:bg-slate-700 border border-slate-200/80 dark:border-slate-700 transition-colors text-slate-700 dark:text-slate-200 shadow-sm cursor-pointer"
               title="Alterar Moeda"
@@ -130,7 +145,7 @@ export const Navbar: React.FC<NavbarProps> = ({ user, onLogout }) => {
               </select>
             </div>
 
-            {/* Seletor de Idioma - Versão Celular Compacta */}
+            {/* 3. Seletor de Idioma - Versão Celular Compacta */}
             <div
               className="relative flex sm:hidden shrink-0 items-center justify-center w-8 h-8 rounded-full bg-slate-100 dark:bg-slate-800 hover:bg-slate-200 dark:hover:bg-slate-700 border border-slate-200/80 dark:border-slate-700 transition-colors shadow-sm cursor-pointer text-sm"
               title="Alterar Idioma"
@@ -151,21 +166,6 @@ export const Navbar: React.FC<NavbarProps> = ({ user, onLogout }) => {
                 ))}
               </select>
             </div>
-
-            {/* Botão de Tema (Claro / Escuro) - Versão Celular (ao lado da letra F) */}
-            <button
-              type="button"
-              onClick={() => setTheme(theme === 'dark' ? 'light' : 'dark')}
-              className="flex sm:hidden shrink-0 items-center justify-center w-8 h-8 rounded-full bg-slate-100 dark:bg-slate-800 hover:bg-slate-200 dark:hover:bg-slate-700 border border-slate-200/80 dark:border-slate-700 transition-colors text-slate-700 dark:text-slate-200 cursor-pointer shadow-sm"
-              title={theme === 'dark' ? t('themeLight') : t('themeDark')}
-              aria-label="Theme toggle"
-            >
-              {theme === 'dark' ? (
-                <Moon className="w-4 h-4 text-indigo-400" />
-              ) : (
-                <Sun className="w-4 h-4 text-amber-500" />
-              )}
-            </button>
 
             {/* Perfil Clicável do Usuário (Letra F no celular) */}
             <button
