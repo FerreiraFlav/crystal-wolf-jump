@@ -15,7 +15,9 @@ import {
   fetchExpensesFromSupabase, 
   saveExpenseToSupabase, 
   deleteExpenseFromSupabase,
-  updateExpenseInSupabase 
+  updateExpenseInSupabase,
+  fetchBudgetsFromSupabase,
+  fetchPiggyBanksFromSupabase
 } from '@/services/supabaseStorage';
 import { checkIsConfigured, getSupabase } from '@/lib/supabase';
 import { analyzeExpensesWithAI } from '@/services/aiAdvisor';
@@ -73,17 +75,30 @@ const Index = () => {
 
     const client = getSupabase();
     if (client) {
+      // Restaura sessão existente caso a aba tenha sido recarregada ou reaberta
+      client.auth.getSession().then(({ data: { session } }) => {
+        if (session?.user) {
+          const userObj: User = {
+            id: session.user.id,
+            name: session.user.user_metadata?.name || session.user.email?.split('@')[0] || 'Usuário',
+            email: session.user.email || '',
+          };
+          setCurrentUser(userObj);
+          loadUserData(session.user.id);
+        }
+      });
+
       const { data: { subscription } } = client.auth.onAuthStateChange((event, session) => {
         if (event === 'SIGNED_OUT') {
           setCurrentUser(null);
           setExpenses([]);
+          setBudgets([]);
+          setPiggyBanks([]);
         } else if (event === 'SIGNED_IN' && session?.user) {
           const userObj: User = {
             id: session.user.id,
             name: session.user.user_metadata?.name || session.user.email?.split('@')[0] || 'Usuário',
             email: session.user.email || '',
-            passwordHash: '',
-            createdAt: session.user.created_at,
           };
           setCurrentUser(userObj);
           loadUserData(session.user.id);
@@ -98,19 +113,35 @@ const Index = () => {
 
   const loadUserData = async (userId: string) => {
     try {
-      const localExp = getExpenses(userId);
-      setExpenses(localExp);
+      // 1. Carrega do cache local
+      setExpenses(getExpenses(userId));
+      setPiggyBanks(getPiggyBanks(userId));
+      setBudgets(getBudgets(userId));
 
-      const piggyData = getPiggyBanks(userId);
-      setPiggyBanks(piggyData);
-
-      const budgetData = getBudgets(userId);
-      setBudgets(budgetData);
-
+      // 2. Sincroniza diretamente com o Supabase
       if (checkIsConfigured()) {
-        const supabaseExpenses = await fetchExpensesFromSupabase(userId);
-        if (supabaseExpenses && supabaseExpenses.length > 0) {
-          setExpenses(supabaseExpenses);
+        const [cloudExpenses, cloudBudgets, cloudPiggy] = await Promise.all([
+          fetchExpensesFromSupabase(userId),
+          fetchBudgetsFromSupabase(userId),
+          fetchPiggyBanksFromSupabase(userId),
+        ]);
+
+        setExpenses(cloudExpenses);
+        setBudgets(cloudBudgets);
+        setPiggyBanks(cloudPiggy);
+
+        try {
+          localStorage.setItem('meu_orcamento_expenses', JSON.stringify(cloudExpenses));
+
+          const existingBudgets = JSON.parse(localStorage.getItem('meu_orcamento_budgets') || '{}');
+          existingBudgets[userId] = cloudBudgets;
+          localStorage.setItem('meu_orcamento_budgets', JSON.stringify(existingBudgets));
+
+          const existingPiggy = JSON.parse(localStorage.getItem('meu_orcamento_piggy_banks') || '{}');
+          existingPiggy[userId] = cloudPiggy;
+          localStorage.setItem('meu_orcamento_piggy_banks', JSON.stringify(existingPiggy));
+        } catch {
+          // Ignora falha de cache local se storage estiver indisponível
         }
       }
     } catch (err) {
@@ -127,6 +158,8 @@ const Index = () => {
     await logoutUser();
     setCurrentUser(null);
     setExpenses([]);
+    setBudgets([]);
+    setPiggyBanks([]);
     showSuccess('Você saiu com segurança.');
   };
 

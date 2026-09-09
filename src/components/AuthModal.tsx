@@ -1,13 +1,12 @@
 import React, { useState } from 'react';
 import { User } from '@/types/finance';
 import { registerUserAsync, loginUserAsync } from '@/services/storage';
-import { seedSupabaseDataIfEmpty } from '@/services/supabaseStorage';
 import { checkIsConfigured, getSupabase } from '@/lib/supabase';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Button } from '@/components/ui/button';
-import { Wallet, Lock, Mail, User as UserIcon, ShieldCheck, ArrowRight, KeyRound, Wifi, Database } from 'lucide-react';
+import { Wallet, Lock, Mail, User as UserIcon, ShieldCheck, ArrowRight, Wifi, Database } from 'lucide-react';
 import { showSuccess, showError } from '@/utils/toast';
 
 interface AuthModalProps {
@@ -71,13 +70,11 @@ export const AuthModal: React.FC<AuthModalProps> = ({ onLoginSuccess }) => {
 
       if (isRegister) {
         const newUser = await registerUserAsync(name.trim(), email.trim(), password);
-        await seedSupabaseDataIfEmpty(newUser.id);
         showSuccess(`Conta criada com sucesso e sincronizada! Bem-vindo, ${newUser.name}.`);
         onLoginSuccess(newUser);
       } else {
         try {
           const user = await loginUserAsync(email.trim(), password);
-          await seedSupabaseDataIfEmpty(user.id);
           showSuccess(`Bem-vindo de volta, ${user.name}!`);
           onLoginSuccess(user);
         } catch (err: unknown) {
@@ -87,26 +84,6 @@ export const AuthModal: React.FC<AuthModalProps> = ({ onLoginSuccess }) => {
       }
     } catch (err: unknown) {
       const message = err instanceof Error ? err.message : 'Ocorreu um erro ao autenticar.';
-      showError(message);
-    } finally {
-      setIsLoading(false);
-    }
-  };
-
-  const handleDemoLogin = async () => {
-    setIsLoading(true);
-    try {
-      let user: User;
-      try {
-        user = await loginUserAsync('flavio@email.com', '123456');
-      } catch {
-        user = await registerUserAsync('Flavio', 'flavio@email.com', '123456');
-      }
-      await seedSupabaseDataIfEmpty(user.id);
-      showSuccess('Entrou como Flavio! Dados salvos no banco.');
-      onLoginSuccess(user);
-    } catch (err: unknown) {
-      const message = err instanceof Error ? err.message : 'Erro ao entrar na conta.';
       showError(message);
     } finally {
       setIsLoading(false);
@@ -236,17 +213,6 @@ export const AuthModal: React.FC<AuthModalProps> = ({ onLoginSuccess }) => {
             </form>
 
             <div className="mt-4 pt-3 border-t border-slate-800 flex flex-col gap-2 text-center">
-              <Button
-                type="button"
-                variant="outline"
-                onClick={handleDemoLogin}
-                disabled={isLoading}
-                className="w-full border-slate-700 bg-slate-800/50 hover:bg-slate-800 text-emerald-400 hover:text-emerald-300 text-xs font-semibold py-2 rounded-xl flex items-center justify-center gap-2"
-              >
-                <KeyRound className="w-3.5 h-3.5" />
-                <span>Entrar como Conta de Teste</span>
-              </Button>
-
               <button
                 type="button"
                 onClick={() => setIsRegister(!isRegister)}

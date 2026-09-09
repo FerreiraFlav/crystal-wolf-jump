@@ -73,31 +73,47 @@ create table if not exists public.recurring_transactions (
   created_at timestamptz not null default now()
 );
 
--- 6. Indexes for performance and cascade lookups
+-- 6. Budgets
+create table if not exists public.budgets (
+  id uuid primary key default gen_random_uuid(),
+  user_id uuid not null references auth.users(id) on delete cascade,
+  category text not null,
+  limit_amount numeric(10, 2) not null default 0,
+  created_at timestamptz not null default now(),
+  constraint unique_user_category unique (user_id, category)
+);
+
+-- 7. Indexes for performance and cascade lookups
 create index if not exists idx_expenses_user_id on public.expenses(user_id);
 create index if not exists idx_piggy_banks_user_id on public.piggy_banks(user_id);
 create index if not exists idx_recurring_transactions_user_id on public.recurring_transactions(user_id);
+create index if not exists idx_budgets_user_id on public.budgets(user_id);
 
--- 7. Enable Row Level Security (RLS)
+-- 8. Enable Row Level Security (RLS)
 alter table public.profiles enable row level security;
 alter table public.expenses enable row level security;
 alter table public.piggy_banks enable row level security;
 alter table public.recurring_transactions enable row level security;
+alter table public.budgets enable row level security;
 
--- 8. Policies for Profiles
+-- 9. Policies for Profiles
 drop policy if exists "Users can read their own profile" on public.profiles;
 drop policy if exists "Users can update their own profile" on public.profiles;
 create policy "Users can read their own profile" on public.profiles for select using (auth.uid() = id);
 create policy "Users can update their own profile" on public.profiles for update using (auth.uid() = id);
 
--- 9. Policies for Expenses (UUID comparison)
+-- 10. Policies for Expenses (UUID comparison)
 drop policy if exists "Users manage their own expenses" on public.expenses;
 create policy "Users manage their own expenses" on public.expenses for all using (auth.uid() = user_id) with check (auth.uid() = user_id);
 
--- 10. Policies for Piggy Banks (UUID comparison)
+-- 11. Policies for Piggy Banks (UUID comparison)
 drop policy if exists "Users manage their own piggy banks" on public.piggy_banks;
 create policy "Users manage their own piggy banks" on public.piggy_banks for all using (auth.uid() = user_id) with check (auth.uid() = user_id);
 
--- 11. Policies for Recurring Transactions (UUID comparison)
+-- 12. Policies for Recurring Transactions (UUID comparison)
 drop policy if exists "Users manage their own recurring transactions" on public.recurring_transactions;
 create policy "Users manage their own recurring transactions" on public.recurring_transactions for all using (auth.uid() = user_id) with check (auth.uid() = user_id);
+
+-- 13. Policies for Budgets (UUID comparison)
+drop policy if exists "Users manage their own budgets" on public.budgets;
+create policy "Users manage their own budgets" on public.budgets for all using (auth.uid() = user_id) with check (auth.uid() = user_id);

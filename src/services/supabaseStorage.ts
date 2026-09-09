@@ -1,5 +1,5 @@
 import { getSupabase, checkIsConfigured } from '@/lib/supabase';
-import { Expense, User, PiggyBank, RecurringTransaction } from '@/types/finance';
+import { Expense, User, PiggyBank, RecurringTransaction, CategoryBudget, CategoryType, TransactionType, RecurrenceFrequency } from '@/types/finance';
 
 // ==================== TESTE DE CONEXÃO E TABELAS ====================
 
@@ -104,57 +104,7 @@ export const registerUserInSupabase = async (name: string, email: string, passwo
   return { id: data.user.id, name: name.trim(), email: formattedEmail };
 };
 
-// ==================== POVOAR DADOS INICIAIS NO SUPABASE ====================
-
-export const seedSupabaseDataIfEmpty = async (userId: string) => {
-  const client = getSupabase();
-  if (!client) return;
-
-  try {
-    const { data: existing } = await client
-      .from('expenses')
-      .select('id')
-      .eq('user_id', userId)
-      .limit(1);
-
-    if (existing && existing.length > 0) {
-      return;
-    }
-
-    const today = new Date();
-    const year = today.getFullYear();
-    const month = String(today.getMonth() + 1).padStart(2, '0');
-
-    const demoExpenses = [
-      { user_id: userId, description: 'Salário Mensal', amount: 2800.00, category: 'Salário', type: 'income', date: `${year}-${month}-01` },
-      { user_id: userId, description: 'Projeto Freelance', amount: 650.00, category: 'Freelance', type: 'income', date: `${year}-${month}-10` },
-      { user_id: userId, description: 'Supermercado Tesco / Lidl', amount: 320.50, category: 'Alimentação', type: 'expense', date: `${year}-${month}-02` },
-      { user_id: userId, description: 'Renda / Aluguer Habitação', amount: 750.00, category: 'Moradia', type: 'expense', date: `${year}-${month}-05` },
-      { user_id: userId, description: 'Eletricidade e Água (IE)', amount: 115.30, category: 'Contas & Serviços Irlanda', type: 'expense', date: `${year}-${month}-08` },
-      { user_id: userId, description: 'Apoio Familiar (BR)', amount: 150.00, category: 'Contas & Serviços Brasil', type: 'expense', date: `${year}-${month}-09` },
-      { user_id: userId, description: 'Transporte / Leap Card', amount: 80.00, category: 'Transporte', type: 'expense', date: `${year}-${month}-10` },
-      { user_id: userId, description: 'Jantar Restaurante', amount: 65.00, category: 'Lazer & Entretenimento', type: 'expense', date: `${year}-${month}-12` },
-    ];
-
-    await client.from('expenses').insert(demoExpenses);
-
-    // Cofrinhos
-    await client.from('piggy_banks').insert([
-      { user_id: userId, name: 'Reserva de Emergência', target_amount: 3000, current_amount: 1200, color: '#10B981' },
-      { user_id: userId, name: 'Viagem / Férias', target_amount: 1500, current_amount: 450, color: '#3B82F6' },
-    ]);
-
-    // Contas fixas
-    await client.from('recurring_transactions').insert([
-      { user_id: userId, description: 'Renda / Aluguer Habitação', amount: 750, category: 'Moradia', type: 'expense', frequency: 'monthly', day_of_month: 5 },
-      { user_id: userId, description: 'Salário Semanal', amount: 650, category: 'Salário', type: 'income', frequency: 'weekly', day_of_week: 5 },
-    ]);
-  } catch (err) {
-    console.warn('Aviso ao popular dados iniciais no Supabase:', err);
-  }
-};
-
-// ==================== LANÇAMENTOS ====================
+// ==================== LANÇAMENTOS (EXPENSES) ====================
 
 export const fetchExpensesFromSupabase = async (userId: string): Promise<Expense[]> => {
   const client = getSupabase();
@@ -174,8 +124,8 @@ export const fetchExpensesFromSupabase = async (userId: string): Promise<Expense
       userId: item.user_id,
       description: item.description,
       amount: Number(item.amount),
-      category: item.category,
-      type: item.type || 'expense',
+      category: item.category as CategoryType,
+      type: (item.type || 'expense') as TransactionType,
       date: item.date,
       createdAt: item.created_at || new Date().toISOString(),
     }));
@@ -238,7 +188,110 @@ export const deleteExpenseFromSupabase = async (id: string) => {
   }
 };
 
-// ==================== COFRINHOS ====================
+// ==================== ORÇAMENTOS (BUDGETS) ====================
+
+export const fetchBudgetsFromSupabase = async (userId: string): Promise<CategoryBudget[]> => {
+  const client = getSupabase();
+  if (!client) return [];
+
+  try {
+    const { data, error } = await client
+      .from('budgets')
+      .select('*')
+      .eq('user_id', userId);
+
+    if (error) return [];
+
+    return (data || []).map(item => ({
+      category: item.category as CategoryType,
+      limitAmount: Number(item.limit_amount) || 0,
+    }));
+  } catch {
+    return [];
+  }
+};
+
+export const saveBudgetsToSupabase = async (userId: string, budgets: CategoryBudget[]): Promise<void> => {
+  const client = getSupabase();
+  if (!client) return;
+
+  try {
+    const payload = budgets.map(b => ({
+      user_id: userId,
+      category: b.category,
+      limit_amount: b.limitAmount,
+    }));
+
+    await client
+      .from('budgets')
+      .upsert(payload, { onConflict: 'user_id,category' });
+  } catch (err) {
+    console.warn('Erro ao salvar orçamentos no Supabase:', err);
+  }
+};
+
+// ==================== COFRINHOS (PIGGY BANKS) ====================
+
+export const fetchPiggyBanksFromSupabase = async (userId: string): Promise<PiggyBank[]> => {
+  const client = getSupabase();
+  if (!client) return [];
+
+  try {
+    const { data, error } = await client
+      .from('piggy_banks')
+      .select('*')
+      .eq('user_id', userId)
+      .order('created_at', { ascending: true });
+
+    if (error) return [];
+
+    return (data || []).map(item => ({
+      id: item.id,
+      userId: item.user_id,
+      name: item.name,
+      targetAmount: Number(item.target_amount) || 0,
+      currentAmount: Number(item.current_amount) || 0,
+      color: item.color || '#10B981',
+    }));
+  } catch {
+    return [];
+  }
+};
+
+export const savePiggyBankToSupabase = async (userId: string, item: Omit<PiggyBank, 'userId'>): Promise<PiggyBank | null> => {
+  const client = getSupabase();
+  if (!client) return null;
+
+  try {
+    const { data, error } = await client
+      .from('piggy_banks')
+      .insert([
+        {
+          id: item.id,
+          user_id: userId,
+          name: item.name,
+          target_amount: item.targetAmount,
+          current_amount: item.currentAmount,
+          color: item.color || '#10B981',
+        }
+      ])
+      .select();
+
+    if (error) return null;
+    const inserted = data?.[0];
+    if (!inserted) return null;
+    return {
+      id: inserted.id,
+      userId: inserted.user_id,
+      name: inserted.name,
+      targetAmount: Number(inserted.target_amount),
+      currentAmount: Number(inserted.current_amount),
+      color: inserted.color,
+    };
+  } catch {
+    return null;
+  }
+};
 
 export const updatePiggyBankAmountInSupabase = async (id: string, newAmount: number) => {
   const client = getSupabase();
@@ -246,6 +299,100 @@ export const updatePiggyBankAmountInSupabase = async (id: string, newAmount: num
 
   try {
     await client.from('piggy_banks').update({ current_amount: newAmount }).eq('id', id);
+  } catch {
+    // Falha silenciosa
+  }
+};
+
+export const deletePiggyBankFromSupabase = async (id: string) => {
+  const client = getSupabase();
+  if (!client) return;
+
+  try {
+    await client.from('piggy_banks').delete().eq('id', id);
+  } catch {
+    // Falha silenciosa
+  }
+};
+
+// ==================== TRANSAÇÕES RECORRENTES ====================
+
+export const fetchRecurringTransactionsFromSupabase = async (userId: string): Promise<RecurringTransaction[]> => {
+  const client = getSupabase();
+  if (!client) return [];
+
+  try {
+    const { data, error } = await client
+      .from('recurring_transactions')
+      .select('*')
+      .eq('user_id', userId)
+      .order('created_at', { ascending: true });
+
+    if (error) return [];
+
+    return (data || []).map(item => ({
+      id: item.id,
+      userId: item.user_id,
+      description: item.description,
+      amount: Number(item.amount) || 0,
+      category: item.category as CategoryType,
+      type: (item.type || 'expense') as TransactionType,
+      frequency: (item.frequency || 'monthly') as RecurrenceFrequency,
+      dayOfMonth: item.day_of_month ?? undefined,
+      dayOfWeek: item.day_of_week ?? undefined,
+    }));
+  } catch {
+    return [];
+  }
+};
+
+export const saveRecurringTransactionToSupabase = async (userId: string, item: RecurringTransaction): Promise<RecurringTransaction | null> => {
+  const client = getSupabase();
+  if (!client) return null;
+
+  try {
+    const { data, error } = await client
+      .from('recurring_transactions')
+      .insert([
+        {
+          id: item.id,
+          user_id: userId,
+          description: item.description,
+          amount: item.amount,
+          category: item.category,
+          type: item.type,
+          frequency: item.frequency,
+          day_of_month: item.dayOfMonth ?? null,
+          day_of_week: item.dayOfWeek ?? null,
+        }
+      ])
+      .select();
+
+    if (error) return null;
+    const inserted = data?.[0];
+    if (!inserted) return null;
+    return {
+      id: inserted.id,
+      userId: inserted.user_id,
+      description: inserted.description,
+      amount: Number(inserted.amount),
+      category: inserted.category as CategoryType,
+      type: inserted.type as TransactionType,
+      frequency: inserted.frequency as RecurrenceFrequency,
+      dayOfMonth: inserted.day_of_month ?? undefined,
+      dayOfWeek: inserted.day_of_week ?? undefined,
+    };
+  } catch {
+    return null;
+  }
+};
+
+export const deleteRecurringTransactionFromSupabase = async (id: string) => {
+  const client = getSupabase();
+  if (!client) return;
+
+  try {
+    await client.from('recurring_transactions').delete().eq('id', id);
   } catch {
     // Falha silenciosa
   }

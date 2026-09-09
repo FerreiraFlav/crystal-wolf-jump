@@ -45,6 +45,12 @@ export const RecurringTransactionsModal: React.FC<RecurringTransactionsModalProp
     getRecurringTransactions(userId)
   );
 
+  React.useEffect(() => {
+    if (isOpen) {
+      setRecurringList(getRecurringTransactions(userId));
+    }
+  }, [isOpen, userId]);
+
   const [isAdding, setIsAdding] = useState(false);
   const [desc, setDesc] = useState('');
   const [amount, setAmount] = useState('');

@@ -34,6 +34,17 @@ export const BudgetManagerModal: React.FC<BudgetManagerModalProps> = ({
     return initial;
   });
 
+  React.useEffect(() => {
+    if (isOpen) {
+      const initial: Record<string, string> = {};
+      EXPENSE_CATEGORIES.forEach(c => {
+        const found = budgets.find(b => b.category === c.name);
+        initial[c.name] = found ? String(found.limitAmount) : '0';
+      });
+      setLocalBudgets(initial);
+    }
+  }, [isOpen, budgets]);
+
   const handleChange = (categoryName: string, val: string) => {
     setLocalBudgets(prev => ({ ...prev, [categoryName]: val }));
   };

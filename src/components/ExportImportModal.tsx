@@ -1,5 +1,5 @@
 import React, { useState, useRef } from 'react';
-import { Expense } from '@/types/finance';
+import { Expense, CategoryType, TransactionType } from '@/types/finance';
 import { importExpenses } from '@/services/storage';
 import { Dialog, DialogContent, DialogTitle, DialogDescription } from '@/components/ui/dialog';
 import { Button } from '@/components/ui/button';
@@ -294,9 +294,9 @@ export const ExportImportModal: React.FC<ExportImportModalProps> = ({
       const cleanAmount = Math.min(numAmount, 100_000_000);
 
       const rawCat = typeof item.category === 'string' ? item.category.trim() : '';
-      const cleanCat = rawCat.slice(0, 100) || 'Outros';
+      const cleanCat: CategoryType = (rawCat.slice(0, 100) || 'Outros') as CategoryType;
 
-      const cleanType = item.type === 'income' ? 'income' : ('expense' as const);
+      const cleanType: TransactionType = item.type === 'income' ? 'income' : 'expense';
 
       const rawDate = typeof item.date === 'string' ? item.date.trim() : '';
       const cleanDate = dateRegex.test(rawDate) ? rawDate : new Date().toISOString().split('T')[0];

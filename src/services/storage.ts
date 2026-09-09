@@ -2,11 +2,15 @@ import { User, Expense, CategoryType, CategoryBudget, PiggyBank, RecurringTransa
 import { 
   findUserInSupabase, 
   registerUserInSupabase,
-  updatePiggyBankAmountInSupabase
+  updatePiggyBankAmountInSupabase,
+  savePiggyBankToSupabase,
+  deletePiggyBankFromSupabase,
+  saveBudgetsToSupabase,
+  saveRecurringTransactionToSupabase,
+  deleteRecurringTransactionFromSupabase
 } from './supabaseStorage';
-import { checkIsConfigured } from '@/lib/supabase';
+import { checkIsConfigured, getSupabase } from '@/lib/supabase';
 
-const USERS_KEY = 'meu_orcamento_users';
 const CURRENT_USER_KEY = 'meu_orcamento_current_user';
 const EXPENSES_KEY = 'meu_orcamento_expenses';
 const BUDGETS_KEY = 'meu_orcamento_budgets';
@@ -86,28 +90,16 @@ export const INCOME_CATEGORIES: { name: CategoryType; color: string; icon: strin
 
 export const ALL_CATEGORIES = [...EXPENSE_CATEGORIES, ...INCOME_CATEGORIES];
 
-const getDefaultBudgets = (): CategoryBudget[] => [
-  { category: 'Alimentação', limitAmount: 450 },
-  { category: 'Moradia', limitAmount: 900 },
-  { category: 'Transporte', limitAmount: 150 },
-  { category: 'Lazer & Entretenimento', limitAmount: 200 },
-  { category: 'Saúde', limitAmount: 150 },
-  { category: 'Compras', limitAmount: 250 },
-  { category: 'Contas & Serviços Irlanda', limitAmount: 180 },
-  { category: 'Contas & Serviços Brasil', limitAmount: 100 },
-];
-
-const getDefaultPiggyBanks = (userId: string): PiggyBank[] => [
-  { id: 'pgy_reserva', userId, name: 'Reserva de Emergência', targetAmount: 3000, currentAmount: 1200, color: '#10B981' },
-  { id: 'pgy_viagem', userId, name: 'Viagem / Férias', targetAmount: 1500, currentAmount: 450, color: '#3B82F6' },
-];
-
-const getDefaultRecurring = (userId: string): RecurringTransaction[] => [
-  { id: 'rec_rent', userId, description: 'Renda / Aluguer Habitação', amount: 750, category: 'Moradia', type: 'expense', frequency: 'monthly', dayOfMonth: 5 },
-  { id: 'rec_salary', userId, description: 'Salário Semanal (Irlanda)', amount: 650, category: 'Salário', type: 'income', frequency: 'weekly', dayOfWeek: 5 },
-  { id: 'rec_gym', userId, description: 'Mensalidade Ginásio', amount: 35, category: 'Saúde', type: 'expense', frequency: 'monthly', dayOfMonth: 10 },
-  { id: 'rec_net', userId, description: 'Netflix / Streaming', amount: 15.99, category: 'Lazer & Entretenimento', type: 'expense', frequency: 'monthly', dayOfMonth: 15 },
-];
+export const generateUUID = (): string => {
+  if (typeof crypto !== 'undefined' && typeof crypto.randomUUID === 'function') {
+    return crypto.randomUUID();
+  }
+  return 'xxxxxxxx-xxxx-4xxx-yxxx-xxxxxxxxxxxx'.replace(/[xy]/g, (c) => {
+    const r = (Math.random() * 16) | 0;
+    const v = c === 'x' ? r : (r & 0x3) | 0x8;
+    return v.toString(16);
+  });
+};
 
 export const getExpenses = (userId: string): Expense[] => {
   const data = safeLocalStorage.getItem(EXPENSES_KEY);
@@ -123,7 +115,7 @@ export const addExpense = (userId: string, expense: Omit<Expense, 'id' | 'userId
 
   const newExpense: Expense = {
     ...expense,
-    id: 'exp_' + Date.now().toString(36) + Math.random().toString(36).substring(2, 5),
+    id: generateUUID(),
     userId,
     createdAt: new Date().toISOString(),
   };
@@ -133,112 +125,58 @@ export const addExpense = (userId: string, expense: Omit<Expense, 'id' | 'userId
   return newExpense;
 };
 
-const seedInitialData = (userId: string) => {
-  const existingExpenses = getExpenses(userId);
-  if (existingExpenses.length > 0) return;
-
-  const today = new Date();
-  const year = today.getFullYear();
-  const month = String(today.getMonth() + 1).padStart(2, '0');
-
-  const prevMonth1 = new Date(today.getFullYear(), today.getMonth() - 1, 1);
-  const ym1 = `${prevMonth1.getFullYear()}-${String(prevMonth1.getMonth() + 1).padStart(2, '0')}`;
-
-  const prevMonth2 = new Date(today.getFullYear(), today.getMonth() - 2, 1);
-  const ym2 = `${prevMonth2.getFullYear()}-${String(prevMonth2.getMonth() + 1).padStart(2, '0')}`;
-
-  const demoTransactions: Omit<Expense, 'id' | 'userId' | 'createdAt'>[] = [
-    { description: 'Salário Mensal', amount: 2800.00, category: 'Salário', type: 'income', date: `${year}-${month}-01` },
-    { description: 'Projeto Freelance', amount: 650.00, category: 'Freelance', type: 'income', date: `${year}-${month}-10` },
-    { description: 'Supermercado Mensal', amount: 320.50, category: 'Alimentação', type: 'expense', date: `${year}-${month}-02` },
-    { description: 'Renda / Aluguer Habitação', amount: 750.00, category: 'Moradia', type: 'expense', date: `${year}-${month}-05` },
-    { description: 'Eletricidade e Água (IE)', amount: 115.30, category: 'Contas & Serviços Irlanda', type: 'expense', date: `${year}-${month}-08` },
-    { description: 'Apoio Familiar (BR)', amount: 150.00, category: 'Contas & Serviços Brasil', type: 'expense', date: `${year}-${month}-09` },
-    { description: 'Passe Navegante / Combustível', amount: 80.00, category: 'Transporte', type: 'expense', date: `${year}-${month}-10` },
-    { description: 'Jantar Restaurante', amount: 65.00, category: 'Lazer & Entretenimento', type: 'expense', date: `${year}-${month}-12` },
-    { description: 'Seguro de Saúde', amount: 90.00, category: 'Saúde', type: 'expense', date: `${year}-${month}-15` },
-
-    { description: 'Salário Mensal', amount: 2800.00, category: 'Salário', type: 'income', date: `${ym1}-01` },
-    { description: 'Aluguer Habitação', amount: 750.00, category: 'Moradia', type: 'expense', date: `${ym1}-05` },
-    { description: 'Supermercado', amount: 410.00, category: 'Alimentação', type: 'expense', date: `${ym1}-08` },
-    { description: 'Compras de Vestuário', amount: 180.00, category: 'Compras', type: 'expense', date: `${ym1}-14` },
-
-    { description: 'Salário Mensal', amount: 2800.00, category: 'Salário', type: 'income', date: `${ym2}-01` },
-    { description: 'Projeto Freelance', amount: 500.00, category: 'Freelance', type: 'income', date: `${ym2}-12` },
-    { description: 'Aluguer Habitação', amount: 750.00, category: 'Moradia', type: 'expense', date: `${ym2}-05` },
-    { description: 'Supermercado', amount: 350.00, category: 'Alimentação', type: 'expense', date: `${ym2}-09` },
-  ];
-
-  demoTransactions.forEach(t => addExpense(userId, t));
-  saveBudgets(userId, getDefaultBudgets());
-  savePiggyBanks(userId, getDefaultPiggyBanks(userId));
-  saveRecurringTransactions(userId, getDefaultRecurring(userId));
-};
-
-const initDefaultAccounts = () => {
-  try {
-    const data = safeLocalStorage.getItem(USERS_KEY);
-    const users: (User & { passwordHash: string })[] = data ? JSON.parse(data) : [];
-    const hasFlavio = users.some(u => u.email.toLowerCase() === 'flavio@email.com');
-
-    if (!hasFlavio) {
-      const defaultUser: User & { passwordHash: string } = {
-        id: 'usr_flavio',
-        name: 'Flavio',
-        email: 'flavio@email.com',
-        passwordHash: '123456',
-      };
-      users.push(defaultUser);
-      safeLocalStorage.setItem(USERS_KEY, JSON.stringify(users));
-      seedInitialData(defaultUser.id);
-    }
-  } catch (err) {
-    console.warn('Aviso de inicialização de armazenamento:', err);
-  }
-};
-
-initDefaultAccounts();
-
-export const getUsers = (): (User & { passwordHash: string })[] => {
-  initDefaultAccounts();
-  const data = safeLocalStorage.getItem(USERS_KEY);
-  return data ? JSON.parse(data) : [];
-};
-
 export const getCurrentUser = (): User | null => {
-  initDefaultAccounts();
-  const data = safeSessionStorage.getItem(CURRENT_USER_KEY);
-  return data ? JSON.parse(data) : null;
+  const localData = safeLocalStorage.getItem(CURRENT_USER_KEY);
+  if (localData) {
+    try {
+      return JSON.parse(localData);
+    } catch {
+      // Ignora erro de JSON mal formatado e tenta a chave de sessão
+    }
+  }
+  const sessionData = safeSessionStorage.getItem(CURRENT_USER_KEY);
+  return sessionData ? JSON.parse(sessionData) : null;
 };
 
 // Registro de Usuário Assíncrono com Supabase
-export const registerUserAsync = async (name: string, email: string, passwordHash: string): Promise<User> => {
+export const registerUserAsync = async (name: string, email: string, password: string): Promise<User> => {
   if (!checkIsConfigured()) {
     throw new Error('O aplicativo ainda não está conectado ao Supabase.');
   }
 
-  const newUser = await registerUserInSupabase(name, email, passwordHash);
+  const newUser = await registerUserInSupabase(name, email, password);
   if (!newUser) throw new Error('Não foi possível criar a conta.');
 
+  safeLocalStorage.setItem(CURRENT_USER_KEY, JSON.stringify(newUser));
   safeSessionStorage.setItem(CURRENT_USER_KEY, JSON.stringify(newUser));
   return newUser;
 };
 
 // Login de Usuário Assíncrono com Supabase
-export const loginUserAsync = async (email: string, passwordHash: string): Promise<User> => {
+export const loginUserAsync = async (email: string, password: string): Promise<User> => {
   if (!checkIsConfigured()) {
     throw new Error('O aplicativo ainda não está conectado ao Supabase.');
   }
 
-  const user = await findUserInSupabase(email, passwordHash);
+  const user = await findUserInSupabase(email, password);
   if (!user) throw new Error('E-mail ou senha incorretos.');
 
+  safeLocalStorage.setItem(CURRENT_USER_KEY, JSON.stringify(user));
   safeSessionStorage.setItem(CURRENT_USER_KEY, JSON.stringify(user));
   return user;
 };
 
 export const logoutUser = async (): Promise<void> => {
   safeSessionStorage.removeItem(CURRENT_USER_KEY);
+  safeLocalStorage.removeItem(CURRENT_USER_KEY);
+
+  // Limpeza defensiva do cache financeiro no logout para proteção em computadores compartilhados
+  safeLocalStorage.removeItem(EXPENSES_KEY);
+  safeLocalStorage.removeItem(BUDGETS_KEY);
+  safeLocalStorage.removeItem(PIGGY_BANKS_KEY);
+  safeLocalStorage.removeItem(RECURRING_KEY);
+  safeLocalStorage.removeItem('meu_orcamento_users');
+
   try {
     const client = getSupabase();
     if (client) {
@@ -281,9 +219,13 @@ export const importExpenses = (userId: string, imported: Omit<Expense, 'id' | 'u
 
 export const getBudgets = (userId: string): CategoryBudget[] => {
   const data = safeLocalStorage.getItem(BUDGETS_KEY);
-  if (!data) return getDefaultBudgets();
-  const allMap: Record<string, CategoryBudget[]> = JSON.parse(data);
-  return allMap[userId] || getDefaultBudgets();
+  if (!data) return [];
+  try {
+    const allMap: Record<string, CategoryBudget[]> = JSON.parse(data);
+    return allMap[userId] || [];
+  } catch {
+    return [];
+  }
 };
 
 export const saveBudgets = (userId: string, budgets: CategoryBudget[]) => {
@@ -291,13 +233,21 @@ export const saveBudgets = (userId: string, budgets: CategoryBudget[]) => {
   const allMap: Record<string, CategoryBudget[]> = data ? JSON.parse(data) : {};
   allMap[userId] = budgets;
   safeLocalStorage.setItem(BUDGETS_KEY, JSON.stringify(allMap));
+
+  if (checkIsConfigured()) {
+    saveBudgetsToSupabase(userId, budgets).catch(err => console.warn('Aviso ao salvar orçamentos:', err));
+  }
 };
 
 export const getPiggyBanks = (userId: string): PiggyBank[] => {
   const data = safeLocalStorage.getItem(PIGGY_BANKS_KEY);
-  if (!data) return getDefaultPiggyBanks(userId);
-  const allMap: Record<string, PiggyBank[]> = JSON.parse(data);
-  return allMap[userId] || getDefaultPiggyBanks(userId);
+  if (!data) return [];
+  try {
+    const allMap: Record<string, PiggyBank[]> = JSON.parse(data);
+    return allMap[userId] || [];
+  } catch {
+    return [];
+  }
 };
 
 export const savePiggyBanks = (userId: string, items: PiggyBank[]) => {
@@ -310,7 +260,7 @@ export const savePiggyBanks = (userId: string, items: PiggyBank[]) => {
 export const addPiggyBank = (userId: string, item: { name: string; targetAmount: number; color?: string }): PiggyBank => {
   const current = getPiggyBanks(userId);
   const newPiggy: PiggyBank = {
-    id: 'pgy_' + Date.now().toString(36),
+    id: generateUUID(),
     userId,
     name: item.name,
     targetAmount: item.targetAmount,
@@ -319,6 +269,11 @@ export const addPiggyBank = (userId: string, item: { name: string; targetAmount:
   };
   current.push(newPiggy);
   savePiggyBanks(userId, current);
+
+  if (checkIsConfigured()) {
+    savePiggyBankToSupabase(userId, newPiggy).catch(err => console.warn('Aviso ao salvar cofrinho:', err));
+  }
+
   return newPiggy;
 };
 
@@ -341,16 +296,24 @@ export const deletePiggyBank = (userId: string, id: string) => {
   const current = getPiggyBanks(userId);
   const filtered = current.filter(p => p.id !== id);
   savePiggyBanks(userId, filtered);
+
+  if (checkIsConfigured()) {
+    deletePiggyBankFromSupabase(id);
+  }
 };
 
 export const getRecurringTransactions = (userId: string): RecurringTransaction[] => {
   const data = safeLocalStorage.getItem(RECURRING_KEY);
-  if (!data) return getDefaultRecurring(userId);
-  const allMap: Record<string, RecurringTransaction[]> = JSON.parse(data);
-  return (allMap[userId] || getDefaultRecurring(userId)).map(r => ({
-    ...r,
-    frequency: r.frequency || 'monthly',
-  }));
+  if (!data) return [];
+  try {
+    const allMap: Record<string, RecurringTransaction[]> = JSON.parse(data);
+    return (allMap[userId] || []).map(r => ({
+      ...r,
+      frequency: r.frequency || 'monthly',
+    }));
+  } catch {
+    return [];
+  }
 };
 
 export const saveRecurringTransactions = (userId: string, items: RecurringTransaction[]) => {
@@ -363,12 +326,17 @@ export const saveRecurringTransactions = (userId: string, items: RecurringTransa
 export const addRecurringTransaction = (userId: string, item: Omit<RecurringTransaction, 'id' | 'userId'>): RecurringTransaction => {
   const current = getRecurringTransactions(userId);
   const newRecurring: RecurringTransaction = {
-    id: 'rec_' + Date.now().toString(36),
+    id: generateUUID(),
     userId,
     ...item,
   };
   current.push(newRecurring);
   saveRecurringTransactions(userId, current);
+
+  if (checkIsConfigured()) {
+    saveRecurringTransactionToSupabase(userId, newRecurring).catch(err => console.warn('Aviso ao salvar recorrente:', err));
+  }
+
   return newRecurring;
 };
 
@@ -376,6 +344,10 @@ export const deleteRecurringTransaction = (userId: string, id: string) => {
   const current = getRecurringTransactions(userId);
   const filtered = current.filter(r => r.id !== id);
   saveRecurringTransactions(userId, filtered);
+
+  if (checkIsConfigured()) {
+    deleteRecurringTransactionFromSupabase(id);
+  }
 };
 
 export const applyRecurringToMonth = (userId: string, year: number, month: number): number => {

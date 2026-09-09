@@ -42,6 +42,12 @@ export const CofrinhoModal: React.FC<CofrinhoModalProps> = ({
   const [actionType, setActionType] = useState<'deposit' | 'withdraw'>('deposit');
   const [actionAmount, setActionAmount] = useState('');
 
+  React.useEffect(() => {
+    if (isOpen) {
+      setPiggyBanks(getPiggyBanks(userId));
+    }
+  }, [isOpen, userId]);
+
   const refreshData = () => {
     const list = getPiggyBanks(userId);
     setPiggyBanks(list);
