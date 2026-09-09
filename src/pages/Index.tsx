@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import { User, Expense, AIAdvice, CategoryBudget, TransactionType, CategoryType, PiggyBank } from '@/types/finance';
 import { 
   getCurrentUser, 
@@ -44,10 +44,21 @@ const Index = () => {
   const { t, currencySymbol, language } = useLanguage();
   const today = new Date();
   const [currentUser, setCurrentUser] = useState<User | null>(() => getCurrentUser());
+  const [hasLoadedInitialData, setHasLoadedInitialData] = useState<boolean>(false);
   const [isLoadingUserData, setIsLoadingUserData] = useState<boolean>(true);
-  const [expenses, setExpenses] = useState<Expense[]>([]);
-  const [budgets, setBudgets] = useState<CategoryBudget[]>([]);
-  const [piggyBanks, setPiggyBanks] = useState<PiggyBank[]>([]);
+  const [expenses, setExpenses] = useState<Expense[]>(() => {
+    const u = getCurrentUser();
+    return u ? getExpenses(u.id) : [];
+  });
+  const [budgets, setBudgets] = useState<CategoryBudget[]>(() => {
+    const u = getCurrentUser();
+    return u ? getBudgets(u.id) : [];
+  });
+  const [piggyBanks, setPiggyBanks] = useState<PiggyBank[]>(() => {
+    const u = getCurrentUser();
+    return u ? getPiggyBanks(u.id) : [];
+  });
+  const activeLoadingUserIdRef = useRef<string | null>(null);
 
   // Navegação de Mês/Ano
   const [selectedYear, setSelectedYear] = useState<number>(today.getFullYear());
@@ -84,18 +95,25 @@ const Index = () => {
               email: session.user.email || '',
             };
             setCurrentUser(userObj);
-            if (!user || user.id !== session.user.id) {
+            if ((!user || user.id !== session.user.id) && activeLoadingUserIdRef.current !== session.user.id) {
               await loadUserData(session.user.id, true);
             }
           } else if (!session && !user && isMounted) {
             setIsLoadingUserData(false);
+            setHasLoadedInitialData(true);
           }
         } catch (err) {
           console.warn('Erro ao verificar sessão Supabase:', err);
-          if (isMounted) setIsLoadingUserData(false);
+          if (isMounted) {
+            setIsLoadingUserData(false);
+            setHasLoadedInitialData(true);
+          }
         }
       } else {
-        if (isMounted) setIsLoadingUserData(false);
+        if (isMounted) {
+          setIsLoadingUserData(false);
+          setHasLoadedInitialData(true);
+        }
       }
     };
 
@@ -111,6 +129,8 @@ const Index = () => {
           setBudgets([]);
           setPiggyBanks([]);
           setIsLoadingUserData(false);
+          setHasLoadedInitialData(false);
+          activeLoadingUserIdRef.current = null;
         } else if (event === 'SIGNED_IN' && session?.user) {
           const userObj: User = {
             id: session.user.id,
@@ -118,7 +138,9 @@ const Index = () => {
             email: session.user.email || '',
           };
           setCurrentUser(userObj);
-          await loadUserData(session.user.id, true);
+          if (activeLoadingUserIdRef.current !== session.user.id) {
+            await loadUserData(session.user.id, true);
+          }
         }
       });
 
@@ -137,6 +159,7 @@ const Index = () => {
     if (isInitial) {
       setIsLoadingUserData(true);
     }
+    activeLoadingUserIdRef.current = userId;
     try {
       // 1. Carrega do cache local
       setExpenses(getExpenses(userId));
@@ -173,13 +196,16 @@ const Index = () => {
       console.warn('Erro ao carregar dados do usuário:', err);
     } finally {
       if (isInitial) {
+        setHasLoadedInitialData(true);
         setIsLoadingUserData(false);
+        activeLoadingUserIdRef.current = null;
       }
     }
   };
 
   const handleLoginSuccess = (user: User) => {
     setCurrentUser(user);
+    setHasLoadedInitialData(false);
     loadUserData(user.id, true);
   };
 
@@ -189,7 +215,9 @@ const Index = () => {
     setExpenses([]);
     setBudgets([]);
     setPiggyBanks([]);
+    setHasLoadedInitialData(false);
     setIsLoadingUserData(false);
+    activeLoadingUserIdRef.current = null;
     showSuccess('Você saiu com segurança.');
   };
 
@@ -249,8 +277,10 @@ const Index = () => {
     }, 700);
   };
 
+  const isDashboardLoading = !hasLoadedInitialData || isLoadingUserData;
+
   if (!currentUser) {
-    if (isLoadingUserData) {
+    if (isDashboardLoading) {
       return (
         <div className="min-h-screen bg-slate-100/70 dark:bg-slate-950 flex flex-col items-center justify-center p-4">
           <div className="flex flex-col items-center space-y-4">
@@ -383,13 +413,13 @@ const Index = () => {
         </div>
 
         {/* Summary Cards */}
-        <SummaryCards expenses={currentMonthExpenses} piggyBanks={piggyBanks} isLoading={isLoadingUserData} />
+        <SummaryCards expenses={currentMonthExpenses} piggyBanks={piggyBanks} isLoading={isDashboardLoading} />
 
         {/* Widget de Cofrinhos */}
         <PiggyBankWidget
           piggyBanks={piggyBanks}
           onOpenModal={() => setIsCofrinhoModalOpen(true)}
-          isLoading={isLoadingUserData}
+          isLoading={isDashboardLoading}
         />
 
         {/* Form + Chart Section */}
@@ -403,7 +433,7 @@ const Index = () => {
               expenses={currentMonthExpenses} 
               budgets={budgets}
               currentMonthLabel={monthLabel} 
-              isLoading={isLoadingUserData}
+              isLoading={isDashboardLoading}
             />
           </div>
         </div>
@@ -414,7 +444,7 @@ const Index = () => {
             expenses={expenses}
             selectedYear={selectedYear}
             selectedMonth={selectedMonth}
-            isLoading={isLoadingUserData}
+            isLoading={isDashboardLoading}
           />
         </div>
 
@@ -424,7 +454,7 @@ const Index = () => {
             expenses={currentMonthExpenses} 
             onDeleteExpense={handleDeleteExpense} 
             onEditExpense={handleEditExpense}
-            isLoading={isLoadingUserData}
+            isLoading={isDashboardLoading}
           />
         </div>
       </main>
