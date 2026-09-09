@@ -17,7 +17,7 @@ import {
   deleteExpenseFromSupabase,
   updateExpenseInSupabase 
 } from '@/services/supabaseStorage';
-import { checkIsConfigured } from '@/lib/supabase';
+import { checkIsConfigured, getSupabase } from '@/lib/supabase';
 import { analyzeExpensesWithAI } from '@/services/aiAdvisor';
 import { AuthModal } from '@/components/AuthModal';
 import { Navbar } from '@/components/Navbar';
@@ -70,6 +70,30 @@ const Index = () => {
     } catch (err) {
       console.warn('Erro ao restaurar usuário no carregamento inicial:', err);
     }
+
+    const client = getSupabase();
+    if (client) {
+      const { data: { subscription } } = client.auth.onAuthStateChange((event, session) => {
+        if (event === 'SIGNED_OUT') {
+          setCurrentUser(null);
+          setExpenses([]);
+        } else if (event === 'SIGNED_IN' && session?.user) {
+          const userObj: User = {
+            id: session.user.id,
+            name: session.user.user_metadata?.name || session.user.email?.split('@')[0] || 'Usuário',
+            email: session.user.email || '',
+            passwordHash: '',
+            createdAt: session.user.created_at,
+          };
+          setCurrentUser(userObj);
+          loadUserData(session.user.id);
+        }
+      });
+
+      return () => {
+        subscription.unsubscribe();
+      };
+    }
   }, []);
 
   const loadUserData = async (userId: string) => {
@@ -99,8 +123,8 @@ const Index = () => {
     loadUserData(user.id);
   };
 
-  const handleLogout = () => {
-    logoutUser();
+  const handleLogout = async () => {
+    await logoutUser();
     setCurrentUser(null);
     setExpenses([]);
     showSuccess('Você saiu com segurança.');

@@ -237,14 +237,19 @@ export const loginUserAsync = async (email: string, passwordHash: string): Promi
   return user;
 };
 
-export const logoutUser = () => {
+export const logoutUser = async (): Promise<void> => {
   safeSessionStorage.removeItem(CURRENT_USER_KEY);
   try {
-    getSupabase()?.auth.signOut();
-  } catch {
-    // ignora erro
+    const client = getSupabase();
+    if (client) {
+      await client.auth.signOut();
+    }
+  } catch (error) {
+    console.error('Erro ao realizar logout no Supabase:', error);
   }
 };
+
+export const logoutUserAsync = logoutUser;
 
 export const updateExpenseAmount = (id: string, newAmount: number) => {
   const data = safeLocalStorage.getItem(EXPENSES_KEY);

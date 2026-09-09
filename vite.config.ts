@@ -21,7 +21,7 @@ export default defineConfig(async ({ mode }) => {
   }
 
   return {
-    envPrefix: ['VITE_', 'NEXT_PUBLIC_', 'SUPABASE_'],
+    envPrefix: ['VITE_', 'NEXT_PUBLIC_'],
     server: {
       host: "::",
       port: 8080,

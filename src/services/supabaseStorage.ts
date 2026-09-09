@@ -13,7 +13,7 @@ export const testSupabaseConnection = async (): Promise<{ success: boolean; mess
   }
 
   try {
-    const { error } = await client.from('users').select('id').limit(1);
+    const { error } = await client.from('profiles').select('id').limit(1);
     if (error) {
       if (error.code === '42P01') {
         return { 
@@ -24,14 +24,15 @@ export const testSupabaseConnection = async (): Promise<{ success: boolean; mess
       if (error.code === '42501' || error.message?.includes('row-level security')) {
         return {
           success: false,
-          message: 'As tabelas do Supabase estão com RLS ativo. Execute o script SQL no painel para desativar o RLS ou liberar o acesso.'
+          message: 'Acesso bloqueado por RLS ou permissões. Certifique-se de executar o script com as policies de segurança corretas.'
         };
       }
       return { success: false, message: `Erro do Supabase: ${error.message}` };
     }
-    return { success: true, message: 'Conexão com o Supabase 100% ativa! Usuários e despesas estão salvando na nuvem.' };
-  } catch (err: any) {
-    return { success: false, message: err?.message || 'Erro de conexão com o Supabase.' };
+    return { success: true, message: 'Conexão com o Supabase 100% ativa! Usuários e despesas estão salvando na nuvem com segurança.' };
+  } catch (err: unknown) {
+    const message = err instanceof Error ? err.message : 'Erro de conexão com o Supabase.';
+    return { success: false, message };
   }
 };
 

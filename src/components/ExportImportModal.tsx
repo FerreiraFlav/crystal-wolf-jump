@@ -15,6 +15,26 @@ interface ExportImportModalProps {
   onRefreshData: () => void;
 }
 
+const escapeHtml = (unsafe: unknown): string => {
+  if (unsafe === null || unsafe === undefined) return '';
+  return String(unsafe)
+    .replace(/&/g, '&amp;')
+    .replace(/</g, '&lt;')
+    .replace(/>/g, '&gt;')
+    .replace(/"/g, '&quot;')
+    .replace(/'/g, '&#039;');
+};
+
+const sanitizeCsvField = (value: unknown): string => {
+  if (value === null || value === undefined) return '""';
+  let str = String(value);
+  // Prevent CSV formula injection (=, +, -, @, tab, cr)
+  if (/^[=+\-@\t\r]/.test(str)) {
+    str = `'${str}`;
+  }
+  return `"${str.replace(/"/g, '""')}"`;
+};
+
 export const ExportImportModal: React.FC<ExportImportModalProps> = ({
   isOpen,
   onClose,
@@ -61,21 +81,20 @@ export const ExportImportModal: React.FC<ExportImportModalProps> = ({
       <!DOCTYPE html>
       <html lang="pt-BR">
       <head>
-        <meta charset="UTF-8">
-        <title>Relatorio_Financeiro_${new Date().toISOString().split('T')[0]}</title>
+        <meta charset="utf-8" />
+        <title>Meu Orçamento Inteligente - Relatório Financeiro</title>
         <style>
-          * { box-sizing: border-box; margin: 0; padding: 0; font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif; }
-          body { background: #fff; color: #1e293b; padding: 40px; }
-          .header { display: flex; justify-content: space-between; align-items: center; border-b: 2px solid #10b981; padding-bottom: 20px; margin-bottom: 25px; }
-          .brand { display: flex; align-items: center; gap: 10px; }
-          .brand-title { font-size: 22px; font-weight: 800; color: #0f172a; }
-          .brand-title span { color: #10b981; }
+          * { box-sizing: border-box; font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif; }
+          body { padding: 30px; color: #1e293b; background: #fff; line-height: 1.5; font-size: 13px; }
+          .header { display: flex; justify-content: space-between; align-items: flex-start; border-bottom: 2px solid #0f172a; padding-bottom: 16px; margin-bottom: 24px; }
+          .brand-title { font-size: 22px; font-weight: 800; color: #0f172a; letter-spacing: -0.5px; }
+          .brand-title span { color: #059669; }
           .meta { text-align: right; font-size: 11px; color: #64748b; line-height: 1.4; }
           
-          .metrics { display: grid; grid-template-columns: repeat(4, 1fr); gap: 15px; margin-bottom: 30px; }
-          .metric-card { background: #f8fafc; border: 1px solid #e2e8f0; border-radius: 12px; padding: 15px; }
-          .metric-title { font-size: 10px; text-transform: uppercase; font-weight: 700; color: #64748b; letter-spacing: 0.5px; }
-          .metric-value { font-size: 18px; font-weight: 800; color: #0f172a; margin-top: 6px; }
+          .metrics { display: grid; grid-template-columns: repeat(4, 1fr); gap: 12px; margin-bottom: 24px; }
+          .metric-card { background: #f8fafc; border: 1px solid #e2e8f0; border-radius: 8px; padding: 12px; }
+          .metric-title { font-size: 10px; font-weight: 600; text-transform: uppercase; color: #64748b; margin-bottom: 4px; }
+          .metric-value { font-size: 18px; font-weight: 800; color: #0f172a; }
           .metric-value.income { color: #059669; }
           .metric-value.expense { color: #dc2626; }
           .metric-value.balance { color: ${netBalance >= 0 ? '#059669' : '#dc2626'}; }
@@ -95,16 +114,10 @@ export const ExportImportModal: React.FC<ExportImportModalProps> = ({
           .amount-income { color: #059669; }
           .amount-expense { color: #0f172a; }
 
-          .footer { margin-top: 40px; padding-top: 15px; border-t: 1px solid #e2e8f0; text-align: center; font-size: 10px; color: #94a3b8; }
+          .footer { margin-top: 40px; padding-top: 15px; border-top: 1px solid #e2e8f0; text-align: center; font-size: 10px; color: #94a3b8; }
 
-          @page {
-            size: auto;
-            margin: 0mm;
-          }
-          @media print {
-            body { padding: 15mm 20mm !important; }
-            button { display: none; }
-          }
+          @page { size: auto; margin: 0mm; }
+          @media print { body { padding: 15mm 20mm !important; } button { display: none; } }
         </style>
       </head>
       <body>
@@ -113,7 +126,7 @@ export const ExportImportModal: React.FC<ExportImportModalProps> = ({
             <div class="brand-title">Meu Orçamento <span>Inteligente</span></div>
           </div>
           <div class="meta">
-            <strong>Relatório Financeiro Pessoal (${currencySymbol})</strong><br/>
+            <strong>Relatório Financeiro Pessoal (${escapeHtml(currencySymbol)})</strong><br/>
             Gerado em: ${new Date().toLocaleDateString('pt-BR')} às ${new Date().toLocaleTimeString('pt-BR')}<br/>
             Total de Lançamentos: ${expenses.length}
           </div>
@@ -122,15 +135,15 @@ export const ExportImportModal: React.FC<ExportImportModalProps> = ({
         <div class="metrics">
           <div class="metric-card">
             <div class="metric-title">Receitas</div>
-            <div class="metric-value income">${formatCurrency(totalIncome)}</div>
+            <div class="metric-value income">${escapeHtml(formatCurrency(totalIncome))}</div>
           </div>
           <div class="metric-card">
             <div class="metric-title">Despesas</div>
-            <div class="metric-value expense">${formatCurrency(totalSpent)}</div>
+            <div class="metric-value expense">${escapeHtml(formatCurrency(totalSpent))}</div>
           </div>
           <div class="metric-card">
             <div class="metric-title">Saldo Líquido</div>
-            <div class="metric-value balance">${formatCurrency(netBalance)}</div>
+            <div class="metric-value balance">${escapeHtml(formatCurrency(netBalance))}</div>
           </div>
           <div class="metric-card">
             <div class="metric-title">Poupança</div>
@@ -147,22 +160,22 @@ export const ExportImportModal: React.FC<ExportImportModalProps> = ({
               <th>Descrição</th>
               <th>Categoria</th>
               <th>Tipo</th>
-              <th style="text-align: right;">Valor (${currencySymbol})</th>
+              <th style="text-align: right;">Valor (${escapeHtml(currencySymbol)})</th>
             </tr>
           </thead>
           <tbody>
             ${sortedExpenses.map(item => `
               <tr>
-                <td style="white-space: nowrap; font-weight: 500;">${formatDate(item.date)}</td>
-                <td style="font-weight: 600; color: #0f172a;">${item.description}</td>
-                <td>${item.category}</td>
+                <td style="white-space: nowrap; font-weight: 500;">${escapeHtml(formatDate(item.date))}</td>
+                <td style="font-weight: 600; color: #0f172a;">${escapeHtml(item.description)}</td>
+                <td>${escapeHtml(item.category)}</td>
                 <td>
                   <span class="badge ${item.type === 'income' ? 'badge-income' : 'badge-expense'}">
                     ${item.type === 'income' ? 'Receita' : 'Despesa'}
                   </span>
                 </td>
                 <td class="amount ${item.type === 'income' ? 'amount-income' : 'amount-expense'}">
-                  ${item.type === 'income' ? '+ ' : '- '}${formatCurrency(item.amount)}
+                  ${item.type === 'income' ? '+ ' : '- '}${escapeHtml(formatCurrency(item.amount))}
                 </td>
               </tr>
             `).join('')}
@@ -170,7 +183,7 @@ export const ExportImportModal: React.FC<ExportImportModalProps> = ({
         </table>
 
         <div class="footer">
-          Meu Orçamento Inteligente (${currencySymbol}) • Documento gerado para controle e planejamento financeiro pessoal.
+          Meu Orçamento Inteligente (${escapeHtml(currencySymbol)}) • Documento gerado para controle e planejamento financeiro pessoal.
         </div>
 
         <script>
@@ -195,14 +208,14 @@ export const ExportImportModal: React.FC<ExportImportModalProps> = ({
       return;
     }
 
-    const headers = ['ID', 'Tipo', 'Descrição', `Valor (${currencySymbol})`, 'Categoria', 'Data'];
+    const headers = ['ID', 'Tipo', 'Descrição', `Valor (${escapeHtml(currencySymbol)})`, 'Categoria', 'Data'];
     const rows = expenses.map(e => [
-      e.id,
-      e.type === 'income' ? 'Receita' : 'Despesa',
-      `"${e.description.replace(/"/g, '""')}"`,
-      e.amount,
-      `"${e.category}"`,
-      e.date
+      sanitizeCsvField(e.id),
+      sanitizeCsvField(e.type === 'income' ? 'Receita' : 'Despesa'),
+      sanitizeCsvField(e.description),
+      Number.isFinite(Number(e.amount)) ? Number(e.amount) : 0,
+      sanitizeCsvField(e.category),
+      sanitizeCsvField(e.date)
     ]);
 
     const csvContent = 'data:text/csv;charset=utf-8,\uFEFF' + [headers.join(','), ...rows.map(r => r.join(','))].join('\n');
@@ -258,19 +271,44 @@ export const ExportImportModal: React.FC<ExportImportModalProps> = ({
     showSuccess('Modelo JSON baixado com sucesso!');
   };
 
-  const processImportList = (parsed: any) => {
+  const processImportList = (parsed: unknown) => {
     if (!Array.isArray(parsed)) {
       showError('Formato inválido. O arquivo JSON deve ser uma lista de lançamentos [ { ... } ].');
       return;
     }
 
-    const validList = parsed.map((item: any) => ({
-      description: String(item.description || 'Sem descrição'),
-      amount: Number(item.amount) || 0,
-      category: item.category || 'Outros',
-      type: item.type === 'income' ? 'income' : ('expense' as const),
-      date: item.date || new Date().toISOString().split('T')[0],
-    }));
+    if (parsed.length > 5000) {
+      showError('O arquivo excede o limite máximo permitido de 5000 lançamentos por importação.');
+      return;
+    }
+
+    const dateRegex = /^\d{4}-\d{2}-\d{2}$/;
+    const validList = parsed.map((rawItem: unknown) => {
+      const item = (rawItem && typeof rawItem === 'object' ? rawItem : {}) as Record<string, unknown>;
+      const rawDesc = typeof item.description === 'string' ? item.description.trim() : '';
+      const cleanDesc = rawDesc.slice(0, 255) || 'Sem descrição';
+
+      const numAmount = typeof item.amount === 'number' && Number.isFinite(item.amount)
+        ? Math.abs(item.amount)
+        : Math.abs(parseFloat(String(item.amount || '0'))) || 0;
+      const cleanAmount = Math.min(numAmount, 100_000_000);
+
+      const rawCat = typeof item.category === 'string' ? item.category.trim() : '';
+      const cleanCat = rawCat.slice(0, 100) || 'Outros';
+
+      const cleanType = item.type === 'income' ? 'income' : ('expense' as const);
+
+      const rawDate = typeof item.date === 'string' ? item.date.trim() : '';
+      const cleanDate = dateRegex.test(rawDate) ? rawDate : new Date().toISOString().split('T')[0];
+
+      return {
+        description: cleanDesc,
+        amount: cleanAmount,
+        category: cleanCat,
+        type: cleanType,
+        date: cleanDate,
+      };
+    });
 
     importExpenses(userId, validList);
     showSuccess(`${validList.length} lançamentos importados com sucesso!`);

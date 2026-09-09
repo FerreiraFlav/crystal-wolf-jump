@@ -2,7 +2,7 @@ import React, { useState } from 'react';
 import { User } from '@/types/finance';
 import { registerUserAsync, loginUserAsync } from '@/services/storage';
 import { seedSupabaseDataIfEmpty } from '@/services/supabaseStorage';
-import { checkIsConfigured } from '@/lib/supabase';
+import { checkIsConfigured, getSupabase } from '@/lib/supabase';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
@@ -23,6 +23,35 @@ export const AuthModal: React.FC<AuthModalProps> = ({ onLoginSuccess }) => {
 
   const isConnected = checkIsConfigured();
 
+  const handleForgotPassword = async () => {
+    const cleanEmail = email.trim();
+    if (!cleanEmail) {
+      showError('Por favor, informe seu e-mail no campo acima para recuperar a senha.');
+      return;
+    }
+    const client = getSupabase();
+    if (!client) {
+      showError('A conexão com o Supabase não está configurada.');
+      return;
+    }
+    setIsLoading(true);
+    try {
+      const { error } = await client.auth.resetPasswordForEmail(cleanEmail, {
+        redirectTo: window.location.origin,
+      });
+      if (error) {
+        showError(error.message || 'Erro ao solicitar recuperação de senha.');
+      } else {
+        showSuccess('E-mail de recuperação de senha enviado! Verifique sua caixa de entrada.');
+      }
+    } catch (err: unknown) {
+      const message = err instanceof Error ? err.message : 'Erro ao solicitar recuperação de senha.';
+      showError(message);
+    } finally {
+      setIsLoading(false);
+    }
+  };
+
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     setIsLoading(true);
@@ -34,8 +63,8 @@ export const AuthModal: React.FC<AuthModalProps> = ({ onLoginSuccess }) => {
         return;
       }
 
-      if (password.length < 4) {
-        showError('A senha deve ter pelo menos 4 caracteres.');
+      if (password.length < 6) {
+        showError('A senha deve ter pelo menos 6 caracteres.');
         setIsLoading(false);
         return;
       }
@@ -51,12 +80,14 @@ export const AuthModal: React.FC<AuthModalProps> = ({ onLoginSuccess }) => {
           await seedSupabaseDataIfEmpty(user.id);
           showSuccess(`Bem-vindo de volta, ${user.name}!`);
           onLoginSuccess(user);
-        } catch (err: any) {
-          showError(err.message || 'E-mail ou senha incorretos.');
+        } catch (err: unknown) {
+          const message = err instanceof Error ? err.message : 'E-mail ou senha incorretos.';
+          showError(message);
         }
       }
-    } catch (err: any) {
-      showError(err.message || 'Ocorreu um erro ao autenticar.');
+    } catch (err: unknown) {
+      const message = err instanceof Error ? err.message : 'Ocorreu um erro ao autenticar.';
+      showError(message);
     } finally {
       setIsLoading(false);
     }
@@ -74,8 +105,9 @@ export const AuthModal: React.FC<AuthModalProps> = ({ onLoginSuccess }) => {
       await seedSupabaseDataIfEmpty(user.id);
       showSuccess('Entrou como Flavio! Dados salvos no banco.');
       onLoginSuccess(user);
-    } catch (err: any) {
-      showError(err.message || 'Erro ao entrar na conta.');
+    } catch (err: unknown) {
+      const message = err instanceof Error ? err.message : 'Erro ao entrar na conta.';
+      showError(message);
     } finally {
       setIsLoading(false);
     }
@@ -161,7 +193,18 @@ export const AuthModal: React.FC<AuthModalProps> = ({ onLoginSuccess }) => {
               </div>
 
               <div className="space-y-1.5">
-                <Label htmlFor="password" className="text-xs text-slate-300 font-medium">Senha</Label>
+                <div className="flex items-center justify-between">
+                  <Label htmlFor="password" className="text-xs text-slate-300 font-medium">Senha</Label>
+                  {!isRegister && (
+                    <button
+                      type="button"
+                      onClick={handleForgotPassword}
+                      className="text-[11px] text-emerald-400 hover:text-emerald-300 transition-colors underline"
+                    >
+                      Esqueci minha senha
+                    </button>
+                  )}
+                </div>
                 <div className="relative">
                   <Lock className="w-4 h-4 absolute left-3 top-3 text-slate-500" />
                   <Input
