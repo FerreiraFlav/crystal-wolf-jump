@@ -108,6 +108,50 @@ export const Navbar: React.FC<NavbarProps> = ({ user, onLogout }) => {
               </select>
             </div>
 
+            {/* Seletor de Moeda - Versão Celular Compacta */}
+            <div
+              className="relative flex sm:hidden shrink-0 items-center justify-center h-8 min-w-8 px-2 rounded-full bg-slate-100 dark:bg-slate-800 hover:bg-slate-200 dark:hover:bg-slate-700 border border-slate-200/80 dark:border-slate-700 transition-colors text-slate-700 dark:text-slate-200 shadow-sm cursor-pointer"
+              title="Alterar Moeda"
+            >
+              <span className="text-xs font-extrabold text-emerald-600 dark:text-emerald-400 pointer-events-none select-none">
+                {POPULAR_CURRENCIES.find(c => c.code === currency)?.symbol || currency}
+              </span>
+              <select
+                value={currency}
+                onChange={(e) => setCurrency(e.target.value as CurrencyCode)}
+                className="absolute inset-0 w-full h-full opacity-0 cursor-pointer"
+                aria-label="Selecionar moeda"
+              >
+                {POPULAR_CURRENCIES.map(c => (
+                  <option key={c.code} value={c.code} className="bg-white dark:bg-slate-800 text-slate-800 dark:text-slate-200">
+                    {c.name}
+                  </option>
+                ))}
+              </select>
+            </div>
+
+            {/* Seletor de Idioma - Versão Celular Compacta */}
+            <div
+              className="relative flex sm:hidden shrink-0 items-center justify-center w-8 h-8 rounded-full bg-slate-100 dark:bg-slate-800 hover:bg-slate-200 dark:hover:bg-slate-700 border border-slate-200/80 dark:border-slate-700 transition-colors shadow-sm cursor-pointer text-sm"
+              title="Alterar Idioma"
+            >
+              <span className="pointer-events-none select-none">
+                {languages.find(l => l.code === language)?.flag || '🌐'}
+              </span>
+              <select
+                value={language}
+                onChange={(e) => setLanguage(e.target.value as Language)}
+                className="absolute inset-0 w-full h-full opacity-0 cursor-pointer"
+                aria-label="Selecionar idioma"
+              >
+                {languages.map(l => (
+                  <option key={l.code} value={l.code} className="bg-white dark:bg-slate-800 text-slate-800 dark:text-slate-200">
+                    {l.flag} {l.label}
+                  </option>
+                ))}
+              </select>
+            </div>
+
             {/* Botão de Tema (Claro / Escuro) - Versão Celular (ao lado da letra F) */}
             <button
               type="button"
