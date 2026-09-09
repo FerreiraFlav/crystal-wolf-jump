@@ -5,14 +5,16 @@ import { Card, CardHeader, CardTitle, CardContent } from '@/components/ui/card';
 import { PieChart, Pie, Cell, ResponsiveContainer, Tooltip } from 'recharts';
 import { PieChart as PieChartIcon, AlertCircle } from 'lucide-react';
 import { useLanguage } from '@/context/LanguageContext';
+import { Skeleton } from '@/components/ui/skeleton';
 
 interface ExpensePieChartProps {
   expenses: Expense[];
   budgets: CategoryBudget[];
   currentMonthLabel: string;
+  isLoading?: boolean;
 }
 
-export const ExpensePieChart: React.FC<ExpensePieChartProps> = ({ expenses, budgets, currentMonthLabel }) => {
+export const ExpensePieChart: React.FC<ExpensePieChartProps> = ({ expenses, budgets, currentMonthLabel, isLoading = false }) => {
   const { formatCurrency, t, getCategoryLabel } = useLanguage();
   const expenseItems = expenses.filter(e => e.type === 'expense');
 
@@ -75,7 +77,15 @@ export const ExpensePieChart: React.FC<ExpensePieChartProps> = ({ expenses, budg
       </CardHeader>
 
       <CardContent className="pt-4 flex-1 flex flex-col justify-between">
-        {chartData.length === 0 ? (
+        {isLoading ? (
+          <div className="flex flex-col items-center justify-center py-6 space-y-5 flex-1">
+            <Skeleton className="w-48 h-48 rounded-full" />
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-2 w-full pt-2">
+              <Skeleton className="h-10 w-full rounded-xl" />
+              <Skeleton className="h-10 w-full rounded-xl" />
+            </div>
+          </div>
+        ) : chartData.length === 0 ? (
           <div className="flex flex-col items-center justify-center py-12 text-slate-400 dark:text-slate-500 text-center flex-1">
             <AlertCircle className="w-10 h-10 mb-2 stroke-1 text-slate-300 dark:text-slate-600" />
             <p className="font-medium text-slate-600 dark:text-slate-400 text-sm">{t('noExpensesMonth')}</p>

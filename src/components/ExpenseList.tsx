@@ -28,17 +28,20 @@ import {
 } from 'lucide-react';
 import { useLanguage } from '@/context/LanguageContext';
 import { showSuccess, showError } from '@/utils/toast';
+import { Skeleton } from '@/components/ui/skeleton';
 
 interface ExpenseListProps {
   expenses: Expense[];
   onDeleteExpense: (id: string) => void;
   onEditExpense: (id: string, updated: { description: string; amount: number; category: CategoryType; type: TransactionType; date: string }) => void;
+  isLoading?: boolean;
 }
 
 export const ExpenseList: React.FC<ExpenseListProps> = ({ 
   expenses, 
   onDeleteExpense,
-  onEditExpense 
+  onEditExpense,
+  isLoading = false,
 }) => {
   const { formatCurrency, currencySymbol, t, getCategoryLabel } = useLanguage();
   const [search, setSearch] = useState('');
@@ -180,7 +183,13 @@ export const ExpenseList: React.FC<ExpenseListProps> = ({
         </CardHeader>
 
         <CardContent className="p-0">
-          {filteredExpenses.length === 0 ? (
+          {isLoading ? (
+            <div className="p-4 space-y-3">
+              <Skeleton className="h-14 w-full rounded-xl" />
+              <Skeleton className="h-14 w-full rounded-xl" />
+              <Skeleton className="h-14 w-full rounded-xl" />
+            </div>
+          ) : filteredExpenses.length === 0 ? (
             <div className="text-center py-10 px-4 text-slate-400 dark:text-slate-500">
               <Receipt className="w-8 h-8 mx-auto mb-2 text-slate-300 dark:text-slate-600" />
               <p className="text-sm font-medium text-slate-600 dark:text-slate-400">{t('noTransactions')}</p>

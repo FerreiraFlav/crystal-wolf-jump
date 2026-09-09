@@ -43,7 +43,8 @@ import { useLanguage } from '@/context/LanguageContext';
 const Index = () => {
   const { t, currencySymbol, language } = useLanguage();
   const today = new Date();
-  const [currentUser, setCurrentUser] = useState<User | null>(null);
+  const [currentUser, setCurrentUser] = useState<User | null>(() => getCurrentUser());
+  const [isLoadingUserData, setIsLoadingUserData] = useState<boolean>(true);
   const [expenses, setExpenses] = useState<Expense[]>([]);
   const [budgets, setBudgets] = useState<CategoryBudget[]>([]);
   const [piggyBanks, setPiggyBanks] = useState<PiggyBank[]>([]);
@@ -63,37 +64,53 @@ const Index = () => {
   const [isAnalyzing, setIsAnalyzing] = useState(false);
 
   useEffect(() => {
-    try {
+    let isMounted = true;
+
+    const initAuthAndData = async () => {
       const user = getCurrentUser();
       if (user) {
-        setCurrentUser(user);
-        loadUserData(user.id);
+        if (isMounted) setCurrentUser(user);
+        await loadUserData(user.id, true);
       }
-    } catch (err) {
-      console.warn('Erro ao restaurar usuário no carregamento inicial:', err);
-    }
+
+      const client = getSupabase();
+      if (client) {
+        try {
+          const { data: { session } } = await client.auth.getSession();
+          if (session?.user && isMounted) {
+            const userObj: User = {
+              id: session.user.id,
+              name: session.user.user_metadata?.name || session.user.email?.split('@')[0] || 'Usuário',
+              email: session.user.email || '',
+            };
+            setCurrentUser(userObj);
+            if (!user || user.id !== session.user.id) {
+              await loadUserData(session.user.id, true);
+            }
+          } else if (!session && !user && isMounted) {
+            setIsLoadingUserData(false);
+          }
+        } catch (err) {
+          console.warn('Erro ao verificar sessão Supabase:', err);
+          if (isMounted) setIsLoadingUserData(false);
+        }
+      } else {
+        if (isMounted) setIsLoadingUserData(false);
+      }
+    };
+
+    initAuthAndData();
 
     const client = getSupabase();
     if (client) {
-      // Restaura sessão existente caso a aba tenha sido recarregada ou reaberta
-      client.auth.getSession().then(({ data: { session } }) => {
-        if (session?.user) {
-          const userObj: User = {
-            id: session.user.id,
-            name: session.user.user_metadata?.name || session.user.email?.split('@')[0] || 'Usuário',
-            email: session.user.email || '',
-          };
-          setCurrentUser(userObj);
-          loadUserData(session.user.id);
-        }
-      });
-
-      const { data: { subscription } } = client.auth.onAuthStateChange((event, session) => {
+      const { data: { subscription } } = client.auth.onAuthStateChange(async (event, session) => {
+        if (!isMounted) return;
         if (event === 'SIGNED_OUT') {
           setCurrentUser(null);
           setExpenses([]);
           setBudgets([]);
           setPiggyBanks([]);
+          setIsLoadingUserData(false);
         } else if (event === 'SIGNED_IN' && session?.user) {
           const userObj: User = {
             id: session.user.id,
@@ -101,17 +118,25 @@ const Index = () => {
             email: session.user.email || '',
           };
           setCurrentUser(userObj);
-          loadUserData(session.user.id);
+          await loadUserData(session.user.id, true);
         }
       });
 
       return () => {
+        isMounted = false;
         subscription.unsubscribe();
+      };
+    } else {
+      return () => {
+        isMounted = false;
       };
     }
   }, []);
 
-  const loadUserData = async (userId: string) => {
+  const loadUserData = async (userId: string, isInitial: boolean = false) => {
+    if (isInitial) {
+      setIsLoadingUserData(true);
+    }
     try {
       // 1. Carrega do cache local
       setExpenses(getExpenses(userId));
@@ -146,12 +171,16 @@ const Index = () => {
       }
     } catch (err) {
       console.warn('Erro ao carregar dados do usuário:', err);
+    } finally {
+      if (isInitial) {
+        setIsLoadingUserData(false);
+      }
     }
   };
 
   const handleLoginSuccess = (user: User) => {
     setCurrentUser(user);
-    loadUserData(user.id);
+    loadUserData(user.id, true);
   };
 
   const handleLogout = async () => {
@@ -160,6 +189,7 @@ const Index = () => {
     setExpenses([]);
     setBudgets([]);
     setPiggyBanks([]);
+    setIsLoadingUserData(false);
     showSuccess('Você saiu com segurança.');
   };
 
@@ -220,6 +250,18 @@ const Index = () => {
   };
 
   if (!currentUser) {
+    if (isLoadingUserData) {
+      return (
+        <div className="min-h-screen bg-slate-100/70 dark:bg-slate-950 flex flex-col items-center justify-center p-4">
+          <div className="flex flex-col items-center space-y-4">
+            <div className="w-10 h-10 border-4 border-emerald-500 border-t-transparent rounded-full animate-spin" />
+            <p className="text-sm font-semibold text-slate-600 dark:text-slate-400 animate-pulse">
+              Carregando informações...
+            </p>
+          </div>
+        </div>
+      );
+    }
     return <AuthModal onLoginSuccess={handleLoginSuccess} />;
   }
 
@@ -341,12 +383,13 @@ const Index = () => {
         </div>
 
         {/* Summary Cards */}
-        <SummaryCards expenses={currentMonthExpenses} piggyBanks={piggyBanks} />
+        <SummaryCards expenses={currentMonthExpenses} piggyBanks={piggyBanks} isLoading={isLoadingUserData} />
 
         {/* Widget de Cofrinhos */}
         <PiggyBankWidget
           piggyBanks={piggyBanks}
           onOpenModal={() => setIsCofrinhoModalOpen(true)}
+          isLoading={isLoadingUserData}
         />
 
         {/* Form + Chart Section */}
@@ -360,6 +403,7 @@ const Index = () => {
               expenses={currentMonthExpenses} 
               budgets={budgets}
               currentMonthLabel={monthLabel} 
+              isLoading={isLoadingUserData}
             />
           </div>
         </div>
@@ -370,6 +414,7 @@ const Index = () => {
             expenses={expenses}
             selectedYear={selectedYear}
             selectedMonth={selectedMonth}
+            isLoading={isLoadingUserData}
           />
         </div>
 
@@ -379,6 +424,7 @@ const Index = () => {
             expenses={currentMonthExpenses} 
             onDeleteExpense={handleDeleteExpense} 
             onEditExpense={handleEditExpense}
+            isLoading={isLoadingUserData}
           />
         </div>
       </main>

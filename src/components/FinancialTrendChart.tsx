@@ -4,17 +4,20 @@ import { Card, CardHeader, CardTitle, CardContent } from '@/components/ui/card';
 import { BarChart, Bar, XAxis, YAxis, Tooltip, ResponsiveContainer, CartesianGrid, Legend } from 'recharts';
 import { TrendingUp } from 'lucide-react';
 import { useLanguage } from '@/context/LanguageContext';
+import { Skeleton } from '@/components/ui/skeleton';
 
 interface FinancialTrendChartProps {
   expenses: Expense[];
   selectedYear: number;
   selectedMonth: number;
+  isLoading?: boolean;
 }
 
 export const FinancialTrendChart: React.FC<FinancialTrendChartProps> = ({
   expenses,
   selectedYear,
   selectedMonth,
+  isLoading = false,
 }) => {
   const { formatCurrency, currencySymbol, t, language } = useLanguage();
 
@@ -77,7 +80,12 @@ export const FinancialTrendChart: React.FC<FinancialTrendChartProps> = ({
       </CardHeader>
 
       <CardContent className="pt-4 p-3 sm:p-5">
-        <div className="h-64 w-full">
+        {isLoading ? (
+          <div className="h-64 w-full flex items-center justify-center">
+            <Skeleton className="h-56 w-full rounded-xl" />
+          </div>
+        ) : (
+          <div className="h-64 w-full">
           <ResponsiveContainer width="100%" height="100%">
             <BarChart data={monthsData} margin={{ top: 10, right: 10, left: -15, bottom: 0 }}>
               <CartesianGrid strokeDasharray="3 3" vertical={false} stroke="#E2E8F0" className="stroke-slate-200 dark:stroke-slate-800" />
@@ -99,6 +107,7 @@ export const FinancialTrendChart: React.FC<FinancialTrendChartProps> = ({
             </BarChart>
           </ResponsiveContainer>
         </div>
+        )}
       </CardContent>
     </Card>
   );

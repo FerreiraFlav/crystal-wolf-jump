@@ -4,15 +4,18 @@ import { Card, CardHeader, CardTitle, CardContent } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { PiggyBank as PiggyIcon, ChevronRight, Plus, Sparkles, CheckCircle2 } from 'lucide-react';
 import { useLanguage } from '@/context/LanguageContext';
+import { Skeleton } from '@/components/ui/skeleton';
 
 interface PiggyBankWidgetProps {
   piggyBanks: PiggyBank[];
   onOpenModal: () => void;
+  isLoading?: boolean;
 }
 
 export const PiggyBankWidget: React.FC<PiggyBankWidgetProps> = ({
   piggyBanks,
   onOpenModal,
+  isLoading = false,
 }) => {
   const { formatCurrency, t } = useLanguage();
 
@@ -46,9 +49,13 @@ export const PiggyBankWidget: React.FC<PiggyBankWidgetProps> = ({
             <span className="text-[11px] font-bold text-emerald-800 dark:text-emerald-300 uppercase tracking-wider block">
               {t('totalInPiggyBanks')}
             </span>
-            <span className="text-xl font-black text-emerald-950 dark:text-emerald-400 mt-0.5 block">
-              {formatCurrency(totalSaved)}
-            </span>
+            {isLoading ? (
+              <Skeleton className="h-7 w-28 rounded-lg mt-1" />
+            ) : (
+              <span className="text-xl font-black text-emerald-950 dark:text-emerald-400 mt-0.5 block">
+                {formatCurrency(totalSaved)}
+              </span>
+            )}
           </div>
           <Button
             size="sm"
@@ -61,7 +68,12 @@ export const PiggyBankWidget: React.FC<PiggyBankWidgetProps> = ({
         </div>
 
         {/* Lista de Cofrinhos (Mini Cards) */}
-        {piggyBanks.length === 0 ? (
+        {isLoading ? (
+          <div className="grid grid-cols-1 sm:grid-cols-2 gap-3.5 pt-1">
+            <Skeleton className="h-20 w-full rounded-xl" />
+            <Skeleton className="h-20 w-full rounded-xl" />
+          </div>
+        ) : piggyBanks.length === 0 ? (
           <div className="text-center py-4 text-slate-400 dark:text-slate-500 text-xs">
             {t('noPiggyBanksYet')}
           </div>
